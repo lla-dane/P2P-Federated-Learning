@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "p2p-fedlearn"
+version = "0.1.0"
+description = "Federated Learning over P2P network using py-libp2p, IPFS, and Hedera"
+authors = [
+    { name = "Your Name", email = "you@example.com" }
+]
+dependencies = [
+    "trio>=0.25",
+    "numpy>=1.26",
+    "pandas>=2.2",
+    "protobuf>=4.25,<5.0",  # 👈 match libp2p requirement
+    "msgpack>=1.0",
+]
+
+# Extras let you group optional deps
+[project.optional-dependencies]
+p2p = [
+    "libp2p @ git+https://github.com/libp2p/py-libp2p.git",
+]
+ml = [
+    "torch>=2.0",
+]
+# All-in-one group
+dev = [
+    "black",
+    "isort",
+]
+
+[tool.setuptools.packages.find]
+where = ["p2p"]
+
+[tool.black]
+line-length = 88
+
+[tool.isort]
+profile = "black"
