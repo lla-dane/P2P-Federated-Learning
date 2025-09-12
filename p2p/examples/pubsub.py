@@ -2,7 +2,6 @@ import argparse
 import logging
 
 from coordinator import monitor_peer_topics, receive_loop, wait_for_subscribers_and_broadcast
-from logs import setup_logging
 import multiaddr
 import trio
 
@@ -34,6 +33,8 @@ from libp2p.tools.async_service.trio_service import (
 from libp2p.utils.address_validation import (
     find_free_port,
 )
+
+from logs import setup_logging
 
 # Configure logging
 logger = setup_logging("runner")
