@@ -52,7 +52,7 @@ class Ipfs():
     def fetch_file(self, cid: str) -> str:
         url = f"https://gateway.pinata.cloud/ipfs/{cid}"
         try:
-            response = requests.get(url, timeout=10)
+            response = requests.get(url, timeout=20)
             response.raise_for_status() # raise if status != 200
             
             # Decode bytes safely and normalize line endings ti \n

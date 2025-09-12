@@ -8,3 +8,9 @@ python -m venv .venv
 . .venv/bin/activate
 uv sync --all-extras
 ```
+
+Run tests (from root directory):
+
+```
+pytest -v
+```
