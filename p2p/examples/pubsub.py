@@ -1,7 +1,8 @@
 import argparse
 import logging
 
-import base58
+from coordinator import monitor_peer_topics, receive_loop, wait_for_subscribers_and_broadcast
+from logs import setup_logging
 import multiaddr
 import trio
 
@@ -35,89 +36,13 @@ from libp2p.utils.address_validation import (
 )
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO,  # Set default to DEBUG for more verbose output
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-)
-logger = logging.getLogger("pubsub-demo")
+logger = setup_logging("runner")
+
 CHAT_TOPIC = "pubsub-chat"
 GOSSIPSUB_PROTOCOL_ID = TProtocol("/meshsub/1.0.0")
 
 # Generate a key pair for the node
 key_pair = create_new_key_pair()
-
-async def wait_for_subscribers_and_broadcast(pubsub, topic, termination_event):
-    """
-    Wait until at least 3 peers subscribe to the topic,
-    then broadcast the number 5.
-    """
-    logger.info("Coordinator waiting for 2 subscribers...")
-    while not termination_event.is_set():
-        # Count peers that are subscribed to our topic
-        subscribed_peers = list(pubsub.peers.keys())
-        print(subscribed_peers)
-
-        if len(subscribed_peers) >= 2:
-            logger.info("2 peers detected, broadcasting number 5...")
-            message = "DEEP LEARNING DATASET"
-            await trio.sleep(1)
-            await pubsub.publish(topic, message.encode())
-            break
-        await trio.sleep(2)  # check every second
-
-async def receive_loop(subscription, termination_event):
-    logger.debug("Starting receive loop")
-    while not termination_event.is_set():
-        try:
-            message = await subscription.get()
-            logger.info(f"From peer: {base58.b58encode(message.from_id).decode()}")
-            print(f"Received message: {message.data.decode('utf-8')}")
-        except Exception:
-            logger.exception("Error in receive loop")
-            await trio.sleep(1)
-
-
-async def publish_loop(pubsub, topic, termination_event):
-    """Continuously read input from user and publish to the topic."""
-    logger.debug("Starting publish loop...")
-    print("Type messages to send (press Enter to send):")
-    while not termination_event.is_set():
-        try:
-            # Use trio's run_sync_in_worker_thread to avoid blocking the event loop
-            message = await trio.to_thread.run_sync(input)
-            if message.lower() == "quit":
-                termination_event.set()  # Signal termination
-                break
-            if message:
-                logger.debug(f"Publishing message: {message}")
-                await pubsub.publish(topic, message.encode())
-                print(f"Published: {message}")
-        except Exception:
-            logger.exception("Error in publish loop")
-            await trio.sleep(1)  # Avoid tight loop on error
-
-
-async def monitor_peer_topics(pubsub, nursery, termination_event):
-    """
-    Monitor for new topics that peers are subscribed to and
-    automatically subscribe the server to those topics.
-    """
-    # Keep track of topics we've already subscribed to
-    subscribed_topics = set()
-
-    while not termination_event.is_set():
-        # Check for new topics in peer_topics
-        for topic in pubsub.peer_topics.keys():
-            if topic not in subscribed_topics:
-                logger.info(f"Auto-subscribing to new topic: {topic}")
-                subscription = await pubsub.subscribe(topic)
-                subscribed_topics.add(topic)
-                # Start a receive loop for this topic
-                nursery.start_soon(receive_loop, subscription, termination_event)
-
-        # Check every 2 seconds for new topics
-        await trio.sleep(2)
-
 
 async def run(topic: str, destination: str | None, port: int | None) -> None:
     # Initialize network settings
@@ -125,7 +50,6 @@ async def run(topic: str, destination: str | None, port: int | None) -> None:
 
     if port is None or port == 0:
         port = find_free_port()
-        logger.info(f"Using random available port: {port}")
 
     listen_addr = multiaddr.Multiaddr(f"/ip4/0.0.0.0/tcp/{port}")
 
@@ -160,8 +84,6 @@ async def run(topic: str, destination: str | None, port: int | None) -> None:
         # Start the peer-store cleanup task
         nursery.start_soon(host.get_peerstore().start_cleanup_task, 60)
 
-        logger.info(f"Node started with peer ID: {host.get_id()}")
-        logger.info(f"Listening on: {listen_addr}")
         logger.info("Initializing PubSub and GossipSub...")
         async with background_trio_service(pubsub):
             async with background_trio_service(gossipsub):
@@ -287,11 +209,10 @@ def main() -> None:
     args = parser.parse_args()
 
     # Set debug level if verbose flag is provided
-    if args.verbose:
-        logger.setLevel(logging.DEBUG)
-        logger.debug("Debug logging enabled")
+    # if args.verbose:
+    #     logger.setLevel(logging.DEBUG)
+    #     logger.debug("Debug logging enabled")
 
-    logger.info("Running pubsub chat example...")
     logger.info(f"Your selected topic is: {args.topic}")
 
     try:
