@@ -15,6 +15,8 @@ dependencies = [
     "pandas>=2.2",
     "protobuf>=4.25,<5.0",  # 👈 match libp2p requirement
     "msgpack>=1.0",
+    "pinata==0.0.1",
+    "python-dotenv"
 ]
 
 # Extras let you group optional deps
