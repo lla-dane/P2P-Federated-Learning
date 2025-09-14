@@ -6,6 +6,12 @@ This project is currently under **active development**. The initial building blo
 
 ---
 
+## P2P network working demo:
+<video width="640" height="360" controls>
+  <source src="demo/p2p-demo-1.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+
 ## 📦 Project Components
 
 ### 1. **IPFS Utilities (`/ipfs/mcache.py`)**
