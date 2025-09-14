@@ -2,7 +2,6 @@ import argparse
 
 import multiaddr
 import trio
-
 from libp2p import (
     new_host,
 )

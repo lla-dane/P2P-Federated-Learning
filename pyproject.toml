@@ -29,10 +29,10 @@ p2p = [
 ml = [
     "torch>=2.0",
 ]
-# All-in-one group
 dev = [
     "black",
     "isort",
+    "ruff",
 ]
 
 [tool.setuptools.packages.find]
@@ -49,3 +49,21 @@ pythonpath = ["."]
 log_cli = true
 log_cli_level = "INFO"
 
+# Ruff config
+[tool.ruff]
+line-length = 150
+target-version = "py313"
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes (includes unused imports/variables)
+]
+ignore = []
+fix = true
+
+[tools.ruff.lint]
+select = ["F401", "F841"] # unused import, unused variable
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"

@@ -1,5 +1,7 @@
-from rich.logging import RichHandler
 import logging
+
+from rich.logging import RichHandler
+
 
 def setup_logging(log_topic: str):
     # Reset handlers
@@ -8,12 +10,14 @@ def setup_logging(log_topic: str):
 
     logging.basicConfig(
         level="DEBUG",
-        format="%(message)s",    # only message, no timestamp/level
-        handlers=[RichHandler(
-            rich_tracebacks=True,
-            show_time=False,     # disable timestamp
-            show_path=True       # keep file:line info
-        )]
+        format="%(message)s",  # only message, no timestamp/level
+        handlers=[
+            RichHandler(
+                rich_tracebacks=True,
+                show_time=False,  # disable timestamp
+                show_path=True,  # keep file:line info
+            )
+        ],
     )
 
     # Silence root

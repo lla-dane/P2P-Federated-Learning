@@ -1,10 +1,13 @@
 import argparse
 import logging
 
-from coordinator import monitor_peer_topics, receive_loop, wait_for_subscribers_and_broadcast
 import multiaddr
 import trio
-
+from coordinator import (
+    monitor_peer_topics,
+    receive_loop,
+    wait_for_subscribers_and_broadcast,
+)
 from libp2p import (
     new_host,
 )
@@ -44,6 +47,7 @@ GOSSIPSUB_PROTOCOL_ID = TProtocol("/meshsub/1.0.0")
 
 # Generate a key pair for the node
 key_pair = create_new_key_pair()
+
 
 async def run(topic: str, destination: str | None, port: int | None) -> None:
     # Initialize network settings
@@ -113,7 +117,12 @@ async def run(topic: str, destination: str | None, port: int | None) -> None:
                     # Start message publish and receive loops
                     nursery.start_soon(receive_loop, subscription, termination_event)
                     # nursery.start_soon(publish_loop, pubsub, topic, termination_event)
-                    nursery.start_soon(wait_for_subscribers_and_broadcast, pubsub, topic, termination_event)
+                    nursery.start_soon(
+                        wait_for_subscribers_and_broadcast,
+                        pubsub,
+                        topic,
+                        termination_event,
+                    )
                 else:
                     # Client mode
                     maddr = multiaddr.Multiaddr(destination)
