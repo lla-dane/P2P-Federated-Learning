@@ -16,7 +16,6 @@ ACCESS_TOKEN = os.getenv("JWT_TOKEN")
 
 logger = setup_logging("ipfs-client")
 
-
 class Ipfs:
     """The Pinata IPFS client instance"""
 
