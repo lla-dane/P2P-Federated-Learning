@@ -6,11 +6,9 @@ This project is currently under **active development**. The initial building blo
 
 ---
 
-## P2P network working demo:
-<video width="640" height="360" controls>
-  <source src="demo/p2p-demo-1.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+## P2P network demo:
+
+https://github.com/user-attachments/assets/9727b29a-abb2-4619-ac01-2d8acd9b0bb5
 
 ## 📦 Project Components
 
