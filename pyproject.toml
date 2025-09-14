@@ -17,7 +17,8 @@ dependencies = [
     "msgpack>=1.0",
     "pinata==0.0.1",
     "python-dotenv",
-    "pytest"
+    "pytest",
+    "rich"
 ]
 
 # Extras let you group optional deps

@@ -1,66 +1,177 @@
+from libp2p import new_host
+from mesh_utils import Mesh
+import multiaddr
 from logs import setup_logging
 import trio
 import base58
-import logging
+import json
+
+from libp2p.pubsub.gossipsub import (
+    GossipSub,
+)
+from libp2p.pubsub.pubsub import (
+    Pubsub,
+)
+from libp2p.abc import IHost
+from libp2p.utils.address_validation import (
+    find_free_port,
+)
+from libp2p.stream_muxer.mplex.mplex import (
+    MPLEX_PROTOCOL_ID,
+    Mplex,
+)
+from libp2p.custom_types import (
+    TProtocol,
+)
 
 logger = setup_logging("coordinator")
 
-async def wait_for_subscribers_and_broadcast(pubsub, topic, termination_event, threshold: int = 1):
-    await trio.sleep(1)
-    logger.info(f"Cordinator waiting for {threshold} subscribers...")
-    while not termination_event.is_set():
-        # Count the peers that are subscribed to out topic
-        subscribed_peers = list(pubsub.peers.keys())
-        print(subscribed_peers)
+GOSSIPSUB_PROTOCOL_ID = TProtocol("/meshsub/1.0.0")
+
+class Node: 
+    def __init__(self):
+        self.mesh = Mesh()
         
-        if len(subscribed_peers) >= threshold:
-            logger.info(f"{threshold} peers detected, broadcasting the peices...")
-            message = "DEEP LEARNING CHUNK"
-            await trio.sleep(1)
-            await pubsub.publish(topic, message.encode())
-            break
-        await trio.sleep(2) # check every 2 seconds
+        # Set up the general host configs
+        self.host = new_host(muxer_opt={MPLEX_PROTOCOL_ID: Mplex})
         
-async def receive_loop(subscription, termination_event):
-    print("Starting receive loop...")
-    while not termination_event.is_set():
-        try:
-            message = await subscription.get()
-            print(f"From peer: {base58.b58encode(message.from_id).decode()}")
-            print(f"Received message: {message.data.decode('utf-8')}")
-        except Exception:
-            print("ERROR IN THE RECEIVE LOOP")
-            await trio.sleep(1)
-            
-async def publish_loop(pubsub, topic, termination_event):
-    print("Starting publish loop...")
-    print("Type messages tp send (press Enter to send):")
-    while not termination_event.is_set():
-        try:
-            message = await trio.to_thread.run_sync(input)
-            if message.lower() == "quit":
-                termination_event.set()
-                break
-            if message:
-                print(f"Publishing message: {message}")
-                await pubsub.publish(topic, message.encode())
-                print(f"Published: {message}")
-        except Exception:
-            print("ERROR IN PUBLISH LOOP")
-            await trio.sleep(1)
-            
-async def monitor_peer_topics(pubsub, nursery, termination_event):
-    subscribed_topics = set()
+        # Create and start gossipsub with optimized parameters for testing
+        self.gossipsub = GossipSub(
+            protocols=[GOSSIPSUB_PROTOCOL_ID],
+            degree=6,  # Number of peers to maintain in mesh
+            degree_low=5,  # Lower bound for mesh peers
+            degree_high=7,  # Upper bound for mesh peers
+            direct_peers=None,  # Direct peers
+            time_to_live=60,  # TTL for message cache in seconds
+            gossip_window=2,  # Smaller window for faster gossip
+            gossip_history=5,  # Keep more history
+            heartbeat_initial_delay=2.0,  # Start heartbeats sooner
+            heartbeat_interval=5,  # More frequent heartbeats for testing
+        )
+        
+        self.pubsub = Pubsub(self.host, self.gossipsub)
+        self.termination_event = trio.Event()
+        
+        self.bootstrap_addr = None
+        self.bootstrap_id = None
+        
+        self.role: str = None
+        self.default_role = "bootstrap"
+        self.is_subscribed = False
+        self.training_topic = None
     
-    while not termination_event.is_set():
-        for topic in pubsub.peer_topics.keys():
-            if topic not in subscribed_topics:
-                print(f"Auto-subscribing to new topic: {topic}")
-                subscription = await pubsub.subscribe(topic)
-                subscribed_topics.add(topic)
+    async def receive_loop(self, subscription):
+        
+        logger.warning("Starting receive loop")
+        while not self.termination_event.is_set():
+            try:
+                message = await subscription.get()
+                sender_id = base58.b58encode(message.from_id).decode()
                 
-                nursery.start_soon(receive_loop, subscription, termination_event)
+                if self.host.get_id() == sender_id:
+                    await trio.sleep(1)
+                    continue
                 
-        await trio.sleep(2)
+                # Case 1: Message from bootstarp
+                if sender_id == self.bootstrap_id:
+                    if self.mesh.is_mesh_summary(message.data):
+                        
+                        bootmesh_bytes = json.dumps(self.mesh.bootstrap_mesh).encode("utf-8")
+                                                
+                        if bootmesh_bytes != message.data:
+                            logger.debug("BOOTSTRAP mesh updated")
+                            mesh_summary = json.loads(message.data.decode('utf-8'))
+                            self.mesh.bootstrap_mesh = mesh_summary                        
+                        
+                    else:
+                        logger.info(f"From BOOTSTRAP: {sender_id}")
+                        logger.info(f"Received message: {message.data.decode('utf-8')}")
+                
+                # Case2: General message in the mesh
+                else:
+                    logger.info(f"From peer: {sender_id}")
+                    logger.info(f"Received message: {message.data.decode('utf-8')}")
+            except Exception:
+                logger.error("Error in the receive loop")
+                await trio.sleep(1)
         
         
+    async def connected_peer_monitoring_loop(self):
+        """Continuously monitor connected peers via pubsub."""
+        
+        await trio.sleep(1)
+        logger.warning("Starting the connected peers monitoring service")
+
+        while not self.termination_event.is_set():
+            # get live peer IDs from pubsub
+            connected_peers = set(self.pubsub.peers.keys())
+            connected_peer_ids = {str(peer) for peer in connected_peers}
+
+            # compare with stored set
+            new_peers = connected_peer_ids - self.mesh.connected_nodes
+            lost_peers = self.mesh.connected_nodes - connected_peer_ids
+
+            for peer_id in new_peers:
+                logger.info(f"Peer connected: {peer_id}")
+                
+                # Everytime a peer gets connected, wait for 2 seconds for the peer to 
+                # initialize the serivices and then publish the bootstrap mesh summary
+                if self.role == "bootstrap":
+                    await trio.sleep(3)
+                    await self.pubsub.publish(
+                        self.mesh.fed_mesh_id,
+                        json.dumps(self.mesh.local_mesh).encode("utf-8"),
+                    )
+
+            for peer_id in lost_peers:
+                logger.info(f"Peer disconnected: {peer_id}")
+
+            # update state for next iteration
+            self.mesh.connected_nodes = connected_peer_ids
+
+            await trio.sleep(2)
+        
+
+    async def periodic_mesh_summary_update(self):
+        
+        await trio.sleep(1)
+        logger.warning("Periodic mesh update service booting up")
+        
+        while not self.termination_event.is_set():
+            topic_map = self.pubsub.peer_topics
+            topic_summary = {}
+            
+            for topic, peers in topic_map.items():
+                peer_list = []
+                for peer_id in peers:
+                    maddr = self.host.get_peerstore().addrs(peer_id)[0]
+                    peer_list.append({
+                        "peer_id": str(peer_id),
+                        "maddr": str(maddr)
+                    })
+                topic_summary[topic] = peer_list
+                
+            self.mesh.local_mesh = topic_summary
+            await trio.sleep(2)
+        
+    # TODO: Flood the network periodically with the bootstrap mesh summary
+    # At present we are thinking about only 1 bootstrap node
+    
+    async def periodic_flood_bootstrap_mesh_summary(self, mesh: str):
+        """Only for BOOTSTARP Node"""
+        
+        logger.warning("Periodic flooding of BOOTSTRAP mesh summary initiating")
+        
+        bootmesh_bytes = json.dumps(self.mesh.local_mesh).encode("utf-8")
+        while not self.termination_event.is_set():
+
+            latest_bootmesh_bytes = json.dumps(self.mesh.local_mesh).encode("utf-8")
+            
+            if latest_bootmesh_bytes == bootmesh_bytes:
+                await trio.sleep(2)
+                continue
+            else:
+                bootmesh_bytes = latest_bootmesh_bytes
+                await self.pubsub.publish(mesh, latest_bootmesh_bytes)        
+                
+            await trio.sleep(2)        

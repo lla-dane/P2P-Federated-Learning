@@ -4,10 +4,12 @@ from typing import Any
 from dotenv import load_dotenv
 from pinata import Pinata
 import requests
+from pathlib import Path
 
 from logs import setup_logging
 
-load_dotenv()
+env_path = Path("..")/".env"
+load_dotenv(dotenv_path=env_path)
 
 API_KEY = os.getenv("API_KEY")
 API_SECRET = os.getenv("API_SECRET")
