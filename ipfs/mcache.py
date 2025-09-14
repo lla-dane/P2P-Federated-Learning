@@ -40,12 +40,10 @@ class Ipfs:
 
         try:
             response = self.client.pin_file(temp_file_path)
-            print(response)
             if self.is_success(response):
                 ipfs_hash = self.get_ipfs_hash(response)
                 self.cids.append(ipfs_hash)
                 return True
-            print("FAILED")
             return False
 
         finally:
