@@ -38,7 +38,9 @@ Available commands:
 - connect <multiaddr>       - Connect to another peer
 - train <topic>             - Start a training round in the fed-learn mesh
 - join <topic>              - Subscribe to a topic
+- leave <topic>             - Unsubscribe to a topic
 - publish <topic> <message> - Publish a message
+- topics                    - List of subscribed topics
 - mesh                      - Get the local mesh summary
 - bootmesh                  - Get the bootstrap mesh summary
 - peers                     - List connected peers
@@ -98,6 +100,7 @@ async def interactive_shell() -> None:
                     # Subscribe to the FED_LEARNING_MESH
                     boot_subscripton = await node.pubsub.subscribe(FED_LEARNING_MESH)
                     nursery.start_soon(node.receive_loop, boot_subscripton)
+                    node.subscribed_topics.append(FED_LEARNING_MESH)
 
                     # Flood the bootstrap mesh summary in the FED_LEARNING_MESH periodically
                     nursery.start_soon(
@@ -124,6 +127,11 @@ async def interactive_shell() -> None:
                         f"{node.role.upper()} node subscribed to the [{FED_LEARNING_MESH}] mesh"
                     )
                     nursery.start_soon(node.receive_loop, worker_subscription)
+                    node.subscribed_topics.append(FED_LEARNING_MESH)
+                    await node.pubsub.publish(
+                        FED_LEARNING_MESH,
+                        f"{node.host.get_id()} joins the [{FED_LEARNING_MESH}] mesh as {node.role.upper()}".encode(),
+                    )
 
                     await node.host.connect(info)
                     logger.info("Connected with the BOOTSTRAP node")
@@ -154,15 +162,18 @@ async def interactive_shell() -> None:
                             logger.info(f"Connected to {info.peer_id}")
 
                         if cmd == "train" and len(parts) > 1:
+                            # TODO: Lets not have the trainer node join in more than 1 training rounds
                             if node.role != "client":
                                 logger.warning(
                                     "Training round can only be strated by a CLIENT node"
                                 )
+                                continue
 
                             training_subscription = await node.pubsub.subscribe(
                                 parts[1]
                             )
                             nursery.start_soon(node.receive_loop, training_subscription)
+                            node.subscribed_topics.append(parts[1])
 
                             training_round_greet = (
                                 f"A new training round starting in [{parts[1]}] mesh"
@@ -175,6 +186,14 @@ async def interactive_shell() -> None:
                             node.is_subscribed = True
 
                         if cmd == "join" and len(parts) > 1:
+                            if node.role != "trainer":
+                                logger.warning(
+                                    "Only TRAINER nodes can participate in the training sequence"
+                                )
+                                continue
+
+                            # TODO: Lets not have the trainer node join in more than 1 training rounds
+                            # or perhaps we do?
                             if node.is_subscribed:
                                 logger.warning(
                                     f"Already subscribed to topic: {node.training_topic}"
@@ -182,17 +201,49 @@ async def interactive_shell() -> None:
                                 continue
 
                             subscription = await node.pubsub.subscribe(parts[1])
-
                             nursery.start_soon(node.receive_loop, subscription)
+                            node.subscribed_topics.append(parts[1])
+                            await node.pubsub.publish(
+                                parts[1], "Joined as a TRAINER node".encode()
+                            )
 
                             node.is_subscribed = True
                             node.training_topic = parts[1]
 
                             await trio.sleep(1)
 
+                        if cmd == "leave" and len(parts) > 1:
+                            if node.role == "trainer":
+                                await node.pubsub.publish(
+                                    parts[1], "Left as a TRAINER node".encode()
+                                )
+
+                                await node.pubsub.unsubscribe(parts[1])
+                                logger.info(f"Unsubscribed from [{parts[1]}] mesh")
+
+                            if node.role == "client":
+                                await node.pubsub.publish(
+                                    parts[1],
+                                    f"The CLIENT node is terminating the [{parts[1]}] mesh".encode(),
+                                )
+
+                                await node.pubsub.unsubscribe(parts[1])
+                                logger.info(
+                                    f"Terminating the training rounf in [{parts[1]}] mesh"
+                                )
+
+                            node.subscribed_topics.remove(parts[1])
+                            node.is_subscribed = False
+                            node.training_topic = None
+
+                            await trio.sleep(1)
+
                         if cmd == "publish" and len(parts) > 2:
                             await node.pubsub.publish(parts[1], parts[2].encode())
                             logger.debug(f"Published: {parts[2]}")
+
+                        if cmd == "topics":
+                            logger.info(node.subscribed_topics)
 
                         if cmd == "mesh":
                             node.mesh.print_mesh_summary(node.mesh.local_mesh)

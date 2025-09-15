@@ -56,43 +56,54 @@ class Node:
         self.default_role = "bootstrap"
         self.is_subscribed = False
         self.training_topic = None
+        self.subscribed_topics = []
 
     async def receive_loop(self, subscription):
-
         logger.warning("Starting receive loop")
-        while not self.termination_event.is_set():
-            try:
-                message = await subscription.get()
-                sender_id = base58.b58encode(message.from_id).decode()
 
-                if self.host.get_id() == sender_id:
-                    await trio.sleep(1)
-                    continue
+        try:
+            while not self.termination_event.is_set():
+                try:
+                    message = await subscription.get()
 
-                # Case 1: Message from bootstarp
-                if sender_id == self.bootstrap_id:
-                    if self.mesh.is_mesh_summary(message.data):
+                    # Subscription may be closed
+                    if message is None:
+                        logger.info("Subscription closed. Exiting receive loop.")
+                        break
 
-                        bootmesh_bytes = json.dumps(self.mesh.bootstrap_mesh).encode(
-                            "utf-8"
-                        )
+                    sender_id = base58.b58encode(message.from_id).decode()
 
-                        if bootmesh_bytes != message.data:
-                            logger.debug("BOOTSTRAP mesh updated")
-                            mesh_summary = json.loads(message.data.decode("utf-8"))
-                            self.mesh.bootstrap_mesh = mesh_summary
+                    # Ignore self-messages
+                    if self.host.get_id() == sender_id:
+                        continue
 
+                    # Case 1: Message from bootstrap
+                    if sender_id == self.bootstrap_id:
+                        if self.mesh.is_mesh_summary(message.data):
+                            bootmesh_bytes = json.dumps(
+                                self.mesh.bootstrap_mesh
+                            ).encode("utf-8")
+
+                            if bootmesh_bytes != message.data:
+                                logger.debug("BOOTSTRAP mesh updated")
+                                mesh_summary = json.loads(message.data.decode("utf-8"))
+                                self.mesh.bootstrap_mesh = mesh_summary
+                        else:
+                            logger.info(f"BOOTSTRAP: {message.data.decode('utf-8')}")
+
+                    # Case 2: General message
                     else:
-                        logger.info(f"From BOOTSTRAP: {sender_id}")
-                        logger.info(f"Received message: {message.data.decode('utf-8')}")
+                        logger.info(f"{sender_id}: {message.data.decode('utf-8')}")
 
-                # Case2: General message in the mesh
-                else:
-                    logger.info(f"From peer: {sender_id}")
-                    logger.info(f"Received message: {message.data.decode('utf-8')}")
-            except Exception:
-                logger.error("Error in the receive loop")
-                await trio.sleep(1)
+                except trio.EndOfChannel:
+                    logger.info("Channel closed. Stopping receive loop.")
+                    break
+                except Exception as e:
+                    logger.error(f"Error in the receive loop: {e}")
+                    await trio.sleep(0.5)
+
+        finally:
+            logger.info("Receive loop terminated")
 
     async def connected_peer_monitoring_loop(self):
         """Continuously monitor connected peers via pubsub."""
