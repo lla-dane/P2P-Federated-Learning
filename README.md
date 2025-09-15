@@ -87,7 +87,9 @@ Available commands:
 - connect <multiaddr>       - Connect to another peer
 - train <topic>             - Start a training round in the fed-learn mesh
 - join <topic>              - Subscribe to a topic
+- leave <topic>             - Unsubscribe to a topic
 - publish <topic> <message> - Publish a message
+- topics                    - List of subscribed topics
 - mesh                      - Get the local mesh summary
 - bootmesh                  - Get the bootstrap mesh summary
 - peers                     - List connected peers
