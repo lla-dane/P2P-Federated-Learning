@@ -58,12 +58,18 @@ def load_keypair_from_env(env_path):
 
 
 class Node:
-    def __init__(self):
+    def __init__(self, role: str):
         self.mesh = Mesh()
 
         # Set up the general host configs
-        key_pair = load_keypair_from_env(env_path)
-        self.host = new_host(key_pair=key_pair, muxer_opt={MPLEX_PROTOCOL_ID: Mplex})
+
+        if role == "bootstrap":
+            key_pair = load_keypair_from_env(env_path)
+            self.host = new_host(
+                key_pair=key_pair, muxer_opt={MPLEX_PROTOCOL_ID: Mplex}
+            )
+        else:
+            self.host = new_host(muxer_opt={MPLEX_PROTOCOL_ID: Mplex})
 
         # Create and start gossipsub with optimized parameters for testing
         self.gossipsub = GossipSub(
@@ -85,7 +91,7 @@ class Node:
         self.bootstrap_addr = None
         self.bootstrap_id = None
 
-        self.role: str = None
+        self.role: str = role
         self.default_role = "bootstrap"
         self.is_subscribed = False
         self.training_topic = None

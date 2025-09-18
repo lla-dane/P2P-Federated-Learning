@@ -52,15 +52,14 @@ Available commands:
 
 async def interactive_shell() -> None:
 
-    node = Node()
-    node.mesh.fed_mesh_id = FED_LEARNING_MESH
-
     role = await trio.to_thread.run_sync(
         lambda: input(
-            f"Configure the role of the node client/trainer/bootstrap [default: {node.default_role}]: "
+            "Configure the role of the node client/trainer/bootstrap [default: bootstrap]: "
         )
     )
-    node.role = role.strip() or node.default_role
+    node = Node(role=role.strip() or "bootstrap")
+    node.mesh.fed_mesh_id = FED_LEARNING_MESH
+
     logger.info(f"Running as {node.role.upper()} node")
 
     # Initiate the node
