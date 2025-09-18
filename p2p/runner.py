@@ -189,6 +189,7 @@ async def interactive_shell() -> None:
                             node.training_topic = parts[1]
                             node.is_subscribed = True
 
+                        
                         if cmd == "join" and len(parts) > 1:
                             if node.role != "trainer":
                                 logger.warning(
