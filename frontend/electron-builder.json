@@ -1,0 +1,16 @@
+{
+  "appId": "com.example.desktopapp",
+  "files": ["dist-electron", "dist-react"],
+  "extraResources": ["dist-electron/preload.cjs"],
+  "icon": "build/icons/icon",
+  "mac": {
+    "target": ["dmg", "zip"]
+  },
+  "linux": {
+    "target": ["AppImage", "deb"],
+    "category": "Utility"
+  },
+  "win": {
+    "target": ["portable", "msi"]
+  }
+}
