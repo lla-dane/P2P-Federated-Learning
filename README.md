@@ -107,3 +107,11 @@ Available commands:
 - [ ] Federated learning model training logic (planned)
 - [ ] Model parameter aggregation and distribution (planned)
 - [ ] Advanced mesh monitoring and peer coordination (in progress)
+
+
+### AWS
+
+```
+sudo apt install make
+
+```

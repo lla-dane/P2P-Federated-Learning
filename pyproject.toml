@@ -11,10 +11,6 @@ authors = [
 ]
 dependencies = [
     "trio>=0.25",
-    "numpy>=1.26",
-    "pandas>=2.2",
-    "protobuf>=4.25,<5.0",  # 👈 match libp2p requirement
-    "msgpack>=1.0",
     "pinata==0.0.1",
     "python-dotenv",
     "pytest",
@@ -25,9 +21,6 @@ dependencies = [
 [project.optional-dependencies]
 p2p = [
     "libp2p @ git+https://github.com/libp2p/py-libp2p.git",
-]
-ml = [
-    "torch>=2.0",
 ]
 dev = [
     "black",
