@@ -1,11 +1,13 @@
+import base64
 import json
+from pathlib import Path
 
 import base58
+import Crypto.PublicKey.RSA as RSA
 import trio
 from libp2p import new_host
-
-from ipfs.mcache import Ipfs
-
+from libp2p.crypto.keys import KeyPair
+from libp2p.crypto.rsa import RSAPrivateKey, RSAPublicKey
 from libp2p.custom_types import (
     TProtocol,
 )
@@ -21,11 +23,38 @@ from libp2p.stream_muxer.mplex.mplex import (
 )
 from mesh_utils import Mesh
 
+from ipfs.mcache import Ipfs
 from logs import setup_logging
 
 logger = setup_logging("coordinator")
 
+env_path = Path("..") / ".env"
 GOSSIPSUB_PROTOCOL_ID = TProtocol("/meshsub/1.0.0")
+
+
+def load_keypair_from_env(env_path):
+    # load keys from .env
+    env = {}
+    with open(env_path) as f:
+        for line in f:
+            k, v = line.strip().split("=", 1)
+            env[k] = v
+
+    priv_b64 = env["BOOTSTRAP_PRIVATE_KEY"]
+    pub_b64 = env["BOOTSTRAP_PUBLIC_KEY"]
+
+    priv_bytes = base64.b64decode(priv_b64)
+    pub_bytes = base64.b64decode(pub_b64)
+
+    private_rsa = RSA.import_key(priv_bytes)
+    public_rsa = RSA.import_key(pub_bytes)
+
+    # wrap in libp2p classes
+    private_key = RSAPrivateKey(private_rsa)
+    public_key = RSAPublicKey(public_rsa)
+    key_pair = KeyPair(private_key, public_key)
+
+    return key_pair
 
 
 class Node:
@@ -33,7 +62,8 @@ class Node:
         self.mesh = Mesh()
 
         # Set up the general host configs
-        self.host = new_host(muxer_opt={MPLEX_PROTOCOL_ID: Mplex})
+        key_pair = load_keypair_from_env(env_path)
+        self.host = new_host(key_pair=key_pair, muxer_opt={MPLEX_PROTOCOL_ID: Mplex})
 
         # Create and start gossipsub with optimized parameters for testing
         self.gossipsub = GossipSub(
@@ -97,22 +127,22 @@ class Node:
                     # Case 2: General message
                     else:
                         logger.info(f"From BOOTSTRAP: {sender_id}")
-                        if message.data.decode("utf-8").startswith("\"ML model in ["):
+                        if message.data.decode("utf-8").startswith('"ML model in ['):
                             print("hello from jinesh")
                             parts = message.data.decode("utf-8").split("[")
 
-                            if len(parts) < 2 or not parts[1].endswith("] mesh\""):
+                            if len(parts) < 2 or not parts[1].endswith('] mesh"'):
                                 logger.error(
                                     "Malformed training round announcement from BOOTSTRAP"
                                 )
                                 continue
 
-                            parts[1] = parts[1].replace("] mesh\"", "").strip()
+                            parts[1] = parts[1].replace('] mesh"', "").strip()
                             print(parts[1])
-                        ipfs_client = Ipfs() 
+                        ipfs_client = Ipfs()
                         file_hash = parts[1]
-                        code=ipfs_client.fetch_file(file_hash)
-                        exec(code)  
+                        code = ipfs_client.fetch_file(file_hash)
+                        exec(code)
                         logger.info(f"Received message: {message.data.decode('utf-8')}")
                         logger.info(f"{sender_id}: {message.data.decode('utf-8')}")
 
