@@ -131,4 +131,7 @@ uv sync --all-extras
 
 cd p2p/
 python3 runner.py
+
+git fetch origin
+git rebase origin/master
 ```
