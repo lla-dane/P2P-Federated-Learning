@@ -65,8 +65,12 @@ async def interactive_shell() -> None:
 
     # Initiate the node
 
-    localhost_ip = "127.0.0.1"
-    port = find_free_port()
+    localhost_ip = "0.0.0.0"
+    if node.role == "bootstrap":
+        port = 8000
+    else:
+        port = find_free_port()
+
     listen_addr = multiaddr.Multiaddr(f"/ip4/{localhost_ip}/tcp/{port}")
 
     async with (

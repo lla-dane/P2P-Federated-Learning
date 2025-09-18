@@ -1,3 +1,3 @@
 ```
-ssh -i "p2p-1.pem" ubuntu@ec2-13-49-246-179.eu-north-1.compute.amazonaws.com
+ssh -i "p2p-1.pem" ubuntu@ec2-43-205-145-166.ap-south-1.compute.amazonaws.com
 ```

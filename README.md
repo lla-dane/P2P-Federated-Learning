@@ -112,6 +112,23 @@ Available commands:
 ### AWS
 
 ```
-sudo apt install make
+sudo apt update
+sudo apt install -y build-essential \
+    zlib1g-dev libffi-dev libssl-dev python3.12-dev\
+    libreadline-dev libsqlite3-dev libbz2-dev \
+    liblzma-dev tk-dev uuid-dev curl libgmp-dev
 
+sudo apt install make
+sudo apt install python3.12-venv
+sudo snap install astral-uv --classic
+
+git clone https://github.com/lla-dane/P2P-Federated-Learning.git
+cd P2P-Federated-Learning/
+
+python3 -m venv .venv
+. .venv/bin/activate
+uv sync --all-extras
+
+cd p2p/
+python3 runner.py
 ```
