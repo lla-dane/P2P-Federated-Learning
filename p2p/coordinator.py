@@ -4,12 +4,16 @@ from pathlib import Path
 
 import base58
 import Crypto.PublicKey.RSA as RSA
+import multiaddr
 import trio
 from libp2p import new_host
 from libp2p.crypto.keys import KeyPair
 from libp2p.crypto.rsa import RSAPrivateKey, RSAPublicKey
 from libp2p.custom_types import (
     TProtocol,
+)
+from libp2p.peer.peerinfo import (
+    info_from_p2p_addr,
 )
 from libp2p.pubsub.gossipsub import (
     GossipSub,
@@ -29,6 +33,23 @@ logger = setup_logging("coordinator")
 
 env_path = Path("..") / ".env"
 GOSSIPSUB_PROTOCOL_ID = TProtocol("/meshsub/1.0.0")
+FED_LEARNING_MESH = "fed-learn"
+
+COMMANDS = """
+Available commands:
+- connect <multiaddr>       - Connect to another peer
+- train <topic>             - Start a training round in the fed-learn mesh
+- join <topic>              - Subscribe to a topic
+- leave <topic>             - Unsubscribe to a topic
+- publish <topic> <message> - Publish a message
+- topics                    - List of subscribed topics
+- mesh                      - Get the local mesh summary
+- bootmesh                  - Get the bootstrap mesh summary
+- peers                     - List connected peers
+- local                     - List local multiaddr
+- help                      - List the existing commands
+- exit                      - Shut down
+"""
 
 
 def load_keypair_from_env(env_path):
@@ -95,6 +116,138 @@ class Node:
         self.is_subscribed = False
         self.training_topic = None
         self.subscribed_topics = []
+
+        # Send/Receive channels
+        self.send_channel, self.receive_channel = trio.open_memory_channel(100)
+
+    async def command_executor(self, nursery):
+        logger.warning("Starting command executor loop")
+
+        async with self.receive_channel:
+            async for parts in self.receive_channel:
+                try:
+                    if not parts:
+                        continue
+                    cmd = parts[0].lower()
+
+                    if cmd == "connect" and len(parts) > 1:
+                        maddr = multiaddr.Multiaddr(parts[1])
+                        info = info_from_p2p_addr(maddr)
+
+                        await self.host.connect(info)
+                        logger.info(f"Connected to {info.peer_id}")
+
+                    if cmd == "train" and len(parts) > 1:
+                        # TODO: Lets not have the trainer self join in more than 1 training rounds
+                        if self.role != "client":
+                            logger.warning(
+                                "Training round can only be strated by a CLIENT node"
+                            )
+                            continue
+
+                        training_subscription = await self.pubsub.subscribe(parts[1])
+                        nursery.start_soon(self.receive_loop, training_subscription)
+                        self.subscribed_topics.append(parts[1])
+
+                        training_round_greet = (
+                            f"A new training round starting in [{parts[1]}] mesh"
+                        )
+                        await self.pubsub.publish(
+                            FED_LEARNING_MESH, training_round_greet.encode()
+                        )
+
+                        self.training_topic = parts[1]
+                        self.is_subscribed = True
+
+                    if cmd == "join" and len(parts) > 1:
+                        if self.role != "trainer":
+                            logger.warning(
+                                "Only TRAINER nodes can participate in the training sequence"
+                            )
+                            continue
+
+                        # TODO: Lets not have the trainer self join in more than 1 training rounds
+                        # or perhaps we do?
+                        if self.is_subscribed:
+                            logger.warning(
+                                f"Already subscribed to topic: {self.training_topic}"
+                            )
+                            continue
+
+                        subscription = await self.pubsub.subscribe(parts[1])
+                        nursery.start_soon(self.receive_loop, subscription)
+                        self.subscribed_topics.append(parts[1])
+                        await self.pubsub.publish(
+                            parts[1], "Joined as a TRAINER self".encode()
+                        )
+
+                        self.is_subscribed = True
+                        self.training_topic = parts[1]
+
+                        await trio.sleep(1)
+
+                    if cmd == "leave" and len(parts) > 1:
+                        if self.role == "trainer":
+                            await self.pubsub.publish(
+                                parts[1], "Left as a TRAINER self".encode()
+                            )
+
+                            await self.pubsub.unsubscribe(parts[1])
+                            logger.info(f"Unsubscribed from [{parts[1]}] mesh")
+
+                        if self.role == "client":
+                            await self.pubsub.publish(
+                                parts[1],
+                                f"The CLIENT self is terminating the [{parts[1]}] mesh".encode(),
+                            )
+
+                            await self.pubsub.unsubscribe(parts[1])
+                            logger.info(
+                                f"Terminating the training rounf in [{parts[1]}] mesh"
+                            )
+
+                        self.subscribed_topics.remove(parts[1])
+                        self.is_subscribed = False
+                        self.training_topic = None
+
+                        await trio.sleep(1)
+
+                    if cmd == "publish" and len(parts) > 2:
+                        await self.pubsub.publish(parts[1], parts[2].encode())
+                        logger.debug(f"Published: {parts[2]}")
+
+                    if cmd == "topics":
+                        logger.info(self.subscribed_topics)
+
+                    if cmd == "mesh":
+                        self.mesh.print_mesh_summary(self.mesh.local_mesh)
+
+                    if cmd == "bootmesh":
+                        self.mesh.print_mesh_summary(self.mesh.bootstrap_mesh)
+
+                    if cmd == "peers":
+                        logger.info(
+                            f"Connected peers: {self.mesh.get_connected_nodes()}"
+                        )
+
+                    if cmd == "local":
+                        addrs = self.host.get_addrs()
+                        if addrs:
+                            logger.info(f"Local multiaddr: {addrs[0]}")
+                        else:
+                            logger.warning("No listening addresses found.")
+
+                    if cmd == "help":
+                        logger.debug(COMMANDS)
+
+                    if cmd == "exit":
+                        logger.warning("Exiting...")
+                        self.termination_event.set()
+                        nursery.cancel_scope.cancel()  # Stops all tasks
+                        raise KeyboardInterrupt
+
+                except Exception as e:
+                    logger.error(f"Error executing command {parts}: {e}")
 
     async def receive_loop(self, subscription):
         logger.warning("Starting receive loop")
@@ -198,7 +351,7 @@ class Node:
             await trio.sleep(2)
 
     # TODO: Flood the network periodically with the bootstrap mesh summary
-    # At present we are thinking about only 1 bootstrap node
+    # At present we are thinking about only 1 bootstrap self
 
     async def periodic_flood_bootstrap_mesh_summary(self, mesh: str):
         """Only for BOOTSTARP Node"""

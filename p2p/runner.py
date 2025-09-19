@@ -7,12 +7,11 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import multiaddr
 import trio
 from coordinator import (
+    COMMANDS,
+    FED_LEARNING_MESH,
     Node,
 )
 from dotenv import load_dotenv, set_key
-from libp2p.custom_types import (
-    TProtocol,
-)
 from libp2p.peer.peerinfo import (
     info_from_p2p_addr,
 )
@@ -29,25 +28,6 @@ env_path = Path("..") / ".env"
 load_dotenv(dotenv_path=env_path)
 
 logger = setup_logging("runner")
-
-GOSSIPSUB_PROTOCOL_ID = TProtocol("/meshsub/1.0.0")
-FED_LEARNING_MESH = "fed-learn"
-
-COMMANDS = """
-Available commands:
-- connect <multiaddr>       - Connect to another peer
-- train <topic>             - Start a training round in the fed-learn mesh
-- join <topic>              - Subscribe to a topic
-- leave <topic>             - Unsubscribe to a topic
-- publish <topic> <message> - Publish a message
-- topics                    - List of subscribed topics
-- mesh                      - Get the local mesh summary
-- bootmesh                  - Get the bootstrap mesh summary
-- peers                     - List connected peers
-- local                     - List local multiaddr
-- help                      - List the existing commands
-- exit                      - Shut down
-"""
 
 
 async def interactive_shell() -> None:
@@ -86,6 +66,7 @@ async def interactive_shell() -> None:
                 await node.pubsub.wait_until_ready()
                 logger.info("Pubsub and Gossipsub services started !!")
 
+                nursery.start_soon(node.command_executor, nursery)
                 nursery.start_soon(node.connected_peer_monitoring_loop)
                 nursery.start_soon(node.periodic_mesh_summary_update)
                 await trio.sleep(1)
@@ -143,138 +124,13 @@ async def interactive_shell() -> None:
                 logger.debug(COMMANDS)
 
                 while not node.termination_event.is_set():
-                    _ = await trio.to_thread.run_sync(input)
-
                     try:
-
+                        _ = await trio.to_thread.run_sync(input)
                         user_input = await trio.to_thread.run_sync(
                             lambda: input("Command> ")
                         )
-                        parts = user_input.strip().split(" ", 2)
-
-                        if not parts:
-                            continue
-
-                        cmd = parts[0].lower()
-
-                        if cmd == "connect" and len(parts) > 1:
-                            maddr = multiaddr.Multiaddr(parts[1])
-                            info = info_from_p2p_addr(maddr)
-
-                            await node.host.connect(info)
-                            logger.info(f"Connected to {info.peer_id}")
-
-                        if cmd == "train" and len(parts) > 1:
-                            # TODO: Lets not have the trainer node join in more than 1 training rounds
-                            if node.role != "client":
-                                logger.warning(
-                                    "Training round can only be strated by a CLIENT node"
-                                )
-                                continue
-
-                            training_subscription = await node.pubsub.subscribe(
-                                parts[1]
-                            )
-                            nursery.start_soon(node.receive_loop, training_subscription)
-                            node.subscribed_topics.append(parts[1])
-
-                            training_round_greet = (
-                                f"A new training round starting in [{parts[1]}] mesh"
-                            )
-                            await node.pubsub.publish(
-                                FED_LEARNING_MESH, training_round_greet.encode()
-                            )
-
-                            node.training_topic = parts[1]
-                            node.is_subscribed = True
-
-                        if cmd == "join" and len(parts) > 1:
-                            if node.role != "trainer":
-                                logger.warning(
-                                    "Only TRAINER nodes can participate in the training sequence"
-                                )
-                                continue
-
-                            # TODO: Lets not have the trainer node join in more than 1 training rounds
-                            # or perhaps we do?
-                            if node.is_subscribed:
-                                logger.warning(
-                                    f"Already subscribed to topic: {node.training_topic}"
-                                )
-                                continue
-
-                            subscription = await node.pubsub.subscribe(parts[1])
-                            nursery.start_soon(node.receive_loop, subscription)
-                            node.subscribed_topics.append(parts[1])
-                            await node.pubsub.publish(
-                                parts[1], "Joined as a TRAINER node".encode()
-                            )
-
-                            node.is_subscribed = True
-                            node.training_topic = parts[1]
-
-                            await trio.sleep(1)
-
-                        if cmd == "leave" and len(parts) > 1:
-                            if node.role == "trainer":
-                                await node.pubsub.publish(
-                                    parts[1], "Left as a TRAINER node".encode()
-                                )
-
-                                await node.pubsub.unsubscribe(parts[1])
-                                logger.info(f"Unsubscribed from [{parts[1]}] mesh")
-
-                            if node.role == "client":
-                                await node.pubsub.publish(
-                                    parts[1],
-                                    f"The CLIENT node is terminating the [{parts[1]}] mesh".encode(),
-                                )
-
-                                await node.pubsub.unsubscribe(parts[1])
-                                logger.info(
-                                    f"Terminating the training rounf in [{parts[1]}] mesh"
-                                )
-
-                            node.subscribed_topics.remove(parts[1])
-                            node.is_subscribed = False
-                            node.training_topic = None
-
-                            await trio.sleep(1)
-
-                        if cmd == "publish" and len(parts) > 2:
-                            await node.pubsub.publish(parts[1], parts[2].encode())
-                            logger.debug(f"Published: {parts[2]}")
-
-                        if cmd == "topics":
-                            logger.info(node.subscribed_topics)
-
-                        if cmd == "mesh":
-                            node.mesh.print_mesh_summary(node.mesh.local_mesh)
-
-                        if cmd == "bootmesh":
-                            node.mesh.print_mesh_summary(node.mesh.bootstrap_mesh)
-
-                        if cmd == "peers":
-                            logger.info(
-                                f"Connected peers: {node.mesh.get_connected_nodes()}"
-                            )
-
-                        if cmd == "local":
-                            addrs = node.host.get_addrs()
-                            if addrs:
-                                logger.info(f"Local multiaddr: {addrs[0]}")
-                            else:
-                                logger.warning("No listening addresses found.")
-
-                        if cmd == "help":
-                            logger.debug(COMMANDS)
-
-                        if cmd == "exit":
-                            logger.warning("Exiting...")
-                            await trio.sleep(1)
-                            node.termination_event.set()
-                            nursery.cancel_scope.cancel()  # Stops all tasks
-                            break
+                        cmds = user_input.strip().split(" ", 2)
+                        await node.send_channel.send(cmds)
 
                     except Exception as e:
                         logger.error(f"Error in the interactive shell: {e}")

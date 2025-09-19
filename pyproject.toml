@@ -14,7 +14,8 @@ dependencies = [
     "pinata==0.0.1",
     "python-dotenv",
     "pytest",
-    "rich"
+    "rich",
+    "trio-util"
 ]
 
 # Extras let you group optional deps
