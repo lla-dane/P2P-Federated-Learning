@@ -53,7 +53,7 @@ const FileUpload = ({ label, fileType, onFileSelect }: FileUploadProps) => {
         <button
           type='button'
           onClick={handleFileSelect}
-          className='w-full border-2 border-dashed border-border rounded-lg p-8 flex flex-col items-center justify-center text-center hover:border-primary transition-colors'
+          className='w-full border-2 border-dashed border-border rounded-lg p-8 flex flex-col items-center justify-center text-center hover:border-primary transition-colors cursor-pointer'
         >
           <UploadCloud className='text-text-secondary' size={32} />
           <p className='mt-2 text-sm text-text-secondary'>

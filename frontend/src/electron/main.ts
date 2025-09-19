@@ -4,9 +4,22 @@ import { isDev } from './utils.js';
 import { resolvePath } from './pathResolver.js';
 import * as PinataService from './ipfs.js';
 import keytar from 'keytar';
+import Store from 'electron-store';
+
+const store = new Store();
 
 const SERVICE_NAME = 'Pinata';
 const ACCOUNT_NAME = 'PinataAPIKey';
+
+ipcMain.handle('history:get', () => {
+  return store.get('trainingHistory', []);
+});
+
+ipcMain.handle('history:add', (_event, projectData) => {
+  const history = store.get('trainingHistory', []) as any[];
+  history.unshift(projectData);
+  store.set('trainingHistory', history);
+});
 
 ipcMain.handle('credentials:save', async (_event, settings: object) => {
   const settingsString = JSON.stringify(settings);

@@ -17,6 +17,8 @@ export interface IElectronAPI {
   onProgress: (callback: (message: string) => void) => void;
   saveCredentials: (settings: ISettings) => Promise<void>;
   loadCredentials: () => Promise<ISettings | null>;
+  getHistory: () => Promise<any[]>;
+  addHistory: (projectData: object) => Promise<void>;
 }
 
 declare global {

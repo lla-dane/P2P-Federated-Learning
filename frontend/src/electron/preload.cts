@@ -15,6 +15,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   saveCredentials: (settings: object) =>
     ipcRenderer.invoke('credentials:save', settings),
   loadCredentials: () => ipcRenderer.invoke('credentials:load'),
+  getHistory: () => ipcRenderer.invoke('history:get'),
+  addHistory: (projectData: object) =>
+    ipcRenderer.invoke('history:add', projectData),
   onProgress: (callback: (msg: string) => void) => {
     ipcRenderer.on('pinata:progress', (_, msg) => callback(msg));
   },

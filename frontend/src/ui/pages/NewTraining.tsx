@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import FileUpload from '../components/FileUpload';
 import { useSettings } from '../contexts/SettingsContext';
 import {
@@ -9,6 +9,8 @@ import {
   onProgress,
 } from '../utils/ipfsHelper';
 import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { addTrainingHistory } from '../utils/historyHelper';
 
 const NewTrainingPage = () => {
   const { settings, isConfigured } = useSettings();
@@ -21,6 +23,7 @@ const NewTrainingPage = () => {
     datasetHash?: string;
     modelHash?: string;
   } | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (isConfigured) {
@@ -36,10 +39,23 @@ const NewTrainingPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!isConfigured) {
+      toast.error('Configuration Required', {
+        description: 'Please set your Pinata credentials in the Settings page.',
+        action: {
+          label: 'Go to Settings',
+          onClick: () => navigate('/settings'),
+        },
+      });
+      return;
+    }
+
     if (!projectName || !datasetFile || !modelFile) {
-      alert(
-        'Please fill out the project name and select both a dataset and a model file.'
-      );
+      toast.warning('All fields are required', {
+        description:
+          'Please provide a project name and select both a dataset and a model file.',
+      });
       return;
     }
     setIsLoading(true);
@@ -55,33 +71,25 @@ const NewTrainingPage = () => {
 
       setStatusMessage('All files uploaded successfully!');
       setResult({ datasetHash, modelHash });
+
+      await addTrainingHistory({
+        id: `proj_${Date.now()}`, // Simple unique ID
+        projectName,
+        datasetHash,
+        modelHash,
+        date: new Date().toISOString(),
+      });
     } catch (error) {
       console.error(error);
       setStatusMessage(`Error: ${(error as Error).message}`);
+      toast.error('Upload Failed', {
+        description: (error as Error).message,
+      });
     } finally {
       setIsLoading(false);
+      setStatusMessage('');
     }
   };
-
-  if (!isConfigured) {
-    return (
-      <div className='text-center flex flex-col items-center justify-center h-full'>
-        <h2 className='text-2xl font-bold text-text-primary mb-4'>
-          Configuration Required
-        </h2>
-        <p className='text-text-secondary mb-6 max-w-md'>
-          Please set your Pinata JWT in the settings page to enable IPFS file
-          uploads.
-        </p>
-        <Link
-          to='/settings'
-          className='bg-primary text-background font-semibold py-2 px-5 rounded-lg hover:opacity-90 transition-opacity'
-        >
-          Go to Settings
-        </Link>
-      </div>
-    );
-  }
 
   return (
     <div>
