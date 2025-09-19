@@ -1,55 +1,65 @@
-import { UploadCloud, File, X } from 'lucide-react';
+import { UploadCloud, File as FileIcon, X } from 'lucide-react';
 import { useState } from 'react';
 
 interface FileUploadProps {
   label: string;
   fileType: string;
+  onFileSelect: (filePath: string | null) => void;
 }
 
-const FileUpload = ({ label, fileType }: FileUploadProps) => {
-  const [file, setFile] = useState<File | null>(null);
+const FileUpload = ({ label, fileType, onFileSelect }: FileUploadProps) => {
+  const [filePath, setFilePath] = useState<string | null>(null);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setFile(e.target.files[0]);
+  const handleFileSelect = async () => {
+    const selectedPath = await window.electronAPI.openFileDialog();
+    if (selectedPath) {
+      setFilePath(selectedPath);
+      onFileSelect(selectedPath);
     }
   };
 
   const removeFile = () => {
-    setFile(null);
+    setFilePath(null);
+    onFileSelect(null);
   };
+
+  const fileName = filePath ? filePath.split(/[\\/]/).pop() : '';
 
   return (
     <div>
       <label className='block text-sm font-medium text-text-secondary mb-2'>
         {label}
       </label>
-      {file ? (
+      {filePath ? (
         <div className='flex items-center justify-between bg-background p-3 rounded-lg border border-border'>
-          <div className='flex items-center gap-3'>
-            <File className='text-primary' size={20} />
-            <span className='text-text-primary text-sm'>{file.name}</span>
+          <div className='flex items-center gap-3 overflow-hidden'>
+            <FileIcon className='text-primary flex-shrink-0' size={20} />
+            <span
+              className='text-text-primary text-sm truncate'
+              title={fileName}
+            >
+              {fileName}
+            </span>
           </div>
           <button
+            type='button'
             onClick={removeFile}
-            className='text-text-secondary hover:text-red-500'
+            className='text-text-secondary hover:text-red-500 ml-2'
           >
             <X size={20} />
           </button>
         </div>
       ) : (
-        <div className='relative border-2 border-dashed border-border rounded-lg p-8 flex flex-col items-center justify-center text-center'>
+        <button
+          type='button'
+          onClick={handleFileSelect}
+          className='w-full border-2 border-dashed border-border rounded-lg p-8 flex flex-col items-center justify-center text-center hover:border-primary transition-colors'
+        >
           <UploadCloud className='text-text-secondary' size={32} />
           <p className='mt-2 text-sm text-text-secondary'>
-            Drag & drop your {fileType} here, or{' '}
-            <span className='font-semibold text-primary'>click to browse</span>
+            Click to browse for your {fileType}
           </p>
-          <input
-            type='file'
-            className='absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer'
-            onChange={handleFileChange}
-          />
-        </div>
+        </button>
       )}
     </div>
   );

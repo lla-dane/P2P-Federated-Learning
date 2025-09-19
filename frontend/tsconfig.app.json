@@ -23,6 +23,6 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src"],
+  "include": ["src", "src/services/.ts", "src/ui/renderer.d.ts"],
   "exclude": ["src/electron"]
 }

@@ -1,4 +1,4 @@
-import { Rocket, History } from 'lucide-react';
+import { Rocket, History, Settings } from 'lucide-react';
 import logo from '../assets/react.png';
 import { NavLink } from 'react-router';
 
@@ -33,8 +33,19 @@ const Sidebar = () => {
           <span>Training History</span>
         </NavLink>
       </nav>
-      <div className='mt-auto'>
-        <p className='text-xs text-text-secondary'>© 2025 Karan</p>
+      <nav className='flex flex-col gap-2 mt-auto pt-4 border-t border-border'>
+        <NavLink
+          to='/settings'
+          className={({ isActive }) =>
+            `${linkClasses} ${isActive ? activeLinkClasses : ''}`
+          }
+        >
+          <Settings size={20} />
+          <span>Settings</span>
+        </NavLink>
+      </nav>
+      <div className='mt-4'>
+        <p className='text-xs text-text-secondary'>© 2025 ML Chain</p>
       </div>
     </aside>
   );
