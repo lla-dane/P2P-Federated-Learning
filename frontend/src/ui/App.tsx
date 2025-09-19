@@ -2,6 +2,7 @@ import { Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
 import NewTraining from './pages/NewTraining';
 import TrainingHistory from './pages/TrainingHistory';
+import ErrorPage from './pages/ErrorPage';
 
 function App() {
   return (
@@ -10,7 +11,7 @@ function App() {
         <Route index element={<NewTraining />} />
         <Route path='history' element={<TrainingHistory />} />
       </Route>
-      <Route path='*' element={<div>404 Not Found</div>} />
+      <Route path='*' element={<ErrorPage />} />
     </Routes>
   );
 }
