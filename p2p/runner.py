@@ -69,6 +69,7 @@ async def interactive_shell() -> None:
                 nursery.start_soon(node.command_executor, nursery)
                 nursery.start_soon(node.connected_peer_monitoring_loop)
                 nursery.start_soon(node.periodic_mesh_summary_update)
+                nursery.start_soon(node.api_listener)
                 await trio.sleep(1)
 
                 # TODO: There will be a bootstrap node, of the whole fed-learn mesh

@@ -25,6 +25,9 @@ from libp2p.stream_muxer.mplex.mplex import (
     MPLEX_PROTOCOL_ID,
     Mplex,
 )
+from libp2p.utils.address_validation import (
+    find_free_port,
+)
 from mesh_utils import Mesh
 
 from logs import setup_logging
@@ -371,3 +374,40 @@ class Node:
                 await self.pubsub.publish(mesh, latest_bootmesh_bytes)
 
             await trio.sleep(2)
+
+    async def api_listener(self):
+
+        if self.role == "bootstrap":
+            port = 9000
+        else:
+            port = find_free_port()
+
+        host = "0.0.0.0"
+
+        logger.info(f"Starting API listener on {host}:{port}")
+
+        # TCP server
+        async def handle_client(stream):
+            async with stream:
+                logger.info(f"Client connected: {stream.socket.getpeername()}")
+                while not self.termination_event.is_set():
+                    try:
+                        # Receive the line delimited JSON command
+                        data = await stream.receive_some(4096)
+                        if not data:
+                            break
+
+                        # Decode JSON
+                        cmd = json.loads(data.decode("utf-8").strip())
+                        if isinstance(cmd, list):
+                            await self.send_channel.send(cmd)
+                            logger.info(f"Received remote command: {cmd}")
+                        else:
+                            logger.warning(f"Invalid command format: {cmd}")
+                    except json.JSONDecodeError:
+                        logger.warning(f"Received invalid JSON: {data}")
+                    except Exception as e:
+                        logger.error(f"Error in API listener: {e}")
+                        await trio.sleep(0.1)
+
+        await trio.serve_tcp(handle_client, port, host=host)
