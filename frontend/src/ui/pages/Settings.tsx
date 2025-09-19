@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useSettings } from '../contexts/SettingsContext';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 const SettingsPage = () => {
   const { settings, saveSettings } = useSettings();
@@ -15,7 +16,7 @@ const SettingsPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     await saveSettings(localSettings);
-    alert('Settings saved!');
+    toast.success('Settings saved successfully!');
     navigate('/');
   };
 
@@ -34,11 +35,11 @@ const SettingsPage = () => {
               Pinata API Key
             </label>
             <input
-              type='password'
+              type='text'
               name='apiKey'
               value={localSettings.apiKey}
               onChange={handleChange}
-              className='w-full bg-background border border-border text-text-primary rounded-lg p-2.5'
+              className='w-full bg-background border border-border text-text-primary rounded-lg p-2.5 focus:outline-none focus:ring-1 focus:ring-primary'
             />
           </div>
           <div>
@@ -46,11 +47,11 @@ const SettingsPage = () => {
               Pinata API Secret
             </label>
             <input
-              type='password'
+              type='text'
               name='apiSecret'
               value={localSettings.apiSecret}
               onChange={handleChange}
-              className='w-full bg-background border border-border text-text-primary rounded-lg p-2.5'
+              className='w-full bg-background border border-border text-text-primary rounded-lg p-2.5 focus:outline-none focus:ring-1 focus:ring-primary'
             />
           </div>
           <div>
@@ -58,11 +59,11 @@ const SettingsPage = () => {
               Pinata JWT
             </label>
             <input
-              type='password'
+              type='text'
               name='jwt'
               value={localSettings.jwt}
               onChange={handleChange}
-              className='w-full bg-background border border-border text-text-primary rounded-lg p-2.5'
+              className='w-full bg-background border border-border text-text-primary rounded-lg p-2.5 focus:outline-none focus:ring-1 focus:ring-primary'
             />
           </div>
           <button

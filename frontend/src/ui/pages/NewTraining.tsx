@@ -104,7 +104,7 @@ const NewTrainingPage = () => {
               type='text'
               id='projectName'
               placeholder='e.g., Image Classification Model'
-              className='w-full bg-background border border-border text-text-primary rounded-lg p-2.5 focus:ring-primary focus:border-primary'
+              className='w-full bg-background border border-border text-text-primary rounded-lg p-2.5 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary'
               value={projectName}
               onChange={(e) => setProjectName(e.target.value)}
             />
