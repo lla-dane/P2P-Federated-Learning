@@ -1,5 +1,3 @@
-import type { ISettings } from '../renderer';
-
 export const initializePinata = (jwt: string): Promise<void> => {
   return window.electronAPI.initializePinata(jwt);
 };

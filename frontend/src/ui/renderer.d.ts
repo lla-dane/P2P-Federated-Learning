@@ -16,6 +16,10 @@ export interface IElectronAPI {
   loadCredentials: () => Promise<ISettings | null>;
   getHistory: () => Promise<any[]>;
   addHistory: (projectData: object) => Promise<void>;
+  minimizeWindow: () => void;
+  maximizeWindow: () => void;
+  closeWindow: () => void;
+  quitApp: () => void;
 }
 
 declare global {

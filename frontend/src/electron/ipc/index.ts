@@ -1,7 +1,7 @@
-import { registerHistoryHandlers } from './historyHandlers';
-import { registerCredentialHandlers } from './credentialHandlers';
-import { registerDialogHandlers } from './dialogHandlers';
-import { registerPinataHandlers } from './pinataHandlers';
+import { registerHistoryHandlers } from './historyHandlers.js';
+import { registerCredentialHandlers } from './credentialHandlers.js';
+import { registerDialogHandlers } from './dialogHandlers.js';
+import { registerPinataHandlers } from './pinataHandlers.js';
 
 export function registerIpcHandlers() {
   registerHistoryHandlers();

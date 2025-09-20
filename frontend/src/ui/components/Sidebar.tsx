@@ -1,5 +1,4 @@
-import { Rocket, History, Settings } from 'lucide-react';
-import logo from '../assets/react.png';
+import { Rocket, History, Settings, Brain } from 'lucide-react';
 import { NavLink } from 'react-router';
 
 const Sidebar = () => {
@@ -9,11 +8,18 @@ const Sidebar = () => {
 
   return (
     <aside className='w-64 bg-surface text-text-primary p-4 flex flex-col'>
-      <div className='flex items-center gap-2 mb-8'>
-        <img src={logo} alt='logo' className='h-8 w-8' />
-        <h1 className='text-xl font-bold'>DecentraAI</h1>
+      <div className='mb-8'>
+        <div className='flex items-center gap-3 p-3 bg-primary/10 rounded-lg border border-primary/20'>
+          <div className='w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center border border-primary/30'>
+            <Brain className='w-6 h-6 text-primary' />
+          </div>
+          <div>
+            <h1 className='text-lg font-bold text-text-primary'>DecentraAI</h1>
+            <p className='text-xs text-text-secondary'>Neural Network</p>
+          </div>
+        </div>
       </div>
-      <nav className='flex flex-col gap-2'>
+      <nav className='flex flex-col gap-2 mt-2'>
         <NavLink
           to='/'
           className={({ isActive }) =>
@@ -44,8 +50,10 @@ const Sidebar = () => {
           <span>Settings</span>
         </NavLink>
       </nav>
-      <div className='mt-4'>
-        <p className='text-xs text-text-secondary'>© 2025 ML Chain</p>
+      <div className='mt-4 pt-4 border-t border-border/50'>
+        <div className='text-center'>
+          <p className='text-xs text-text-secondary'>© 2025 DecentraAI</p>
+        </div>
       </div>
     </aside>
   );
