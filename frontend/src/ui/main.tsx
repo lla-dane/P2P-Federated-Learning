@@ -4,13 +4,16 @@ import './index.css';
 import App from './App.tsx';
 import { HashRouter } from 'react-router-dom';
 import { SettingsProvider } from './contexts/SettingsContext.tsx';
+import { TrainingProvider } from './contexts/TrainingContext.tsx';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <SettingsProvider>
-      <HashRouter>
-        <App />
-      </HashRouter>
+      <TrainingProvider>
+        <HashRouter>
+          <App />
+        </HashRouter>
+      </TrainingProvider>
     </SettingsProvider>
   </StrictMode>
 );

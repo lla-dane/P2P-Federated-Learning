@@ -1,55 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
 import FileUpload from '../components/FileUpload';
-import { useSettings } from '../contexts/SettingsContext';
-import {
-  initializePinata,
-  uploadDatasetInChunks,
-  uploadFile,
-  onProgress,
-} from '../utils/ipfsHelper';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { addTrainingHistory } from '../utils/historyHelper';
+import { useTraining } from '../contexts/TrainingContext';
 
 const NewTrainingPage = () => {
-  const { settings, isConfigured } = useSettings();
+  const { isLoading, statusMessage, result, startTraining } = useTraining();
   const [projectName, setProjectName] = useState('');
   const [datasetFile, setDatasetFile] = useState<string | null>(null);
   const [modelFile, setModelFile] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [statusMessage, setStatusMessage] = useState('');
-  const [result, setResult] = useState<{
-    datasetHash?: string;
-    modelHash?: string;
-  } | null>(null);
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (isConfigured) {
-      initializePinata(settings.jwt);
-    }
-
-    onProgress((message) => {
-      if (isLoading) {
-        setStatusMessage(message);
-      }
-    });
-  }, [settings, isConfigured, isLoading]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!isConfigured) {
-      toast.error('Configuration Required', {
-        description: 'Please set your Pinata credentials in the Settings page.',
-        action: {
-          label: 'Go to Settings',
-          onClick: () => navigate('/settings'),
-        },
-      });
-      return;
-    }
 
     if (!projectName || !datasetFile || !modelFile) {
       toast.warning('All fields are required', {
@@ -58,37 +20,7 @@ const NewTrainingPage = () => {
       });
       return;
     }
-    setIsLoading(true);
-    setResult(null);
-    setStatusMessage('Preparing to upload...');
-    try {
-      const datasetPath = datasetFile;
-      const modelPath = modelFile;
-
-      const datasetHash = await uploadDatasetInChunks(datasetPath);
-      setStatusMessage('Uploading model file...');
-      const modelHash = await uploadFile(modelPath);
-
-      setStatusMessage('All files uploaded successfully!');
-      setResult({ datasetHash, modelHash });
-
-      await addTrainingHistory({
-        id: `proj_${Date.now()}`, // Simple unique ID
-        projectName,
-        datasetHash,
-        modelHash,
-        date: new Date().toISOString(),
-      });
-    } catch (error) {
-      console.error(error);
-      setStatusMessage(`Error: ${(error as Error).message}`);
-      toast.error('Upload Failed', {
-        description: (error as Error).message,
-      });
-    } finally {
-      setIsLoading(false);
-      setStatusMessage('');
-    }
+    await startTraining(projectName, datasetFile, modelFile);
   };
 
   return (
@@ -132,7 +64,7 @@ const NewTrainingPage = () => {
           <button
             type='submit'
             disabled={isLoading}
-            className='w-full flex items-center justify-center bg-primary text-background font-semibold py-3 px-4 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed'
+            className='w-full flex items-center justify-center bg-primary text-background font-semibold py-3 px-4 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-text-primary'
           >
             {isLoading && <Loader2 className='mr-2 h-5 w-5 animate-spin' />}
             {isLoading ? 'Processing...' : 'Start Training'}

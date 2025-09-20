@@ -5,6 +5,7 @@ import {
   type ReactNode,
   useEffect,
 } from 'react';
+import { loadCredentials, saveCredentials } from '../utils/credentialsHelper';
 
 interface ISettings {
   apiKey: string;
@@ -29,7 +30,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const loadAllSettings = async () => {
-      const storedSettings = await window.electronAPI.loadCredentials();
+      const storedSettings = await loadCredentials();
       if (storedSettings) {
         setSettings(storedSettings);
       }
@@ -39,7 +40,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
 
   const saveSettings = async (newSettings: ISettings) => {
     setSettings(newSettings);
-    await window.electronAPI.saveCredentials(newSettings);
+    await saveCredentials(newSettings);
   };
 
   const isConfigured = !!(

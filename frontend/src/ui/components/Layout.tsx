@@ -20,6 +20,7 @@ const Layout = () => {
               cancelButton: 'bg-surface hover:bg-background',
               success: '[&>svg]:text-green-500',
               error: '[&>svg]:text-red-500',
+              loading: '!bg-surface !border-primary !text-text-primary',
             },
           }}
         />

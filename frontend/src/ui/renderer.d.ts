@@ -1,6 +1,3 @@
-// renderer.d.ts
-// This file makes TypeScript aware of the functions we added to the 'window' object.
-
 interface ISettings {
   apiKey: string;
   apiSecret: string;
