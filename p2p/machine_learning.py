@@ -1,10 +1,14 @@
-import sys
 import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+import sys
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+from io import StringIO
+
+import pandas as pd
 
 from ipfs.mcache import Ipfs
-import pandas as pd
-from io import StringIO
+
 
 class MLTrainer:
     def __init__(self):
@@ -19,14 +23,14 @@ class MLTrainer:
         if not manifest_content:
             raise Exception("Failed to fetch dataset manifest from IPFS.")
 
-        chunk_cids = manifest_content.strip().split(',')
+        chunk_cids = manifest_content.strip().split(",")
         print(f"Found {len(chunk_cids)} dataset chunks.")
 
         assignments = {node: [] for node in nodes}
         for i, chunk_cid in enumerate(chunk_cids):
             node = nodes[i % len(nodes)]
             assignments[node].append(chunk_cid)
-        
+
         return assignments
 
     def train_on_chunk(self, chunk_cid: str, model_cid: str) -> any:
@@ -47,10 +51,7 @@ class MLTrainer:
                 raise Exception("Failed to fetch model code from IPFS.")
 
             # 2. Prepare for execution
-            exec_globals = {
-                'pd': pd,
-                'dataset': dataset_chunk_df
-            }
+            exec_globals = {"pd": pd, "dataset": dataset_chunk_df}
 
             # 3. Execute the model code
             print("Executing training code on chunk...")
@@ -58,11 +59,13 @@ class MLTrainer:
             print("Training code execution finished for chunk.")
 
             # 4. Handle the results
-            if 'model_weights' in exec_globals:
+            if "model_weights" in exec_globals:
                 print("Returning model weights from training on chunk.")
-                return exec_globals['model_weights']
+                return exec_globals["model_weights"]
             else:
-                print("No model weights were returned from the training script for the chunk.")
+                print(
+                    "No model weights were returned from the training script for the chunk."
+                )
                 return None
 
         except Exception as e:

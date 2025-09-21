@@ -105,6 +105,8 @@ async def interactive_shell() -> None:
 
                     node.bootstrap_addr = info.addrs[0]
                     node.bootstrap_id = info.peer_id
+                    await node.host.connect(info)
+                    logger.info("Connected with the BOOTSTRAP node")
 
                     # Subscribe to the fed-learn mesh
                     worker_subscription = await node.pubsub.subscribe(FED_LEARNING_MESH)
@@ -113,14 +115,10 @@ async def interactive_shell() -> None:
                     )
                     nursery.start_soon(node.receive_loop, worker_subscription)
                     node.subscribed_topics.append(FED_LEARNING_MESH)
-                    await node.pubsub.publish(
-                        FED_LEARNING_MESH,
-                        f"{node.host.get_id()} joins the [{FED_LEARNING_MESH}] mesh as {node.role.upper()}".encode(),
-                    )
 
-                    await node.host.connect(info)
-                    logger.info("Connected with the BOOTSTRAP node")
+                    await trio.sleep(1)
 
+                nursery.start_soon(node.status_greet)
                 logger.info("Entering interactive mode. Type commands below.")
                 logger.debug(COMMANDS)
 

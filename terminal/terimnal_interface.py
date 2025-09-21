@@ -5,8 +5,8 @@ from pathlib import Path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import trio
 from dotenv import load_dotenv, set_key
-from ipfs.mcache import Ipfs
 
+from ipfs.mcache import Ipfs
 from logs import setup_logging
 
 env_path = Path("..") / ".env"
@@ -24,6 +24,7 @@ Available commands:
 - exit                      - Shut down
 """
 
+
 def upload_dataset_to_ipfs(file_path: str) -> str:
     """
     Split a dataset into <50KB chunks without breaking rows,
@@ -38,14 +39,21 @@ def upload_dataset_to_ipfs(file_path: str) -> str:
         current_chunk = []
         current_size = 0
         CHUNK_SIZE = 50 * 1024  # 50KB
+
+        # read the first line separately (header)
+        header = f.readline()
+        header_size = len(header.encode("utf-8"))  # noqa: F841
+
         for line in f:
             line_size = len(line.encode("utf-8"))
+
             # if adding this line exceeds chunk size → flush current chunk
             if current_size + line_size > CHUNK_SIZE and current_chunk:
-                res = client.upload_string("".join(current_chunk))
+                # prepend header to this chunk before upload
+                res = client.upload_string(header + "".join(current_chunk))
                 if not res:
                     raise Exception("Failed to upload chunk of dataset to IPFS")
-                chunk_hash=client.cids[-1]
+                chunk_hash = client.cids[-1]
                 chunk_hashes.append(chunk_hash)
                 i += 1
                 current_chunk = []
@@ -56,10 +64,10 @@ def upload_dataset_to_ipfs(file_path: str) -> str:
 
         # flush last chunk
         if current_chunk:
-            res = client.upload_string("".join(current_chunk))
+            res = client.upload_string(header + "".join(current_chunk))
             if not res:
                 raise Exception("Failed to upload chunk of dataset to IPFS")
-            chunk_hash=client.cids[-1]
+            chunk_hash = client.cids[-1]
             chunk_hashes.append(chunk_hash)
             i += 1
 
@@ -68,43 +76,33 @@ def upload_dataset_to_ipfs(file_path: str) -> str:
         raise Exception("Failed to upload chunk list of dataset to IPFS")
     manifest_hash = client.cids[-1]
 
-    logger.info(f"Dataset uploaded to IPFS in {i} chunks, dataset hash: {manifest_hash}")
+    logger.info(
+        f"Dataset uploaded to IPFS in {i} chunks, dataset hash: {manifest_hash}"
+    )
 
 
 async def interactive_shell() -> None:
 
-    if not os.getenv("API_KEY") : 
-        API_key=await trio.to_thread.run_sync(
-            lambda: input(
-                f"API key of IPFS: "
-            )
-        )
+    if not os.getenv("API_KEY"):
+        API_key = await trio.to_thread.run_sync(lambda: input("API key of IPFS: "))
         set_key(env_path, "API_KEY", API_key)
 
-    if not os.getenv("API_SECRET") :
-        API_secret=await trio.to_thread.run_sync(
-            lambda: input(
-                f"API secret of IPFS: "
-            )
+    if not os.getenv("API_SECRET"):
+        API_secret = await trio.to_thread.run_sync(
+            lambda: input("API secret of IPFS: ")
         )
         set_key(env_path, "API_SECRET", API_secret)
 
-    if not os.getenv("JWT_TOKEN") :
-        JWT_token=await trio.to_thread.run_sync(
-            lambda: input(
-                f"JWT token of IPFS: "
-            )
-        )
+    if not os.getenv("JWT_TOKEN"):
+        JWT_token = await trio.to_thread.run_sync(lambda: input("JWT token of IPFS: "))
         set_key(env_path, "JWT_TOKEN", JWT_token)
-    
+
     logger.info("Entering interactive mode. Type commands below.")
     logger.debug(COMMANDS)
 
     while 1:
         try:
-            user_input = await trio.to_thread.run_sync(
-                lambda: input("Command> ")
-            )
+            user_input = await trio.to_thread.run_sync(lambda: input("Command> "))
             parts = user_input.strip().split(" ", 2)
 
             if not parts:
@@ -116,10 +114,8 @@ async def interactive_shell() -> None:
                 if parts[1] == "API_KEY":
                     logger.info("Changing API_KEY:")
                     logger.info(f"Current API_KEY: {os.getenv('API_KEY')}")
-                    API_KEY=await trio.to_thread.run_sync(
-                        lambda: input(
-                            f"New API key of IPFS: "
-                        )
+                    API_KEY = await trio.to_thread.run_sync(
+                        lambda: input("New API key of IPFS: ")
                     )
                     set_key(env_path, "API_KEY", API_KEY)
                     logger.info(f"New API_KEY set: {os.getenv('API_KEY')}")
@@ -127,10 +123,8 @@ async def interactive_shell() -> None:
                 if parts[1] == "API_SECRET":
                     logger.info("Changing API_SECRET:")
                     logger.info(f"Current API_SECRET: {os.getenv('API_SECRET')}")
-                    API_SECRET=await trio.to_thread.run_sync(
-                        lambda: input(
-                            f"New API secret of IPFS: "
-                        )
+                    API_SECRET = await trio.to_thread.run_sync(
+                        lambda: input("New API secret of IPFS: ")
                     )
                     set_key(env_path, "API_SECRET", API_SECRET)
                     logger.info(f"New API_SECRET set: {os.getenv('API_SECRET')}")
@@ -138,24 +132,22 @@ async def interactive_shell() -> None:
                 if parts[1] == "JWT_TOKEN":
                     logger.info("Changing JWT_TOKEN:")
                     logger.info(f"Current JWT_TOKEN: {os.getenv('JWT_TOKEN')}")
-                    JWT_TOKEN=await trio.to_thread.run_sync(
-                        lambda: input(
-                            f"New JWT token of IPFS: "
-                        )
+                    JWT_TOKEN = await trio.to_thread.run_sync(
+                        lambda: input("New JWT token of IPFS: ")
                     )
                     set_key(env_path, "JWT_TOKEN", JWT_TOKEN)
                     logger.info(f"New JWT_TOKEN set: {os.getenv('JWT_TOKEN')}")
 
             if cmd == "upload" and len(parts) > 1:
                 if parts[1] == "dataset":
-                    file_path=parts[2]
+                    file_path = parts[2]
                     if not os.path.isfile(file_path):
                         logger.error(f"File {file_path} does not exist.")
                         continue
                     upload_dataset_to_ipfs(file_path)
 
                 if parts[1] == "model":
-                    model=parts[2]
+                    model = parts[2]
                     if not os.path.isfile(model):
                         logger.error(f"File {model} does not exist.")
                         continue
@@ -166,16 +158,14 @@ async def interactive_shell() -> None:
                         logger.info(f"Code uploaded to IPFS with hash: {file_hash}")
                     else:
                         logger.error("Failed to upload model to IPFS.")
-            
+
             if cmd == "train" and len(parts) == 3:
                 dataset = parts[1]
                 code = parts[2]
                 if not dataset or not code:
                     logger.error("Usage: train <dataset> <code>")
                     continue
-                
 
-            
             if cmd == "help":
                 logger.debug(COMMANDS)
 
