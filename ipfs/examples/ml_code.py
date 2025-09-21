@@ -1,18 +1,43 @@
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.linear_model import LogisticRegression
 import numpy as np
-import tensorflow as tf
 
-# Training data
-X = np.array([1, 2, 3, 4, 5], dtype=float)
-Y = np.array([2, 4, 6, 8, 10], dtype=float)
+# dataset is already provided by exec_globals in train_on_chunk
+df = dataset.copy()
 
-# Define a simple model: 1 input → 1 output
-model = tf.keras.Sequential([tf.keras.layers.Dense(units=1, input_shape=[1])])
+# Drop id column (not useful for training)
+df = df.drop(columns=["id"])
 
-# Compile with optimizer + loss
-model.compile(optimizer="sgd", loss="mean_squared_error")
+# Encode diagnosis (M = 1, B = 0)
+label_encoder = LabelEncoder()
+df["diagnosis"] = label_encoder.fit_transform(df["diagnosis"])
 
-# Train (fit)
-model.fit(X, Y, epochs=500, verbose=0)
+# Features and target
+X = df.drop(columns=["diagnosis"])
+y = df["diagnosis"]
 
-# Results
-print("Prediction for x=6:", model.predict(np.array([6.0]))[0][0])
+# Train/test split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Scale features
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+# Train model
+model = LogisticRegression(max_iter=500)
+model.fit(X_train, y_train)
+
+# Evaluate
+acc = model.score(X_test, y_test)
+print(f"Validation Accuracy: {acc:.4f}")
+
+# Save model weights (coefficients + intercept + scaler parameters)
+model_weights = {
+    "coefficients": model.coef_.tolist(),
+    "intercept": model.intercept_.tolist(),
+    "classes": model.classes_.tolist(),
+    "scaler_mean": scaler.mean_.tolist(),
+    "scaler_scale": scaler.scale_.tolist(),
+}

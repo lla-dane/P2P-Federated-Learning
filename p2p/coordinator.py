@@ -2,7 +2,7 @@ import base64
 import json
 import random
 from pathlib import Path
-
+import ast
 import base58
 import Crypto.PublicKey.RSA as RSA
 import multiaddr
@@ -30,7 +30,7 @@ from libp2p.utils.address_validation import (
     find_free_port,
 )
 from mesh_utils import Mesh
-
+from machine_learning import MLTrainer
 from logs import setup_logging
 
 logger = setup_logging("coordinator")
@@ -38,6 +38,7 @@ logger = setup_logging("coordinator")
 env_path = Path("..") / ".env"
 GOSSIPSUB_PROTOCOL_ID = TProtocol("/meshsub/1.0.0")
 FED_LEARNING_MESH = "fed-learn"
+
 
 COMMANDS = """
 Available commands:
@@ -84,7 +85,7 @@ def load_keypair_from_env(env_path):
 class Node:
     def __init__(self, role: str):
         self.mesh = Mesh()
-
+        self.ml_trainer = MLTrainer()
         # Set up the general host configs
 
         if role == "bootstrap":
@@ -141,7 +142,7 @@ class Node:
                         await self.host.connect(info)
                         logger.info(f"Connected to {info.peer_id}")
 
-                    if cmd == "train" and len(parts) > 1:
+                    if cmd == "train_round" and len(parts) > 1:
                         # TODO: Lets not have the trainer self join in more than 1 training rounds
                         if self.role != "client":
                             logger.warning(
@@ -162,6 +163,39 @@ class Node:
 
                         self.training_topic = parts[1]
                         self.is_subscribed = True
+                    # train_ml channel dataset_hash model_hash
+                    if cmd == "train_ml" and len(parts) == 3:
+                        dataset_hash, model_hash = parts[2].split(" ")
+                        channel = parts[1]
+                        nodes = self.mesh.get_channel_nodes(channel)
+                        if not nodes:
+                            logger.warning(f"No nodes found for channel: {channel}")
+                            continue
+                        assignments = self.ml_trainer.assign_chunks_to_nodes(dataset_hash, nodes)
+
+                        await self.pubsub.publish(parts[1], f"assign {model_hash} {assignments}".encode())
+                    
+                    if cmd == "assign" and len(parts) == 3:
+                        model_hash = parts[1]
+                        assignments = ast.literal_eval(parts[2])
+                        logger.info(f"Received assignments: {assignments}")
+                        if self.host.get_id() in assignments:
+                            for chunk_cid in assignments[self.host.get_id()]:
+                                weights = self.ml_trainer.train_on_chunk(chunk_cid, model_hash)
+                                if weights:
+                                    await self.pubsub.publish(
+                                        self.training_topic,
+                                        f"weights {self.host.get_id()} {weights}".encode()
+                                    )
+                                else:
+                                    logger.warning(f"No weights returned for chunk {chunk_cid}")
+                            await self.pubsub.publish(
+                                parts[1], "Left as a TRAINER self".encode()
+                            )
+
+                            await self.pubsub.unsubscribe(parts[1])
+                            logger.info(f"Unsubscribed from [{parts[1]}] mesh")
+                        
 
                     if cmd == "join" and len(parts) > 1:
                         if self.role != "trainer":
