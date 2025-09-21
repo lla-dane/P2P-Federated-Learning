@@ -1,10 +1,9 @@
+from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder, StandardScaler
-from sklearn.linear_model import LogisticRegression
-import numpy as np
 
 # dataset is already provided by exec_globals in train_on_chunk
-df = dataset.copy()
+df = dataset.copy()  # noqa: F821
 
 # Drop id column (not useful for training)
 df = df.drop(columns=["id"])
@@ -18,7 +17,9 @@ X = df.drop(columns=["diagnosis"])
 y = df["diagnosis"]
 
 # Train/test split
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
 
 # Scale features
 scaler = StandardScaler()

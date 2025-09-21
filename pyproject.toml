@@ -15,7 +15,9 @@ dependencies = [
     "python-dotenv",
     "pytest",
     "rich",
-    "trio-util"
+    "trio-util",
+    "pandas",
+    "scikit-learn"
 ]
 
 # Extras let you group optional deps

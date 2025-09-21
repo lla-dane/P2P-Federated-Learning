@@ -8,6 +8,7 @@ class Mesh:
         self.local_mesh = dict()
         self.connected_nodes = set()
         self.fed_mesh_id = None
+        self.role_list = dict()
 
     def get_bootstrap_mesh(self):
         return self.bootstrap_mesh
@@ -18,11 +19,14 @@ class Mesh:
     def get_connected_nodes(self):
         return self.connected_nodes
 
+    def get_roles_list(self):
+        return self.role_list
+
     def get_channel_nodes(self, channel: str):
         for topic, peers in self.bootstrap_mesh.items():
             if topic == channel:
-                peers_id = [peer['peer_id'] for peer in peers]
-                return peers_id
+                peers_id = [peer["peer_id"] for peer in peers]
+                return peers_id[:-1]
         return []
 
     def is_mesh_summary(self, data: bytes) -> bool:
@@ -50,4 +54,20 @@ class Mesh:
             for idx, peer in enumerate(peers, 1):
                 print(f"   {idx}. Peer ID: {peer['peer_id']}")
                 print(f"      Addr: {peer['maddr']}")
+                print(f"      Role: {peer['role']}")
         print("====================\n")
+
+    def print_role_summary(self) -> None:
+        """Nicely print the current mesh role list (peer_id -> role)."""
+
+        if not self.role_list:
+            print("\n=== Mesh Role Summary ===")
+            print("No peers have joined yet.")
+            print("=========================\n")
+            return
+
+        print("\n=== Mesh Role Summary ===")
+        for idx, (peer_id, role) in enumerate(self.role_list.items(), 1):
+            print(f"{idx}. Peer ID: {peer_id}")
+            print(f"   Role   : {role}")
+        print("=========================\n")

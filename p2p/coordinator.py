@@ -1,8 +1,9 @@
+import ast
 import base64
 import json
 import random
 from pathlib import Path
-import ast
+
 import base58
 import Crypto.PublicKey.RSA as RSA
 import multiaddr
@@ -29,8 +30,9 @@ from libp2p.stream_muxer.mplex.mplex import (
 from libp2p.utils.address_validation import (
     find_free_port,
 )
-from mesh_utils import Mesh
 from machine_learning import MLTrainer
+from mesh_utils import Mesh
+
 from logs import setup_logging
 
 logger = setup_logging("coordinator")
@@ -171,31 +173,41 @@ class Node:
                         if not nodes:
                             logger.warning(f"No nodes found for channel: {channel}")
                             continue
-                        assignments = self.ml_trainer.assign_chunks_to_nodes(dataset_hash, nodes)
+                        assignments = self.ml_trainer.assign_chunks_to_nodes(
+                            dataset_hash, nodes
+                        )
 
-                        await self.pubsub.publish(parts[1], f"assign {model_hash} {assignments}".encode())
-                    
+                        await self.pubsub.publish(
+                            parts[1], f"assign {model_hash} {assignments}".encode()
+                        )
+
                     if cmd == "assign" and len(parts) == 3:
                         model_hash = parts[1]
-                        assignments = ast.literal_eval(parts[2])
+                        assignments: dict = ast.literal_eval(parts[2])
                         logger.info(f"Received assignments: {assignments}")
-                        if self.host.get_id() in assignments:
-                            for chunk_cid in assignments[self.host.get_id()]:
-                                weights = self.ml_trainer.train_on_chunk(chunk_cid, model_hash)
-                                if weights:
-                                    await self.pubsub.publish(
-                                        self.training_topic,
-                                        f"weights {self.host.get_id()} {weights}".encode()
+                        node_id: str = self.host.get_id()
+                        for k, v in assignments.items():
+                            if k == node_id:
+                                for chunk_cid in v:
+                                    logger.debug("training for chunk_cid started")
+                                    weights = self.ml_trainer.train_on_chunk(
+                                        chunk_cid, model_hash
                                     )
-                                else:
-                                    logger.warning(f"No weights returned for chunk {chunk_cid}")
-                            await self.pubsub.publish(
-                                parts[1], "Left as a TRAINER self".encode()
-                            )
+                                    if weights:
+                                        await self.pubsub.publish(
+                                            self.training_topic,
+                                            f"weights {node_id} {weights}".encode(),
+                                        )
+                                    else:
+                                        logger.warning(
+                                            f"No weights returned for chunk {chunk_cid}"
+                                        )
+                                await self.pubsub.publish(
+                                    parts[1], "Left as a TRAINER self".encode()
+                                )
 
-                            await self.pubsub.unsubscribe(parts[1])
-                            logger.info(f"Unsubscribed from [{parts[1]}] mesh")
-                        
+                                await self.pubsub.unsubscribe(parts[1])
+                                logger.info(f"Unsubscribed from [{parts[1]}] mesh")
 
                     if cmd == "join" and len(parts) > 1:
                         if self.role != "trainer":
@@ -229,6 +241,11 @@ class Node:
                                 f"No peers available in {parts[1]} mesh to connect to"
                             )
                             continue
+
+                        for peer in peers:
+                            if peer["peer_id"] == self.host.get_id():
+                                peers.remove(peer)
+                                break
 
                         # Pick a random peer
                         chosen_peer = random.choice(peers)
@@ -283,6 +300,15 @@ class Node:
                         await self.pubsub.publish(parts[1], parts[2].encode())
                         logger.debug(f"Published: {parts[2]}")
 
+                    if cmd == "greet":
+                        await self.pubsub.publish(
+                            FED_LEARNING_MESH,
+                            f"INCOMING {self.host.get_id()} {self.role.upper()}".encode(),
+                        )
+
+                    if cmd == "roles":
+                        self.mesh.print_role_summary()
+
                     if cmd == "topics":
                         logger.info(self.subscribed_topics)
 
@@ -330,12 +356,27 @@ class Node:
                         break
 
                     sender_id = base58.b58encode(message.from_id).decode()
+                    decoded_message: str = message.data.decode("utf-8")
 
                     # Ignore self-messages
                     if self.host.get_id() == sender_id:
                         continue
 
-                    # Case 1: Message from bootstrap
+                    if decoded_message.startswith("INCOMING"):
+                        if self.role.lower() == "bootstrap":
+                            if sender_id in self.mesh.role_list.keys():
+                                continue
+
+                            if "CLIENT" in decoded_message.upper():
+                                logger.info("A new client joined")
+                                self.mesh.role_list[str(sender_id)] = "CLIENT"
+
+                            elif "TRAINER" in decoded_message.upper():
+                                logger.info("A new trainer joined")
+                                self.mesh.role_list[str(sender_id)] = "TRAINER"
+                        continue
+
+                    # Message from bootstrap
                     if sender_id == self.bootstrap_id:
                         if self.mesh.is_mesh_summary(message.data):
                             bootmesh_bytes = json.dumps(
@@ -344,12 +385,18 @@ class Node:
 
                             if bootmesh_bytes != message.data:
                                 logger.debug("BOOTSTRAP mesh updated")
-                                mesh_summary = json.loads(message.data.decode("utf-8"))
+                                mesh_summary = json.loads(decoded_message)
                                 self.mesh.bootstrap_mesh = mesh_summary
                         else:
-                            logger.info(f"BOOTSTRAP: {message.data.decode('utf-8')}")
+                            logger.info(f"BOOTSTRAP: {decoded_message}")
 
-                    # Case 2: General message
+                    elif decoded_message.startswith("assign"):
+                        logger.debug(f"Decoded message: {decoded_message}")
+                        cmds = decoded_message.strip().split(" ", 2)
+                        logger.debug(f"Recevind training chunks from client, {cmds}")
+                        await self.send_channel.send(cmds)
+
+                    # General message
                     else:
                         logger.info(f"{sender_id}: {message.data.decode('utf-8')}")
 
@@ -362,6 +409,12 @@ class Node:
 
         finally:
             logger.info("Receive loop terminated")
+
+    async def status_greet(self):
+        await trio.sleep(2)
+        for i in range(1, 4):
+            await self.send_channel.send(["greet"])
+            await trio.sleep(2)
 
     async def connected_peer_monitoring_loop(self):
         """Continuously monitor connected peers via pubsub."""
@@ -411,7 +464,14 @@ class Node:
                 peer_list = []
                 for peer_id in peers:
                     maddr = self.host.get_peerstore().addrs(peer_id)[0]
-                    peer_list.append({"peer_id": str(peer_id), "maddr": str(maddr)})
+                    peer_id_b58 = base58.b58encode(peer_id.to_bytes()).decode()
+                    peer_list.append(
+                        {
+                            "peer_id": str(peer_id),
+                            "maddr": str(maddr),
+                            "role": self.mesh.role_list.get(peer_id_b58, "UNKNOWN"),
+                        }
+                    )
                 topic_summary[topic] = peer_list
 
             self.mesh.local_mesh = topic_summary
