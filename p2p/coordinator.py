@@ -1,5 +1,6 @@
 import base64
 import json
+import random
 from pathlib import Path
 
 import base58
@@ -180,19 +181,48 @@ class Node:
                         subscription = await self.pubsub.subscribe(parts[1])
                         nursery.start_soon(self.receive_loop, subscription)
                         self.subscribed_topics.append(parts[1])
-                        await self.pubsub.publish(
-                            parts[1], "Joined as a TRAINER self".encode()
-                        )
 
                         self.is_subscribed = True
                         self.training_topic = parts[1]
 
-                        await trio.sleep(1)
+                        logger.info("Starting the random peer selection sequence")
+                        await trio.sleep(2)
+
+                        # Fetch the bootmesh
+                        peers = self.mesh.get_bootstrap_mesh().get(parts[1], [])
+                        if not peers:
+                            logger.warning(
+                                f"No peers available in {parts[1]} mesh to connect to"
+                            )
+                            continue
+
+                        # Pick a random peer
+                        chosen_peer = random.choice(peers)
+                        peer_maddr = chosen_peer["maddr"]
+                        logger.debug(
+                            f"Selected random peer for connection:\n {peer_maddr}"
+                        )
+
+                        # Now connect
+                        try:
+                            maddr = multiaddr.Multiaddr(peer_maddr)
+                            info = info_from_p2p_addr(maddr)
+
+                            await self.host.connect(info)
+                            logger.info(
+                                f"Connected to {info.peer_id} in {parts[1]} mesh"
+                            )
+                        except Exception:
+                            logger.error(f"Failed to connect to peer {peer_maddr}: e")
+
+                        await self.pubsub.publish(
+                            parts[1], "Joined as a TRAINER node".encode()
+                        )
 
                     if cmd == "leave" and len(parts) > 1:
                         if self.role == "trainer":
                             await self.pubsub.publish(
-                                parts[1], "Left as a TRAINER self".encode()
+                                parts[1], "Left as a TRAINER node".encode()
                             )
 
                             await self.pubsub.unsubscribe(parts[1])
