@@ -5,14 +5,17 @@ import App from './App.tsx';
 import { HashRouter } from 'react-router-dom';
 import { SettingsProvider } from './contexts/SettingsContext.tsx';
 import { TrainingProvider } from './contexts/TrainingContext.tsx';
+import { WalletProvider } from './contexts/WalletConnectContext.tsx';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <SettingsProvider>
       <TrainingProvider>
-        <HashRouter>
-          <App />
-        </HashRouter>
+        <WalletProvider>
+          <HashRouter>
+            <App />
+          </HashRouter>
+        </WalletProvider>
       </TrainingProvider>
     </SettingsProvider>
   </StrictMode>

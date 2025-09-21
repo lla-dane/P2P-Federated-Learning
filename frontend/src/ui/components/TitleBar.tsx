@@ -3,13 +3,14 @@ import { BrainCircuit, Minus, Copy, X } from 'lucide-react';
 import {
   handleMinimize,
   handleMaximize,
-  handleClose,
+  handleClose, 
 } from '../utils/windowHelper';
 
 const TitleBar = () => {
   return (
     <header className='h-12 bg-surface flex items-center justify-between border-b border-border/50 select-none'>
       {/* Draggable Region */}
+
       <div
         className='flex-grow h-full flex items-center gap-3 px-4'
         style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}

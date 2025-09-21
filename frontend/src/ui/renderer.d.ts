@@ -20,6 +20,7 @@ export interface IElectronAPI {
   maximizeWindow: () => void;
   closeWindow: () => void;
   quitApp: () => void;
+  openExternalLink: (url: string) => void;
 }
 
 declare global {

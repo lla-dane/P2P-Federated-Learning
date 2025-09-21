@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain, shell } from 'electron';
 import path from 'path';
 import { isDev } from './utils.js';
 import { resolvePath } from './pathResolver.js';
@@ -26,6 +26,10 @@ ipcMain.on('app:quit', () => {
   app.quit();
 });
 
+ipcMain.on('shell:openExternal', (_event, url: string) => {
+  shell.openExternal(url);
+});
+
 app.on('ready', () => {
   registerIpcHandlers();
 
@@ -38,6 +42,7 @@ app.on('ready', () => {
       preload: resolvePath(),
       contextIsolation: true,
       nodeIntegration: false,
+      webSecurity: false,
     },
   });
 
