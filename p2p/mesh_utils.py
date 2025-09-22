@@ -25,8 +25,8 @@ class Mesh:
     def get_channel_nodes(self, channel: str):
         for topic, peers in self.bootstrap_mesh.items():
             if topic == channel:
-                peers_id = [peer["peer_id"] for peer in peers]
-                return peers_id[:-1]
+                peers_id = [peer["peer_id"] for peer in peers if peer['role'] == 'trainer'.upper()]
+                return peers_id
         return []
 
     def is_mesh_summary(self, data: bytes) -> bool:

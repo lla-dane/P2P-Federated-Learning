@@ -144,7 +144,7 @@ class Node:
                         await self.host.connect(info)
                         logger.info(f"Connected to {info.peer_id}")
 
-                    if cmd == "train_round" and len(parts) > 1:
+                    if cmd == "advertize" and len(parts) > 1:
                         # TODO: Lets not have the trainer self join in more than 1 training rounds
                         if self.role != "client":
                             logger.warning(
@@ -166,7 +166,7 @@ class Node:
                         self.training_topic = parts[1]
                         self.is_subscribed = True
                     # train_ml channel dataset_hash model_hash
-                    if cmd == "train_ml" and len(parts) == 3:
+                    if cmd == "train" and len(parts) == 3:
                         dataset_hash, model_hash = parts[2].split(" ")
                         channel = parts[1]
                         nodes = self.mesh.get_channel_nodes(channel)
