@@ -44,6 +44,7 @@ env_path = Path("..") / ".env"
 GOSSIPSUB_PROTOCOL_ID = TProtocol("/meshsub/1.0.0")
 FED_LEARNING_MESH = "fed-learn"
 PUBLIC_IP = os.getenv("IP")
+IS_CLOUD = os.getenv("IS_CLOUD")
 
 
 COMMANDS = """
@@ -254,7 +255,10 @@ class Node:
 
                         # Pick a random peer
                         chosen_peer = random.choice(peers)
-                        peer_maddr = chosen_peer["maddr"]
+                        if IS_CLOUD == "True":
+                            peer_maddr = chosen_peer["pub_maddr"]
+                        else:
+                            peer_maddr = chosen_peer["maddr"]
                         logger.debug(
                             f"Selected random peer for connection:\n {peer_maddr}"
                         )
@@ -331,11 +335,8 @@ class Node:
                         )
 
                     if cmd == "local":
-                        addrs = self.host.get_addrs()
-                        if addrs:
-                            logger.info(f"Local multiaddr: {addrs[0]}")
-                        else:
-                            logger.warning("No listening addresses found.")
+                        public_maddr = f"/ip4/{PUBLIC_IP}/tcp/{self.host.get_addrs()[0].value_for_protocol("tcp")}/p2p/{self.host.get_id()}"
+                        logger.info(f"Public multiaddr: {public_maddr}")
 
                     if cmd == "help":
                         logger.debug(COMMANDS)
