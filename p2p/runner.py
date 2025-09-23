@@ -11,7 +11,7 @@ from coordinator import (
     FED_LEARNING_MESH,
     Node,
 )
-from dotenv import load_dotenv, set_key
+from dotenv import load_dotenv
 from libp2p.peer.peerinfo import (
     info_from_p2p_addr,
 )
@@ -77,11 +77,6 @@ async def interactive_shell() -> None:
                 # and then the training topic will be broadcasted in that particular mesh
 
                 if node.role == "bootstrap":
-                    # Set the Bootstrap node addr in the .env file
-                    local_addr = node.host.get_addrs()[0]
-                    set_key(env_path, "BOOTSTRAP_ADDR", str(local_addr))
-                    logger.debug("Bootstrap addr set in the .env file")
-
                     # Subscribe to the FED_LEARNING_MESH
                     boot_subscripton = await node.pubsub.subscribe(FED_LEARNING_MESH)
                     nursery.start_soon(node.receive_loop, boot_subscripton)

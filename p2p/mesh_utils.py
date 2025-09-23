@@ -9,6 +9,7 @@ class Mesh:
         self.connected_nodes = set()
         self.fed_mesh_id = None
         self.role_list = dict()
+        self.public_maddr_list = dict()
 
     def get_bootstrap_mesh(self):
         return self.bootstrap_mesh
@@ -22,10 +23,17 @@ class Mesh:
     def get_roles_list(self):
         return self.role_list
 
+    def get_public_multiaddr(self):
+        return self.public_maddr_list
+
     def get_channel_nodes(self, channel: str):
         for topic, peers in self.bootstrap_mesh.items():
             if topic == channel:
-                peers_id = [peer["peer_id"] for peer in peers if peer['role'] == 'trainer'.upper()]
+                peers_id = [
+                    peer["peer_id"]
+                    for peer in peers
+                    if peer["role"] == "trainer".upper()
+                ]
                 return peers_id
         return []
 
@@ -53,8 +61,9 @@ class Mesh:
 
             for idx, peer in enumerate(peers, 1):
                 print(f"   {idx}. Peer ID: {peer['peer_id']}")
-                print(f"      Addr: {peer['maddr']}")
+                print(f"      Local: {peer['maddr']}")
                 print(f"      Role: {peer['role']}")
+                print(f"      Public: {peer['pub_maddr']}")
         print("====================\n")
 
     def print_role_summary(self) -> None:

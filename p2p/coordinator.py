@@ -1,6 +1,7 @@
 import ast
 import base64
 import json
+import os
 import random
 from pathlib import Path
 
@@ -8,6 +9,7 @@ import base58
 import Crypto.PublicKey.RSA as RSA
 import multiaddr
 import trio
+from dotenv import load_dotenv
 from libp2p import new_host
 from libp2p.crypto.keys import KeyPair
 from libp2p.crypto.rsa import RSAPrivateKey, RSAPublicKey
@@ -35,27 +37,30 @@ from mesh_utils import Mesh
 
 from logs import setup_logging
 
+load_dotenv()
 logger = setup_logging("coordinator")
 
 env_path = Path("..") / ".env"
 GOSSIPSUB_PROTOCOL_ID = TProtocol("/meshsub/1.0.0")
 FED_LEARNING_MESH = "fed-learn"
+PUBLIC_IP = os.getenv("IP")
 
 
 COMMANDS = """
 Available commands:
-- connect <multiaddr>       - Connect to another peer
-- train <topic>             - Start a training round in the fed-learn mesh
-- join <topic>              - Subscribe to a topic
-- leave <topic>             - Unsubscribe to a topic
-- publish <topic> <message> - Publish a message
-- topics                    - List of subscribed topics
-- mesh                      - Get the local mesh summary
-- bootmesh                  - Get the bootstrap mesh summary
-- peers                     - List connected peers
-- local                     - List local multiaddr
-- help                      - List the existing commands
-- exit                      - Shut down
+- connect <multiaddr>               - Connect to another peer
+- advertize <topic>                 - Start a training round in the fed-learn mesh
+- train <topic> <dataset> <model>   - Starts the training procedure
+- join <topic>                      - Subscribe to a topic
+- leave <topic>                     - Unsubscribe to a topic
+- publish <topic> <message>         - Publish a message
+- topics                            - List of subscribed topics
+- mesh                              - Get the local mesh summary
+- bootmesh                          - Get the bootstrap mesh summary
+- peers                             - List connected peers
+- local                             - List local multiaddr
+- help                              - List the existing commands
+- exit                              - Shut down
 """
 
 
@@ -101,9 +106,9 @@ class Node:
         # Create and start gossipsub with optimized parameters for testing
         self.gossipsub = GossipSub(
             protocols=[GOSSIPSUB_PROTOCOL_ID],
-            degree=6,  # Number of peers to maintain in mesh
-            degree_low=5,  # Lower bound for mesh peers
-            degree_high=7,  # Upper bound for mesh peers
+            degree=20,  # Number of peers to maintain in mesh
+            degree_low=18,  # Lower bound for mesh peers
+            degree_high=25,  # Upper bound for mesh peers
             direct_peers=None,  # Direct peers
             time_to_live=60,  # TTL for message cache in seconds
             gossip_window=2,  # Smaller window for faster gossip
@@ -301,9 +306,11 @@ class Node:
                         logger.debug(f"Published: {parts[2]}")
 
                     if cmd == "greet":
+                        public_maddr = f"/ip4/{PUBLIC_IP}/tcp/{self.host.get_addrs()[0].value_for_protocol("tcp")}/p2p/{self.host.get_id()}"
+
                         await self.pubsub.publish(
                             FED_LEARNING_MESH,
-                            f"INCOMING {self.host.get_id()} {self.role.upper()}".encode(),
+                            f"INCOMING {self.host.get_id()} {self.role.upper()} {public_maddr}".encode(),
                         )
 
                     if cmd == "roles":
@@ -367,13 +374,12 @@ class Node:
                             if sender_id in self.mesh.role_list.keys():
                                 continue
 
-                            if "CLIENT" in decoded_message.upper():
-                                logger.info("A new client joined")
-                                self.mesh.role_list[str(sender_id)] = "CLIENT"
-
-                            elif "TRAINER" in decoded_message.upper():
-                                logger.info("A new trainer joined")
-                                self.mesh.role_list[str(sender_id)] = "TRAINER"
+                            status_parts = decoded_message.strip().split(" ", 3)
+                            logger.info(f"New {status_parts[2]} joined")
+                            self.mesh.role_list[str(sender_id)] = status_parts[2]
+                            self.mesh.public_maddr_list[str(sender_id)] = status_parts[
+                                3
+                            ]
                         continue
 
                     # Message from bootstrap
@@ -470,6 +476,9 @@ class Node:
                             "peer_id": str(peer_id),
                             "maddr": str(maddr),
                             "role": self.mesh.role_list.get(peer_id_b58, "UNKNOWN"),
+                            "pub_maddr": self.mesh.public_maddr_list.get(
+                                peer_id_b58, "UNKNOWN"
+                            ),
                         }
                     )
                 topic_summary[topic] = peer_list
@@ -508,7 +517,7 @@ class Node:
 
         host = "0.0.0.0"
 
-        logger.info(f"Starting API listener on {host}:{port}")
+        logger.warning(f"Starting API listener on {host}:{port}")
 
         # TCP server
         async def handle_client(stream):
