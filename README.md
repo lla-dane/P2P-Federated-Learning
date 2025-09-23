@@ -140,6 +140,10 @@ git rebase origin/master
 
 ```bash
 # BOOTSTRAP
-ssh -i "Desktop/libp2p/P2P-Federated-Learning/p2p-1.pem" ubuntu@ec2-43-205-145-166.ap-south-1.compute.amazonaws.com
+ssh -i "Desktop/libp2p/P2P-Federated-Learning/aws-keys/p2p-1.pem" ubuntu@ec2-43-205-145-166.ap-south-1.compute.amazonaws.com
+
+# CLIENT
+ssh -i "Desktop/libp2p/P2P-Federated-Learning/aws-keys/p2p-1.pem" ubuntu@ec2-65-0-74-7.ap-south-1.compute.amazonaws.com
+
 
 ```
