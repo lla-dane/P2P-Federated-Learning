@@ -1,10 +1,12 @@
+import hashlib
 import os
+import subprocess
 import tempfile
 import time
+
 import requests
-import hashlib
 from dotenv import load_dotenv
-import subprocess
+
 from logs import setup_logging
 
 load_dotenv()
@@ -14,6 +16,7 @@ API_SECRET = os.getenv("API_SECRET")
 ACCESS_TOKEN = os.getenv("JWT_TOKEN")
 
 logger = setup_logging("ipfs-client")
+
 
 class Akave:
     """The Akave client instance"""
@@ -30,7 +33,9 @@ class Akave:
         secret_key = os.getenv("AWS_SECRET_ACCESS_KEY")
 
         if not access_key or not secret_key:
-            raise ValueError("AWS_ACCESS_KEY_ID or AWS_SECRET_ACCESS_KEY is not set in environment variables.")
+            raise ValueError(
+                "AWS_ACCESS_KEY_ID or AWS_SECRET_ACCESS_KEY is not set in environment variables."
+            )
 
         print("Starting AWS CLI configuration...\n")
 
@@ -40,7 +45,7 @@ class Akave:
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            text=True
+            text=True,
         )
 
         # Steps to input
@@ -48,7 +53,7 @@ class Akave:
             ("AWS Access Key ID", access_key),
             ("AWS Secret Access Key", secret_key),
             ("Default region name", region),
-            ("Default output format", output_format)
+            ("Default output format", output_format),
         ]
 
         # Send each input step by step
@@ -67,8 +72,7 @@ class Akave:
             print("\nError configuring AWS CLI:")
             print(stderr)
 
-
-    def sha256_of_file(self,file_path):
+    def sha256_of_file(self, file_path):
         sha256 = hashlib.sha256()
         with open(file_path, "rb") as f:
             for chunk in iter(lambda: f.read(4096), b""):  # read in chunks
@@ -77,10 +81,15 @@ class Akave:
 
     def configure_bucket(self, command: str) -> bool:
         command = [
-            "aws", "s3api", command,
-            "--bucket", "akave-bucket",
-            "--endpoint-url", "https://o3-rc2.akave.xyz",
-            "--profile", "akave-o3"
+            "aws",
+            "s3api",
+            command,
+            "--bucket",
+            "akave-bucket",
+            "--endpoint-url",
+            "https://o3-rc2.akave.xyz",
+            "--profile",
+            "akave-o3",
         ]
 
         result = subprocess.run(command, capture_output=True, text=True)
@@ -93,8 +102,13 @@ class Akave:
             print(result.stderr)
             return True
 
-
-    def get_presigned_url(self, file_name: str, expires_in: int = 36000000, profile: str = "akave-o3", endpoint_url: str = "https://o3-rc2.akave.xyz"):
+    def get_presigned_url(
+        self,
+        file_name: str,
+        expires_in: int = 36000000,
+        profile: str = "akave-o3",
+        endpoint_url: str = "https://o3-rc2.akave.xyz",
+    ):
         """
         Generate a presigned URL for an S3 object using AWS CLI.
         """
@@ -103,10 +117,16 @@ class Akave:
         print(f"Generating presigned URL for {s3_path}...")
         print(f"file to be executed: {file_name}")
         command = [
-            "aws", "s3", "presign", s3_path,
-            "--expires-in", str(expires_in),
-            "--endpoint-url", endpoint_url,
-            "--profile", profile
+            "aws",
+            "s3",
+            "presign",
+            s3_path,
+            "--expires-in",
+            str(expires_in),
+            "--endpoint-url",
+            endpoint_url,
+            "--profile",
+            profile,
         ]
         print(command)
         try:
@@ -120,21 +140,27 @@ class Akave:
             print(e.stderr)
             return None
 
-
     def put_object(self, file_path: str) -> bool:
 
         key = self.sha256_of_file(file_path)
         command = [
-            "aws", "s3api", "put-object",
-            "--bucket", "akave-bucket",
-            "--key", key,
-            "--body", file_path,
-            "--endpoint-url", "https://o3-rc2.akave.xyz",
-            "--profile", "akave-o3"
+            "aws",
+            "s3api",
+            "put-object",
+            "--bucket",
+            "akave-bucket",
+            "--key",
+            key,
+            "--body",
+            file_path,
+            "--endpoint-url",
+            "https://o3-rc2.akave.xyz",
+            "--profile",
+            "akave-o3",
         ]
 
         result = subprocess.run(command, capture_output=True, text=True)
-        file_name=os.path.basename(file_path)
+        file_name = os.path.basename(file_path)
 
         if result.returncode == 0:
             print(f"object '{file_name}' created successfully!")
@@ -163,12 +189,18 @@ class Akave:
 
     def download_object(self, object_key: str) -> bool:
         command = [
-            "aws", "s3api", "get-object",
-            "--bucket", "akave-bucket",
-            "--key", object_key,
-            "--endpoint-url", "https://o3-rc2.akave.xyz",
-            "--profile", "akave-o3",
-            f"./{object_key}"
+            "aws",
+            "s3api",
+            "get-object",
+            "--bucket",
+            "akave-bucket",
+            "--key",
+            object_key,
+            "--endpoint-url",
+            "https://o3-rc2.akave.xyz",
+            "--profile",
+            "akave-o3",
+            f"./{object_key}",
         ]
 
         result = subprocess.run(command, capture_output=True, text=True)
@@ -202,7 +234,9 @@ class Akave:
 
         try:
             # 1. Save string to a temporary file
-            with tempfile.NamedTemporaryFile(delete=False, mode="w", encoding="utf-8") as tmp_file:
+            with tempfile.NamedTemporaryFile(
+                delete=False, mode="w", encoding="utf-8"
+            ) as tmp_file:
                 tmp_file.write(content)
                 tmp_file_path = tmp_file.name
 
@@ -211,12 +245,19 @@ class Akave:
 
             # 3. Upload the temporary file to S3
             command = [
-                "aws", "s3api", "put-object",
-                "--bucket", "akave-bucket",
-                "--key", key,
-                "--body", tmp_file_path,
-                "--endpoint-url", "https://o3-rc2.akave.xyz",
-                "--profile", "akave-o3"
+                "aws",
+                "s3api",
+                "put-object",
+                "--bucket",
+                "akave-bucket",
+                "--key",
+                key,
+                "--body",
+                tmp_file_path,
+                "--endpoint-url",
+                "https://o3-rc2.akave.xyz",
+                "--profile",
+                "akave-o3",
             ]
             result = subprocess.run(command, capture_output=True, text=True)
 

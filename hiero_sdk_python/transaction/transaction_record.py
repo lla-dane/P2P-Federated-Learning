@@ -25,9 +25,15 @@ class TransactionRecord:
     receipt: Optional[TransactionReceipt] = None
     call_result: Optional[ContractFunctionResult] = None
 
-    token_transfers: defaultdict[TokenId, defaultdict[AccountId, int]] = field(default_factory=lambda: defaultdict(lambda: defaultdict(int)))
-    nft_transfers: defaultdict[TokenId, list[TokenNftTransfer]] = field(default_factory=lambda: defaultdict(list[TokenNftTransfer]))
-    transfers: defaultdict[AccountId, int] = field(default_factory=lambda: defaultdict(int))
+    token_transfers: defaultdict[TokenId, defaultdict[AccountId, int]] = field(
+        default_factory=lambda: defaultdict(lambda: defaultdict(int))
+    )
+    nft_transfers: defaultdict[TokenId, list[TokenNftTransfer]] = field(
+        default_factory=lambda: defaultdict(list[TokenNftTransfer])
+    )
+    transfers: defaultdict[AccountId, int] = field(
+        default_factory=lambda: defaultdict(int)
+    )
     new_pending_airdrops: list[PendingAirdropRecord] = field(default_factory=list)
 
     prng_number: Optional[int] = None
@@ -42,21 +48,27 @@ class TransactionRecord:
                 status = ResponseCode(self.receipt.status).name
             except (ValueError, AttributeError):
                 status = self.receipt.status
-        return (f"TransactionRecord(transaction_id='{self.transaction_id}', "
-                f"transaction_hash={self.transaction_hash}, "
-                f"transaction_memo='{self.transaction_memo}', "
-                f"transaction_fee={self.transaction_fee}, "
-                f"receipt_status='{status}', "
-                f"token_transfers={dict(self.token_transfers)}, "
-                f"nft_transfers={dict(self.nft_transfers)}, "
-                f"transfers={dict(self.transfers)}, "
-                f"new_pending_airdrops={list(self.new_pending_airdrops)}, "
-                f"call_result={self.call_result}, "
-                f"prng_number={self.prng_number}, "
-                f"prng_bytes={self.prng_bytes})")
+        return (
+            f"TransactionRecord(transaction_id='{self.transaction_id}', "
+            f"transaction_hash={self.transaction_hash}, "
+            f"transaction_memo='{self.transaction_memo}', "
+            f"transaction_fee={self.transaction_fee}, "
+            f"receipt_status='{status}', "
+            f"token_transfers={dict(self.token_transfers)}, "
+            f"nft_transfers={dict(self.nft_transfers)}, "
+            f"transfers={dict(self.transfers)}, "
+            f"new_pending_airdrops={list(self.new_pending_airdrops)}, "
+            f"call_result={self.call_result}, "
+            f"prng_number={self.prng_number}, "
+            f"prng_bytes={self.prng_bytes})"
+        )
 
     @classmethod
-    def _from_proto(cls, proto: transaction_record_pb2.TransactionRecord, transaction_id: Optional[TransactionId] = None) -> 'TransactionRecord':
+    def _from_proto(
+        cls,
+        proto: transaction_record_pb2.TransactionRecord,
+        transaction_id: Optional[TransactionId] = None,
+    ) -> "TransactionRecord":
         """
         Creates a TransactionRecord from a protobuf record.
 
@@ -83,8 +95,9 @@ class TransactionRecord:
 
         new_pending_airdrops: list[PendingAirdropRecord] = []
         for pending_airdrop in proto.new_pending_airdrops:
-            new_pending_airdrops.append(PendingAirdropRecord._from_proto(pending_airdrop))
-
+            new_pending_airdrops.append(
+                PendingAirdropRecord._from_proto(pending_airdrop)
+            )
 
         return cls(
             transaction_id=transaction_id,
@@ -144,6 +157,8 @@ class TransactionRecord:
             transfer.amount = amount
 
         for pending_airdrop in self.new_pending_airdrops:
-            record_proto.new_pending_airdrops.add().CopyFrom(pending_airdrop._to_proto())
+            record_proto.new_pending_airdrops.add().CopyFrom(
+                pending_airdrop._to_proto()
+            )
 
         return record_proto

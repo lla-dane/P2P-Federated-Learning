@@ -47,7 +47,9 @@ class EthereumTransaction(Transaction):
         self.call_data: Optional[FileId] = call_data_file_id
         self.max_gas_allowed: Optional[int] = max_gas_allowed
 
-    def set_ethereum_data(self, ethereum_data: Optional[bytes]) -> "EthereumTransaction":
+    def set_ethereum_data(
+        self, ethereum_data: Optional[bytes]
+    ) -> "EthereumTransaction":
         """
         Sets the Ethereum transaction data to execute.
 

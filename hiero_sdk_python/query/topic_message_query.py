@@ -1,14 +1,14 @@
-import time
 import threading
+import time
 from datetime import datetime
-from typing import Optional, Callable, Union, Dict, List
+from typing import Callable, Dict, List, Optional, Union
 
-from hiero_sdk_python.hapi.mirror import consensus_service_pb2 as mirror_proto
-from hiero_sdk_python.hapi.services import basic_types_pb2, timestamp_pb2
+from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.consensus.topic_id import TopicId
 from hiero_sdk_python.consensus.topic_message import TopicMessage
+from hiero_sdk_python.hapi.mirror import consensus_service_pb2 as mirror_proto
+from hiero_sdk_python.hapi.services import basic_types_pb2, timestamp_pb2
 from hiero_sdk_python.utils.subscription_handle import SubscriptionHandle
-from hiero_sdk_python.client.client import Client
 
 
 class TopicMessageQuery:
@@ -30,9 +30,15 @@ class TopicMessageQuery:
         """
         Initializes a TopicMessageQuery.
         """
-        self._topic_id: Optional[TopicId] = self._parse_topic_id(topic_id) if topic_id else None
-        self._start_time: Optional[timestamp_pb2.Timestamp] = self._parse_timestamp(start_time) if start_time else None
-        self._end_time: Optional[timestamp_pb2.Timestamp] = self._parse_timestamp(end_time) if end_time else None
+        self._topic_id: Optional[TopicId] = (
+            self._parse_topic_id(topic_id) if topic_id else None
+        )
+        self._start_time: Optional[timestamp_pb2.Timestamp] = (
+            self._parse_timestamp(start_time) if start_time else None
+        )
+        self._end_time: Optional[timestamp_pb2.Timestamp] = (
+            self._parse_timestamp(end_time) if end_time else None
+        )
         self._limit: Optional[int] = limit
         self._chunking_enabled: bool = chunking_enabled
         self._completion_handler: Optional[Callable[[], None]] = None
@@ -50,7 +56,9 @@ class TopicMessageQuery:
         self._max_backoff = backoff
         return self
 
-    def set_completion_handler(self, handler: Callable[[], None]) -> "TopicMessageQuery":
+    def set_completion_handler(
+        self, handler: Callable[[], None]
+    ) -> "TopicMessageQuery":
         """Sets a completion handler that is called when the subscription completes."""
         self._completion_handler = handler
         return self
@@ -64,7 +72,9 @@ class TopicMessageQuery:
             if len(parts) != 3:
                 raise ValueError(f"Invalid topic ID string: {topic_id}")
             shard, realm, topic = map(int, parts)
-            return basic_types_pb2.TopicID(shardNum=shard, realmNum=realm, topicNum=topic)
+            return basic_types_pb2.TopicID(
+                shardNum=shard, realmNum=realm, topicNum=topic
+            )
         elif isinstance(topic_id, TopicId):
             return topic_id._to_proto()
         else:
@@ -112,7 +122,9 @@ class TopicMessageQuery:
         if not self._topic_id:
             raise ValueError("Topic ID must be set before subscribing.")
         if not client.mirror_stub:
-            raise ValueError("Client has no mirror_stub. Did you configure a mirror node address?")
+            raise ValueError(
+                "Client has no mirror_stub. Did you configure a mirror node address?"
+            )
 
         request = mirror_proto.ConsensusTopicQuery(topicID=self._topic_id)
         if self._start_time:
@@ -128,7 +140,9 @@ class TopicMessageQuery:
 
         def run_stream():
             attempt = 0
-            while attempt < self._max_attempts and not subscription_handle.is_cancelled():
+            while (
+                attempt < self._max_attempts and not subscription_handle.is_cancelled()
+            ):
                 try:
                     message_stream = client.mirror_stub.subscribeTopic(request)
 
@@ -136,19 +150,23 @@ class TopicMessageQuery:
                         if subscription_handle.is_cancelled():
                             return
 
-                        if (not self._chunking_enabled
-                                or not response.HasField("chunkInfo")
-                                or response.chunkInfo.total <= 1):
+                        if (
+                            not self._chunking_enabled
+                            or not response.HasField("chunkInfo")
+                            or response.chunkInfo.total <= 1
+                        ):
                             msg_obj = TopicMessage.of_single(response)
                             on_message(msg_obj)
                             continue
 
                         initial_tx_id = response.chunkInfo.initialTransactionID
-                        tx_id_str = (f"{initial_tx_id.shardNum}."
-                                     f"{initial_tx_id.realmNum}."
-                                     f"{initial_tx_id.accountNum}-"
-                                     f"{initial_tx_id.transactionValidStart.seconds}."
-                                     f"{initial_tx_id.transactionValidStart.nanos}")
+                        tx_id_str = (
+                            f"{initial_tx_id.shardNum}."
+                            f"{initial_tx_id.realmNum}."
+                            f"{initial_tx_id.accountNum}-"
+                            f"{initial_tx_id.transactionValidStart.seconds}."
+                            f"{initial_tx_id.transactionValidStart.nanos}"
+                        )
                         if tx_id_str not in pending_chunks:
                             pending_chunks[tx_id_str] = []
                         pending_chunks[tx_id_str].append(response)

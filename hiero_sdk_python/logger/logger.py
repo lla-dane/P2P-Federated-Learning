@@ -4,8 +4,8 @@ Simple logger module for the Hiero SDK.
 
 import logging
 import sys
-from typing import Optional, Union, Sequence
 import warnings
+from typing import Optional, Sequence, Union
 
 from hiero_sdk_python.logger.log_level import LogLevel
 
@@ -13,17 +13,20 @@ from hiero_sdk_python.logger.log_level import LogLevel
 _DISABLED_LEVEL = LogLevel.DISABLED.value
 _TRACE_LEVEL = LogLevel.TRACE.value
 logging.addLevelName(_DISABLED_LEVEL, "DISABLED")
-logging.addLevelName(_TRACE_LEVEL,   "TRACE")
+logging.addLevelName(_TRACE_LEVEL, "TRACE")
+
 
 class Logger:
     """
     Custom logger that wraps Python's logging module
     """
 
-    def __init__(self, level: Optional[LogLevel] = None, name: Optional[str] = None) -> None:
+    def __init__(
+        self, level: Optional[LogLevel] = None, name: Optional[str] = None
+    ) -> None:
         """
         Constructor
-        
+
         Args:
             level (LogLevel, optional): the current log level
             name (str, optional): logger name, defaults to class name
@@ -41,7 +44,9 @@ class Logger:
         if not self.internal_logger.handlers:
             handler = logging.StreamHandler(sys.stdout)
             # Configure formatter to structure log output with logger name, timestamp, level and message
-            formatter = logging.Formatter('[%(name)s] [%(asctime)s] %(levelname)-8s %(message)s')
+            formatter = logging.Formatter(
+                "[%(name)s] [%(asctime)s] %(levelname)-8s %(message)s"
+            )
             handler.setFormatter(formatter)
             self.internal_logger.addHandler(handler)
 
@@ -121,15 +126,17 @@ class Logger:
         if self.internal_logger.isEnabledFor(LogLevel.ERROR.value):
             self.internal_logger.error(self._format_args(message, args))
 
+
 def get_logger(
     level: Optional[LogLevel] = None,
-    name:  Optional[str]      = None,
+    name: Optional[str] = None,
 ) -> Logger:
     # Legacy method: pass in name, level
     if isinstance(level, str) and isinstance(name, LogLevel):
         warnings.warn(
             "get_logger(name, level) will be deprecated; use get_logger(level, name)",
-            DeprecationWarning, stacklevel=2
+            DeprecationWarning,
+            stacklevel=2,
         )
         # Swaps them to correct sequence to follow init
         level, name = name, level

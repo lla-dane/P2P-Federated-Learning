@@ -120,7 +120,9 @@ class ScheduleInfo:
             payerAccountID=(
                 self._convert_to_proto(self.payer_account_id, AccountId._to_proto)
             ),
-            deletion_time=self._convert_to_proto(self.deleted_at, Timestamp._to_protobuf),
+            deletion_time=self._convert_to_proto(
+                self.deleted_at, Timestamp._to_protobuf
+            ),
             execution_time=(
                 self._convert_to_proto(self.executed_at, Timestamp._to_protobuf)
             ),

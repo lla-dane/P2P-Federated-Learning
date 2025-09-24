@@ -1,6 +1,7 @@
 """Network module for managing Hedera SDK connections."""
+
 import secrets
-from typing import Dict, List, Optional, Any
+from typing import Any, Dict, List, Optional
 
 import requests
 
@@ -9,28 +10,27 @@ from hiero_sdk_python.address_book.node_address import NodeAddress
 from hiero_sdk_python.node import _Node
 
 
-
 class Network:
     """
     Manages the network configuration for connecting to the Hedera network.
     """
 
-    MIRROR_ADDRESS_DEFAULT: Dict[str,str] = {
-        'mainnet': 'mainnet.mirrornode.hedera.com:443',
-        'testnet': 'testnet.mirrornode.hedera.com:443',
-        'previewnet': 'previewnet.mirrornode.hedera.com:443',
-        'solo': 'localhost:5600'
+    MIRROR_ADDRESS_DEFAULT: Dict[str, str] = {
+        "mainnet": "mainnet.mirrornode.hedera.com:443",
+        "testnet": "testnet.mirrornode.hedera.com:443",
+        "previewnet": "previewnet.mirrornode.hedera.com:443",
+        "solo": "localhost:5600",
     }
 
-    MIRROR_NODE_URLS: Dict[str,str] = {
-        'mainnet': 'https://mainnet-public.mirrornode.hedera.com',
-        'testnet': 'https://testnet.mirrornode.hedera.com',
-        'previewnet': 'https://previewnet.mirrornode.hedera.com',
-        'solo': 'http://localhost:8080'
+    MIRROR_NODE_URLS: Dict[str, str] = {
+        "mainnet": "https://mainnet-public.mirrornode.hedera.com",
+        "testnet": "https://testnet.mirrornode.hedera.com",
+        "previewnet": "https://previewnet.mirrornode.hedera.com",
+        "solo": "http://localhost:8080",
     }
 
-    DEFAULT_NODES: Dict[str,List[_Node]] = {
-        'mainnet': [
+    DEFAULT_NODES: Dict[str, List[_Node]] = {
+        "mainnet": [
             ("35.237.200.180:50211", AccountId(0, 0, 3)),
             ("35.186.191.247:50211", AccountId(0, 0, 4)),
             ("35.192.2.25:50211", AccountId(0, 0, 5)),
@@ -44,26 +44,24 @@ class Network:
             ("35.234.132.107:50211", AccountId(0, 0, 13)),
             ("35.236.2.27:50211", AccountId(0, 0, 14)),
         ],
-        'testnet': [
+        "testnet": [
             ("0.testnet.hedera.com:50211", AccountId(0, 0, 3)),
             ("1.testnet.hedera.com:50211", AccountId(0, 0, 4)),
             ("2.testnet.hedera.com:50211", AccountId(0, 0, 5)),
             ("3.testnet.hedera.com:50211", AccountId(0, 0, 6)),
         ],
-        'previewnet': [
+        "previewnet": [
             ("0.previewnet.hedera.com:50211", AccountId(0, 0, 3)),
             ("1.previewnet.hedera.com:50211", AccountId(0, 0, 4)),
             ("2.previewnet.hedera.com:50211", AccountId(0, 0, 5)),
             ("3.previewnet.hedera.com:50211", AccountId(0, 0, 6)),
         ],
-        'solo': [
-            ("localhost:50211", AccountId(0, 0, 3))
-        ],
+        "solo": [("localhost:50211", AccountId(0, 0, 3))],
     }
 
     def __init__(
         self,
-        network: str = 'testnet',
+        network: str = "testnet",
         nodes: Optional[List[_Node]] = None,
         mirror_address: Optional[str] = None,
     ) -> None:
@@ -73,20 +71,20 @@ class Network:
         Args:
             network (str): One of 'mainnet', 'testnet', 'previewnet', 'solo',
             or a custom name if you prefer.
-            nodes (list, optional): A list of (node_address, AccountId) pairs. 
+            nodes (list, optional): A list of (node_address, AccountId) pairs.
             If provided, we skip fetching from the mirror.
             mirror_address (str, optional): A mirror node address (host:port) for topic queries.
                             If not provided,
                             we'll use a default from MIRROR_ADDRESS_DEFAULT[network].
         """
-        self.network: str = network or 'testnet'
+        self.network: str = network or "testnet"
         self.mirror_address: str = mirror_address or self.MIRROR_ADDRESS_DEFAULT.get(
-            network, 'localhost:5600'
+            network, "localhost:5600"
         )
 
         if nodes is not None:
             final_nodes = nodes
-        elif self.network in ('solo', 'localhost', 'local'):
+        elif self.network in ("solo", "localhost", "local"):
             final_nodes = self._fetch_nodes_from_default_nodes()
         else:
             fetched = self._fetch_nodes_from_mirror_node()
@@ -110,19 +108,23 @@ class Network:
         """
         base_url: Optional[str] = self.MIRROR_NODE_URLS.get(self.network)
         if not base_url:
-            print(f"No known mirror node URL for network='{self.network}'. Skipping fetch.")
+            print(
+                f"No known mirror node URL for network='{self.network}'. Skipping fetch."
+            )
             return []
 
         url: str = f"{base_url}/api/v1/network/nodes?limit=100&order=desc"
 
         try:
-            response: requests.Response = requests.get(url, timeout=30) # Add 30 second timeout
+            response: requests.Response = requests.get(
+                url, timeout=30
+            )  # Add 30 second timeout
             response.raise_for_status()
             data: Dict[str, Any] = response.json()
 
             nodes: List[_Node] = []
             # Process each node from the mirror node API response
-            for node in data.get('nodes', []):
+            for node in data.get("nodes", []):
                 address_book: NodeAddress = NodeAddress._from_dict(node)
                 account_id: AccountId = address_book._account_id
                 address: str = str(address_book._addresses[0])
@@ -146,13 +148,13 @@ class Network:
     def _select_node(self) -> _Node:
         """
         Select the next node in the collection of available nodes using round-robin selection.
-        
+
         This method increments the internal node index, wrapping around when reaching the end
         of the node list, and updates the current_node reference.
-        
+
         Raises:
             ValueError: If no nodes are available for selection.
-        
+
         Returns:
             _Node: The selected node instance.
         """

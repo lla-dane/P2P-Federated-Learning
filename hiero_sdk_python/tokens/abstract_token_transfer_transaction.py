@@ -8,7 +8,8 @@ This module provides the `AbstractTokenTransferTransaction` class, which
 encapsulates common logic for grouping and validating multiple token and
 NFT transfer operations into Hedera-compatible protobuf messages.
 """
-from typing import Optional, List
+
+from typing import List, Optional
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.hapi.services import basic_types_pb2
@@ -18,6 +19,7 @@ from hiero_sdk_python.tokens.token_transfer import TokenTransfer
 from hiero_sdk_python.tokens.token_transfer_list import TokenTransferList
 from hiero_sdk_python.transaction.transaction import Transaction
 
+
 class AbstractTokenTransferTransaction(Transaction):
     """
     Base transaction class for executing multiple token and NFT transfers.
@@ -25,6 +27,7 @@ class AbstractTokenTransferTransaction(Transaction):
     Collects fungible and non-fungible token transfers, ensures balance
     rules, and builds the corresponding Hedera protobuf messages.
     """
+
     def __init__(self) -> None:
         """
         Initializes a new AbstractTokenTransferTransaction instance.
@@ -34,38 +37,34 @@ class AbstractTokenTransferTransaction(Transaction):
         self.nft_transfers: List[TokenNftTransfer] = []
         self._default_transaction_fee: int = 100_000_000
 
-    def _init_token_transfers(
-            self,
-            token_transfers: List[TokenTransfer]
-        ) -> None:
+    def _init_token_transfers(self, token_transfers: List[TokenTransfer]) -> None:
         for transfer in token_transfers:
             self._add_token_transfer(
                 transfer.token_id,
                 transfer.account_id,
                 transfer.amount,
                 transfer.expected_decimals,
-                transfer.is_approved)
+                transfer.is_approved,
+            )
 
-    def _init_nft_transfers(
-            self,
-            nft_transfers: List[TokenNftTransfer]
-        ) -> None:
+    def _init_nft_transfers(self, nft_transfers: List[TokenNftTransfer]) -> None:
         for transfer in nft_transfers:
             self._add_nft_transfer(
                 transfer.token_id,
                 transfer.sender_id,
                 transfer.receiver_id,
                 transfer.serial_number,
-                transfer.is_approved)
+                transfer.is_approved,
+            )
 
     def _add_token_transfer(
-            self,
-            token_id: TokenId,
-            account_id: AccountId,
-            amount: int,
-            expected_decimals: Optional[int]=None,
-            is_approved: bool=False
-        ) -> None:
+        self,
+        token_id: TokenId,
+        account_id: AccountId,
+        amount: int,
+        expected_decimals: Optional[int] = None,
+        is_approved: bool = False,
+    ) -> None:
         """
         Adds a token transfer to the transaction.
         """
@@ -77,21 +76,21 @@ class AbstractTokenTransferTransaction(Transaction):
         )
 
     def _add_nft_transfer(
-            self,
-            token_id: TokenId,
-            sender: AccountId,
-            receiver: AccountId,
-            serial_number: int,
-            is_approved: bool=False
-        ) -> None:
+        self,
+        token_id: TokenId,
+        sender: AccountId,
+        receiver: AccountId,
+        serial_number: int,
+        is_approved: bool = False,
+    ) -> None:
         """
         Adds a nft transfer to the transaction.
         """
         self.nft_transfers.append(
-            TokenNftTransfer(token_id,sender, receiver, serial_number, is_approved)
+            TokenNftTransfer(token_id, sender, receiver, serial_number, is_approved)
         )
 
-    def build_token_transfers(self) -> 'List[basic_types_pb2.TokenTransferList]':
+    def build_token_transfers(self) -> "List[basic_types_pb2.TokenTransferList]":
         """
         Aggregates all individual fungible token transfers and NFT transfers into
         a list of TokenTransferList objects, where each TokenTransferList groups
@@ -101,13 +100,13 @@ class AbstractTokenTransferTransaction(Transaction):
             list[basic_types_pb2.TokenTransferList]: A list of TokenTransferList objects,
             each grouping transfers for a specific token ID.
         """
-        transfer_list: dict[TokenId,TokenTransferList] = {}
+        transfer_list: dict[TokenId, TokenTransferList] = {}
 
         for token_transfer in self.token_transfers:
             if token_transfer.token_id not in transfer_list:
                 transfer_list[token_transfer.token_id] = TokenTransferList(
                     token_transfer.token_id,
-                    expected_decimals=token_transfer.expected_decimals
+                    expected_decimals=token_transfer.expected_decimals,
                 )
 
             transfer_list[token_transfer.token_id].add_token_transfer(token_transfer)
@@ -129,7 +128,8 @@ class AbstractTokenTransferTransaction(Transaction):
 
             if net_amount != 0:
                 raise ValueError(
-                    "All fungible token transfers must be balanced, debits must equal credits.")
+                    "All fungible token transfers must be balanced, debits must equal credits."
+                )
 
             token_transfers.append(transfer._to_proto())
 

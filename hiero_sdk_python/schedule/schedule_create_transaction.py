@@ -249,4 +249,6 @@ class ScheduleCreateTransaction(Transaction):
         Returns:
             _Method: An object containing the transaction function to create a schedule.
         """
-        return _Method(transaction_func=channel.schedule.createSchedule, query_func=None)
+        return _Method(
+            transaction_func=channel.schedule.createSchedule, query_func=None
+        )

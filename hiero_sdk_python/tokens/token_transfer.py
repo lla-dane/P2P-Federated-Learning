@@ -6,23 +6,26 @@ Defines TokenTransfer for representing Token transfer details.
 """
 
 from typing import Optional
+
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.hapi.services import basic_types_pb2
 from hiero_sdk_python.tokens.token_id import TokenId
+
 
 class TokenTransfer:
     """
     Represents a single fungible token transfer, detailing the token, the account involved,
     the amount, and optional approval status and decimal expectations.
     """
+
     def __init__(
-            self,
-            token_id: TokenId,
-            account_id: AccountId,
-            amount: int,
-            expected_decimals: Optional[int]=None,
-            is_approved: bool=False
-        ) ->None:
+        self,
+        token_id: TokenId,
+        account_id: AccountId,
+        amount: int,
+        expected_decimals: Optional[int] = None,
+        is_approved: bool = False,
+    ) -> None:
         """
         Initializes a new TokenTransfer instance.
 
@@ -30,7 +33,7 @@ class TokenTransfer:
             token_id (TokenId): The ID of the token being transferred.
             account_id (AccountId): The account ID of the sender or receiver.
             amount (int): The amount of the token to send or receive.
-            expected_decimals (optional, int): 
+            expected_decimals (optional, int):
                 The number specifying the amount in the smallest denomination.
             is_approved (optional, bool): Indicates whether this transfer is an approved allowance.
         """
@@ -50,7 +53,7 @@ class TokenTransfer:
         return basic_types_pb2.AccountAmount(
             accountID=self.account_id._to_proto(),
             amount=self.amount,
-            is_approval=self.is_approved
+            is_approval=self.is_approved,
         )
 
     def __str__(self) -> str:

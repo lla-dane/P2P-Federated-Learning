@@ -10,6 +10,8 @@ import Crypto.PublicKey.RSA as RSA
 import multiaddr
 import trio
 from dotenv import load_dotenv
+from hypercorn.config import Config
+from hypercorn.trio import serve
 from libp2p import new_host
 from libp2p.crypto.keys import KeyPair
 from libp2p.crypto.rsa import RSAPrivateKey, RSAPublicKey
@@ -34,6 +36,8 @@ from libp2p.utils.address_validation import (
 )
 from machine_learning import MLTrainer
 from mesh_utils import Mesh
+from quart import jsonify, request
+from quart_trio import QuartTrio
 
 from logs import setup_logging
 
@@ -510,39 +514,49 @@ class Node:
 
             await trio.sleep(2)
 
-    async def api_listener(self):
+    def create_app(self):
+        app = QuartTrio(__name__)
+        app.send_channel = self.send_channel
 
-        if self.role == "bootstrap":
-            port = 9000
-        else:
-            port = find_free_port()
+        @app.route("/command", methods=["POST"])
+        async def command_post():
+            try:
+                cmd = await request.get_json()
+                if isinstance(cmd, list):
+                    await app.send_channel.send(cmd)
+                    return jsonify({"status": "ok", "received": cmd})
+                else:
+                    return jsonify({"error": "Invalid command format"}), 400
+            except Exception as e:
+                return jsonify({"error": str(e)}), 500
 
-        host = "0.0.0.0"
+        @app.route("/command", methods=["GET"])
+        async def command_get():
+            try:
+                # Get the 'cmd' parameter from the query string
+                cmd = request.args.get("cmd")
+                if isinstance(cmd, str):
+                    if cmd == "bootmesh":
+                        bootmesh: dict = self.mesh.get_bootstrap_mesh()
+                        return jsonify({"status": "ok", "bootmesh": bootmesh})
+                    elif cmd == "mesh":
+                        mesh: dict = self.mesh.get_local_mesh()
+                        return jsonify({"status": "ok", "mesh": mesh})
+                return jsonify({"error": "Unknown command"}), 400
+            except Exception as e:
+                return jsonify({"error": str(e)}), 500
 
-        logger.warning(f"Starting API listener on {host}:{port}")
+        @app.route("/status", methods=["GET"])
+        async def status():
+            return jsonify({"status": "running"})
 
-        # TCP server
-        async def handle_client(stream):
-            async with stream:
-                logger.info(f"Client connected: {stream.socket.getpeername()}")
-                while not self.termination_event.is_set():
-                    try:
-                        # Receive the line delimited JSON command
-                        data = await stream.receive_some(4096)
-                        if not data:
-                            break
+        return app
 
-                        # Decode JSON
-                        cmd = json.loads(data.decode("utf-8").strip())
-                        if isinstance(cmd, list):
-                            await self.send_channel.send(cmd)
-                            logger.info(f"Received remote command: {cmd}")
-                        else:
-                            logger.warning(f"Invalid command format: {cmd}")
-                    except json.JSONDecodeError:
-                        logger.warning(f"Received invalid JSON: {data}")
-                    except Exception as e:
-                        logger.error(f"Error in API listener: {e}")
-                        await trio.sleep(0.1)
-
-        await trio.serve_tcp(handle_client, port, host=host)
+    async def api_server(self):
+        port = (
+            9000 if self.role == "bootstrap" or IS_CLOUD == "True" else find_free_port()
+        )
+        app = self.create_app()
+        config = Config()
+        config.bind = [f"0.0.0.0:{port}"]
+        await serve(app, config)

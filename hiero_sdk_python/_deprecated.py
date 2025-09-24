@@ -1,4 +1,5 @@
 """Provides a mixin to emit FutureWarnings for deprecated camelCase attributes."""
+
 import warnings
 
 
@@ -26,12 +27,10 @@ class _DeprecatedAliasesMixin:  # pylint: disable=too-few-public-methods
         "pauseKey": "pause_key",
         "pauseStatus": "pause_status",
         "supplyType": "supply_type",
-
         "serialNumber": "serial_number",
-
         "topicId": "topic_id",
         "accountId": "account_id",
-        "fileId": "file_id"
+        "fileId": "file_id",
     }
 
     def __getattr__(self, name: str) -> object:

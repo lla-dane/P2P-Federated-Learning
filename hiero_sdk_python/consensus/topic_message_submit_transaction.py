@@ -2,24 +2,28 @@
 This module provides the `TopicMessageSubmitTransaction` class for submitting
 messages to Hedera Consensus Service topics using the Hiero SDK.
 """
+
 from typing import Optional
 
-from hiero_sdk_python.transaction.transaction import Transaction
-from hiero_sdk_python.hapi.services import consensus_submit_message_pb2, basic_types_pb2
-from hiero_sdk_python.hapi.services import transaction_pb2
+from hiero_sdk_python.channels import _Channel
+from hiero_sdk_python.executable import _Method
+from hiero_sdk_python.hapi.services import (
+    basic_types_pb2,
+    consensus_submit_message_pb2,
+    transaction_pb2,
+)
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
-from hiero_sdk_python.channels import _Channel
-from hiero_sdk_python.executable import _Method
+from hiero_sdk_python.transaction.transaction import Transaction
 
 
 class TopicMessageSubmitTransaction(Transaction):
     """
-        Represents a transaction that submits a message to a Hedera Consensus Service topic.
+    Represents a transaction that submits a message to a Hedera Consensus Service topic.
 
-        Allows setting the target topic ID and message, building the transaction body,
-        and executing the submission through a network channel.
+    Allows setting the target topic ID and message, building the transaction body,
+    and executing the submission through a network channel.
     """
 
     def __init__(
@@ -72,10 +76,10 @@ class TopicMessageSubmitTransaction(Transaction):
     ) -> consensus_submit_message_pb2.ConsensusSubmitMessageTransactionBody:
         """
         Returns the protobuf body for the topic message submit transaction.
-        
+
         Returns:
             ConsensusSubmitMessageTransactionBody: The protobuf body for this transaction.
-            
+
         Raises:
             ValueError: If required fields (topic_id, message) are missing.
         """
@@ -88,6 +92,7 @@ class TopicMessageSubmitTransaction(Transaction):
             topicID=self.topic_id._to_proto(),
             message=bytes(self.message, "utf-8"),
         )
+
     def build_transaction_body(self) -> transaction_pb2.TransactionBody:
         """
         Builds and returns the protobuf transaction body for message submission.
@@ -122,7 +127,4 @@ class TopicMessageSubmitTransaction(Transaction):
         Returns:
             _Method: The method object with bound transaction execution.
         """
-        return _Method(
-            transaction_func=channel.topic.submitMessage,
-            query_func=None
-        )
+        return _Method(transaction_func=channel.topic.submitMessage, query_func=None)

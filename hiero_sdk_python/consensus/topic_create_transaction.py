@@ -7,28 +7,29 @@ auto-renew period, and auto-renew account, and to build the protobuf
 transaction body for submission to the Hedera network .
 """
 
-from typing import Union, Optional
+from typing import Optional, Union
+
+from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.channels import _Channel
+from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.Duration import Duration
-from hiero_sdk_python.transaction.transaction import Transaction
-from hiero_sdk_python.hapi.services import (
-    consensus_create_topic_pb2,
-    transaction_pb2)
+from hiero_sdk_python.executable import _Method
+from hiero_sdk_python.hapi.services import consensus_create_topic_pb2, transaction_pb2
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
-from hiero_sdk_python.channels import _Channel
-from hiero_sdk_python.executable import _Method
-from hiero_sdk_python.account.account_id import AccountId
-from hiero_sdk_python.crypto.public_key import PublicKey
+from hiero_sdk_python.transaction.transaction import Transaction
+
 
 class TopicCreateTransaction(Transaction):
     """
-        Represents a transaction to create a new topic in the Hedera
-        Consensus Service (HCS).
+    Represents a transaction to create a new topic in the Hedera
+    Consensus Service (HCS).
 
-        This transaction can optionally define an admin key, submit key,
-        auto-renew period, auto-renew account, and memo.
+    This transaction can optionally define an admin key, submit key,
+    auto-renew period, auto-renew account, and memo.
     """
+
     def __init__(
         self,
         memo: Optional[str] = None,
@@ -91,7 +92,9 @@ class TopicCreateTransaction(Transaction):
         self.submit_key = key
         return self
 
-    def set_auto_renew_period(self, seconds: Union[Duration, int]) -> "TopicCreateTransaction":
+    def set_auto_renew_period(
+        self, seconds: Union[Duration, int]
+    ) -> "TopicCreateTransaction":
         """
         Sets the auto-renew period for the topic creation transaction.
         Args:
@@ -122,31 +125,33 @@ class TopicCreateTransaction(Transaction):
         self.auto_renew_account = account_id
         return self
 
-    def _build_proto_body(self) -> consensus_create_topic_pb2.ConsensusCreateTopicTransactionBody:
+    def _build_proto_body(
+        self,
+    ) -> consensus_create_topic_pb2.ConsensusCreateTopicTransactionBody:
         """
         Returns the protobuf body for the topic create transaction.
-        
+
         Returns:
             ConsensusCreateTopicTransactionBody: The protobuf body for this transaction.
         """
         return consensus_create_topic_pb2.ConsensusCreateTopicTransactionBody(
             adminKey=(
-                self.admin_key._to_proto()
-                if self.admin_key is not None
-                else None),
+                self.admin_key._to_proto() if self.admin_key is not None else None
+            ),
             submitKey=(
-                self.submit_key._to_proto()
-                if self.submit_key is not None
-                else None),
+                self.submit_key._to_proto() if self.submit_key is not None else None
+            ),
             autoRenewPeriod=(
                 self.auto_renew_period._to_proto()
                 if self.auto_renew_period is not None
-                else None),
+                else None
+            ),
             autoRenewAccount=(
                 self.auto_renew_account._to_proto()
                 if self.auto_renew_account is not None
-                else None),
-            memo=self.memo
+                else None
+            ),
+            memo=self.memo,
         )
 
     def build_transaction_body(self) -> transaction_pb2.TransactionBody:
@@ -160,6 +165,7 @@ class TopicCreateTransaction(Transaction):
         transaction_body = self.build_base_transaction_body()
         transaction_body.consensusCreateTopic.CopyFrom(consensus_create_body)
         return transaction_body
+
     def build_scheduled_body(self) -> SchedulableTransactionBody:
         """
         Builds the scheduled transaction body for this topic create transaction.
@@ -180,7 +186,4 @@ class TopicCreateTransaction(Transaction):
         Returns:
             _Method: The method for executing the transaction.
         """
-        return _Method(
-            transaction_func=channel.topic.createTopic,
-            query_func=None
-        )
+        return _Method(transaction_func=channel.topic.createTopic, query_func=None)

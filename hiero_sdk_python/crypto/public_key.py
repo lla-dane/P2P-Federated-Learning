@@ -1,39 +1,44 @@
 """This module handles Public key operations"""
+
 import warnings
 from typing import Union
 
-from cryptography.hazmat.primitives.asymmetric import ed25519, ec
-from cryptography.hazmat.primitives import serialization, hashes
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import ec, ed25519
 from cryptography.hazmat.primitives.asymmetric import utils as asym_utils
+
 from hiero_sdk_python.contract.contract_id import ContractId
-from hiero_sdk_python.hapi.services.basic_types_pb2 import Key
 from hiero_sdk_python.hapi.services import basic_types_pb2
+from hiero_sdk_python.hapi.services.basic_types_pb2 import Key
 from hiero_sdk_python.utils.crypto_utils import keccak256
+
 
 def _warn_ed25519_ambiguity(caller_name: str) -> None:
     warnings.warn(
         f"{caller_name}: cannot distinguish Ed25519 private seeds from public keys. "
         "If using Ed25519, ensure you truly have a public key.",
         UserWarning,
-        stacklevel=3
+        stacklevel=3,
     )
+
 
 class PublicKey:
     """
     Represents a public key.
     Supports multiple key formats: raw bytes, DER-encoded keys,
     hex strings, and a protobuf (“proto”) representation.
-    
+
     """
 
     def __init__(
-        self,
-        public_key: Union[ec.EllipticCurvePublicKey, ed25519.Ed25519PublicKey]
+        self, public_key: Union[ec.EllipticCurvePublicKey, ed25519.Ed25519PublicKey]
     ) -> None:
         """
         Initializes a PublicKey from a cryptography PublicKey object.
         """
-        self._public_key: Union[ec.EllipticCurvePublicKey, ed25519.Ed25519PublicKey] = public_key
+        self._public_key: Union[ec.EllipticCurvePublicKey, ed25519.Ed25519PublicKey] = (
+            public_key
+        )
 
     #
     # ---------------------------------
@@ -109,7 +114,6 @@ class PublicKey:
         # 3) Return the validated public key
         return cls(ed_pub)
 
-
     @classmethod
     def from_bytes_ecdsa(cls, pub: bytes) -> "PublicKey":
         """
@@ -153,27 +157,27 @@ class PublicKey:
         """
         Load a public key from DER-encoded SubjectPublicKeyInfo.
 
-        This method automatically detects Ed25519 vs. secp256k1 ECDSA 
-        based on the OID found in the DER bytes. It strictly expects 
+        This method automatically detects Ed25519 vs. secp256k1 ECDSA
+        based on the OID found in the DER bytes. It strictly expects
         a DER-encoded **public** key (SubjectPublicKeyInfo).
-        
-        The `cryptography` library's `load_der_public_key` function 
+
+        The `cryptography` library's `load_der_public_key` function
         rejects DER-encoded private keys, as their structure differs.
 
         *Warning* a ed25519 private key incorrectly passed as a public key
-        and became DER-encoded will still be processed as a public key.  
+        and became DER-encoded will still be processed as a public key.
 
         Args:
             der_bytes (bytes): DER-encoded SubjectPublicKeyInfo.
 
         Returns:
-            PublicKey: A wrapped key of the detected algorithm 
+            PublicKey: A wrapped key of the detected algorithm
             (Ed25519 or secp256k1 ECDSA).
 
         Raises:
-            ValueError: If the DER bytes cannot be parsed as a public 
-            key, or if the curve/algorithm is unsupported. This 
-            includes cases where a private key is passed instead of a 
+            ValueError: If the DER bytes cannot be parsed as a public
+            key, or if the curve/algorithm is unsupported. This
+            includes cases where a private key is passed instead of a
             public key.
         """
         try:
@@ -191,7 +195,9 @@ class PublicKey:
                 raise ValueError("Unsupported ECDSA curve (only secp256k1 allowed)")
             return cls(maybe_pub)
 
-        raise ValueError("Unsupported public key type in DER (not Ed25519 or secp256k1 ECDSA)")
+        raise ValueError(
+            "Unsupported public key type in DER (not Ed25519 or secp256k1 ECDSA)"
+        )
 
     #
     # -----------------------------------
@@ -215,26 +221,30 @@ class PublicKey:
         try:
             pub = bytes.fromhex(hex_str)
         except ValueError as exc:
-            raise ValueError(f"Invalid hex string for Ed25519 public key: {hex_str!r}") from exc
+            raise ValueError(
+                f"Invalid hex string for Ed25519 public key: {hex_str!r}"
+            ) from exc
         # 3) Delegate to the byte-level loader
         return cls._from_bytes_ed25519(pub)
 
     @classmethod
     def from_string_ecdsa(cls, hex_str: str) -> "PublicKey":
         """
-        Interpret the given string as a hex-encoded compressed/uncompressed 
+        Interpret the given string as a hex-encoded compressed/uncompressed
         ECDSA pubkey (33/65 bytes).
- 
+
         Sanitizing. The "0x" prefix is used to denote that a string -
         represents a hexadecimal number.
-        The "0x" itself isn't part of the binary or numerical 
+        The "0x" itself isn't part of the binary or numerical
         value represented by the hexadecimal string"""
         hex_str = hex_str.removeprefix("0x")
         try:
             # Python's .fromhex will throw if the hex string is malformed
             pub = bytes.fromhex(hex_str)
         except ValueError as exc:
-            raise ValueError(f"Invalid hex string for ECDSA public key: {hex_str}") from exc
+            raise ValueError(
+                f"Invalid hex string for ECDSA public key: {hex_str}"
+            ) from exc
         return cls.from_bytes_ecdsa(pub)
 
     @classmethod
@@ -251,7 +261,9 @@ class PublicKey:
             # Python's .fromhex will throw if the hex string is malformed
             der_bytes = bytes.fromhex(hex_str)
         except ValueError as exc:
-            raise ValueError(f"Invalid hex string for DER public key: {hex_str}") from exc
+            raise ValueError(
+                f"Invalid hex string for DER public key: {hex_str}"
+            ) from exc
         return cls.from_der(der_bytes)
 
     #
@@ -265,12 +277,12 @@ class PublicKey:
     def from_string(cls, hex_str: str) -> "PublicKey":
         """
         Load a *public* key from a hex-encoded string. Catch-all method supporting:
-        
+
           - Ed25519 raw (32 bytes → 64 hex chars)
           - secp256k1 ECDSA compressed (33 bytes → 66 hex chars)
           - secp256k1 ECDSA uncompressed (65 bytes → 130 hex chars)
           - DER-encoded SPKI (variable length)
-        
+
         *Warning*: Raw Ed25519 private seeds are also 32 bytes and will be
         treated as valid public keys here.
         """
@@ -281,7 +293,9 @@ class PublicKey:
         try:
             data = bytes.fromhex(hex_str)
         except ValueError as exc:
-            raise ValueError(f"Invalid hex-encoded public key string: {hex_str!r}") from exc
+            raise ValueError(
+                f"Invalid hex-encoded public key string: {hex_str!r}"
+            ) from exc
 
         # 2) dispatch as ed25519 or ecdsa based on length
         n = len(data)
@@ -368,7 +382,7 @@ class PublicKey:
 
     def to_bytes_raw(self) -> bytes:
         """
-        Catch-all for convenience. 
+        Catch-all for convenience.
         Serialize this PublicKey into its raw, algorithm-specific byte form.
 
         Ed25519 keys
@@ -379,12 +393,12 @@ class PublicKey:
         ECDSA (secp256k1) keys
         ------------------------
         - Returns the **compressed SEC1** form (33 bytes):
-            1. A 1-byte prefix (0x02 or 0x03) indicating the parity of the Y coordinate  
-            2. A 32-byte big-endian X coordinate  
+            1. A 1-byte prefix (0x02 or 0x03) indicating the parity of the Y coordinate
+            2. A 32-byte big-endian X coordinate
 
         Returns:
-            bytes:  
-            - If `is_ed25519() == True`, a 32-byte Ed25519 point.  
+            bytes:
+            - If `is_ed25519() == True`, a 32-byte Ed25519 point.
             - Otherwise, a 33-byte compressed secp256k1 point.
         """
         if self.is_ed25519():
@@ -398,8 +412,7 @@ class PublicKey:
         Returns the Ed25519 public key in 32-bytes raw form.
         """
         return self._public_key.public_bytes(
-            encoding=serialization.Encoding.Raw,
-            format=serialization.PublicFormat.Raw
+            encoding=serialization.Encoding.Raw, format=serialization.PublicFormat.Raw
         )
 
     def to_bytes_ecdsa(self, compressed: bool = True) -> bytes:
@@ -407,12 +420,13 @@ class PublicKey:
         Specific name for clarity.
         Returns the ECDSA public key in compressed or uncompressed form.
         """
-        format_ = (serialization.PublicFormat.CompressedPoint
-                if compressed
-                else serialization.PublicFormat.UncompressedPoint)
+        format_ = (
+            serialization.PublicFormat.CompressedPoint
+            if compressed
+            else serialization.PublicFormat.UncompressedPoint
+        )
         return self._public_key.public_bytes(
-            encoding=serialization.Encoding.X962,
-            format=format_
+            encoding=serialization.Encoding.X962, format=format_
         )
 
     def to_bytes_der(self) -> bytes:
@@ -421,7 +435,7 @@ class PublicKey:
         """
         return self._public_key.public_bytes(
             encoding=serialization.Encoding.DER,
-            format=serialization.PublicFormat.SubjectPublicKeyInfo
+            format=serialization.PublicFormat.SubjectPublicKeyInfo,
         )
 
     #
@@ -524,7 +538,9 @@ class PublicKey:
             signature_der = signature
 
         data_hash = keccak256(data)
-        self._public_key.verify(signature_der, data_hash, ec.ECDSA(asym_utils.Prehashed(hashes.SHA256())))
+        self._public_key.verify(
+            signature_der, data_hash, ec.ECDSA(asym_utils.Prehashed(hashes.SHA256()))
+        )
 
     def __repr__(self) -> str:
         """

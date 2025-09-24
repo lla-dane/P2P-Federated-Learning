@@ -6,13 +6,15 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
 from hiero_sdk_python.tokens.pending_airdrop_id import PendingAirdropId
 from hiero_sdk_python.transaction.transaction import Transaction
 
+
 class TokenCancelAirdropTransaction(Transaction):
     """
     Represents a transaction to cancel token airdrops on the Hedera network.
 
     This transaction allows users to cancel one or more airdrops for both fungible tokens and NFTs.
     """
-    def __init__(self, pending_airdrops: list[PendingAirdropId]=None) -> None:
+
+    def __init__(self, pending_airdrops: list[PendingAirdropId] = None) -> None:
         """
         Initializes a new TokenCancelAirdropTransaction instance.
 
@@ -22,7 +24,9 @@ class TokenCancelAirdropTransaction(Transaction):
         super().__init__()
         self.pending_airdrops: list[PendingAirdropId] = pending_airdrops or []
 
-    def set_pending_airdrops(self, pending_airdrops: list[PendingAirdropId]) -> "TokenCancelAirdropTransaction":
+    def set_pending_airdrops(
+        self, pending_airdrops: list[PendingAirdropId]
+    ) -> "TokenCancelAirdropTransaction":
         """
         Sets the list of pending airdrops IDs.
 
@@ -35,7 +39,9 @@ class TokenCancelAirdropTransaction(Transaction):
         self.pending_airdrops = pending_airdrops
         return self
 
-    def add_pending_airdrop(self, pending_airdrop: PendingAirdropId) -> "TokenCancelAirdropTransaction":
+    def add_pending_airdrop(
+        self, pending_airdrop: PendingAirdropId
+    ) -> "TokenCancelAirdropTransaction":
         """
         Adds a single pending airdrop ID to the pending_airdrops list.
 
@@ -61,10 +67,10 @@ class TokenCancelAirdropTransaction(Transaction):
     def _build_proto_body(self):
         """
         Returns the protobuf body for the token cancel airdrop transaction.
-        
+
         Returns:
             TokenCancelAirdropTransactionBody: The protobuf body for this transaction.
-            
+
         Raises:
             ValueError: If pending airdrops list is invalid.
         """
@@ -73,8 +79,10 @@ class TokenCancelAirdropTransaction(Transaction):
         for pending_airdrop in self.pending_airdrops:
             pending_airdrops_proto.append(pending_airdrop._to_proto())
 
-        if (len(pending_airdrops_proto) < 1 or len(pending_airdrops_proto) > 10):
-            raise ValueError("Pending airdrops list must contain mininum 1 and maximum 10 pendingAirdrop.")
+        if len(pending_airdrops_proto) < 1 or len(pending_airdrops_proto) > 10:
+            raise ValueError(
+                "Pending airdrops list must contain mininum 1 and maximum 10 pendingAirdrop."
+            )
 
         return token_cancel_airdrop_pb2.TokenCancelAirdropTransactionBody(
             pending_airdrops=pending_airdrops_proto
@@ -102,7 +110,4 @@ class TokenCancelAirdropTransaction(Transaction):
         return schedulable_body
 
     def _get_method(self, channel):
-        return _Method(
-            transaction_func=channel.token.cancelAirdrop,
-            query_func=None
-        )
+        return _Method(transaction_func=channel.token.cancelAirdrop, query_func=None)

@@ -209,3 +209,6 @@ __marimo__/
 uv.lock
 aws-keys
 .vscode/
+hardhat/node_modules/
+hiero_sdk_python/hapi
+.protos

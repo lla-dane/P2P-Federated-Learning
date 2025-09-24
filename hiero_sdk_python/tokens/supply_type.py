@@ -8,6 +8,7 @@ for Non-Fungible Tokens (NFTs).
 
 from enum import Enum
 
+
 class SupplyType(Enum):
     """
     Enumeration of NFT supply models:
@@ -15,5 +16,6 @@ class SupplyType(Enum):
       - INFINITE: Tokens can be minted without limit.
       - FINITE:  Tokens have a fixed maximum supply.
     """
+
     INFINITE = 0
-    FINITE   = 1
+    FINITE = 1

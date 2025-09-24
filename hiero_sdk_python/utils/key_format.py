@@ -1,5 +1,6 @@
 from hiero_sdk_python.hapi.services.basic_types_pb2 import Key
 
+
 def format_key(key: Key) -> str:
     """
     Converts a protobuf Key into a nicely formatted string:

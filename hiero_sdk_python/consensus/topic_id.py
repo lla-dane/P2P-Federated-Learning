@@ -9,8 +9,8 @@ formats within the Hiero SDK.
 
 from hiero_sdk_python.hapi.services import basic_types_pb2
 
-class TopicId:
 
+class TopicId:
     """
     Represents the unique identifier of a topic in the Hedera Consensus Service (HCS).
 
@@ -18,6 +18,7 @@ class TopicId:
     This class provides convenient methods for converting between Python objects,
     protobuf `TopicID` instances, and string formats.
     """
+
     def __init__(self, shard: int = 0, realm: int = 0, num: int = 0) -> None:
         """
         Initializes a new instance of the TopicId class.
@@ -44,7 +45,7 @@ class TopicId:
         return cls(
             shard=topic_id_proto.shardNum,
             realm=topic_id_proto.realmNum,
-            num=topic_id_proto.topicNum
+            num=topic_id_proto.topicNum,
         )
 
     def _to_proto(self) -> basic_types_pb2.TopicID:

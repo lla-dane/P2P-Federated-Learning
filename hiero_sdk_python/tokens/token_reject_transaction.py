@@ -5,38 +5,42 @@ hiero_sdk_python.tokens.token_reject_transaction.py
 Defines TokenRejectTransaction for rejecting fungible token and NFT transfers on
 the Hedera network via the Hedera Token Service (HTS) API.
 """
-from typing import Optional, List
-from hiero_sdk_python.hapi.services.token_reject_pb2 import (
-    TokenReference,
-    TokenRejectTransactionBody,
-)
+
+from typing import List, Optional
+
+from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.channels import _Channel
+from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services import transaction_pb2
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
+from hiero_sdk_python.hapi.services.token_reject_pb2 import (
+    TokenReference,
+    TokenRejectTransactionBody,
+)
 from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.tokens.token_id import TokenId
-from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.transaction.transaction import Transaction
-from hiero_sdk_python.channels import _Channel
-from hiero_sdk_python.executable import _Method
+
 
 class TokenRejectTransaction(Transaction):
     """
     Represents a token reject transaction on the Hedera network.
-    
+
     This transaction rejects a token transfer.
     Allows users to reject and return unwanted airdrops
     to the treasury account without incurring custom fees.
-    
+
     Inherits from the base Transaction class and implements the required methods
     to build and execute a token reject transaction.
     """
+
     def __init__(
         self,
-        owner_id:  Optional[AccountId] = None,
+        owner_id: Optional[AccountId] = None,
         token_ids: Optional[List[TokenId]] = None,
-        nft_ids:   Optional[List[NftId]] = None
+        nft_ids: Optional[List[NftId]] = None,
     ) -> None:
         """
         TokenRejectTransaction instance with optional owner_id, token_ids, and nft_ids.
@@ -47,9 +51,9 @@ class TokenRejectTransaction(Transaction):
             nft_ids (list[NftId], optional): The IDs of the non-fungible tokens (NFTs) to reject.
         """
         super().__init__()
-        self.owner_id:  Optional[AccountId] = owner_id
+        self.owner_id: Optional[AccountId] = owner_id
         self.token_ids: List[TokenId] = token_ids if token_ids else []
-        self.nft_ids:   List[NftId] = nft_ids if nft_ids else []
+        self.nft_ids: List[NftId] = nft_ids if nft_ids else []
 
     def set_owner_id(self, owner_id: AccountId) -> "TokenRejectTransaction":
         """Set the owner account ID for rejected tokens."""
@@ -72,7 +76,7 @@ class TokenRejectTransaction(Transaction):
     def _build_proto_body(self):
         """
         Returns the protobuf body for the token reject transaction.
-        
+
         Returns:
             TokenRejectTransactionBody: The protobuf body for this transaction.
         """
@@ -84,7 +88,7 @@ class TokenRejectTransaction(Transaction):
 
         return TokenRejectTransactionBody(
             owner=self.owner_id and self.owner_id._to_proto(),
-            rejections=token_references
+            rejections=token_references,
         )
 
     def build_transaction_body(self) -> transaction_pb2.TransactionBody:
@@ -120,16 +124,15 @@ class TokenRejectTransaction(Transaction):
 
         Args:
             channel (_Channel): The channel containing service stubs
-        
+
         Returns:
             _Method: An object containing the transaction function to reject tokens.
         """
-        return _Method(
-            transaction_func=channel.token.rejectToken,
-            query_func=None
-        )
+        return _Method(transaction_func=channel.token.rejectToken, query_func=None)
 
-    def _from_proto(self, proto: TokenRejectTransactionBody) -> "TokenRejectTransaction":
+    def _from_proto(
+        self, proto: TokenRejectTransactionBody
+    ) -> "TokenRejectTransaction":
         """
         Deserializes a TokenRejectTransactionBody from a protobuf object.
 

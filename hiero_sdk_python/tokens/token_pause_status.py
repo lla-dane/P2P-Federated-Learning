@@ -6,18 +6,22 @@ Defines TokenPauseStatus enum for representing token pause states:
 not applicable, paused, or unpaused.
 A Token's paused status shows whether or not a Token can be used or not in a transaction.
 """
+
 from enum import Enum
 from typing import Any
+
 from hiero_sdk_python.hapi.services import basic_types_pb2
+
 
 class TokenPauseStatus(Enum):
     """
     Enumeration of token pause statuses:
 
-      • PAUSE_NOT_APPLICABLE – pause not relevant  
-      • PAUSED              – token is paused  
+      • PAUSE_NOT_APPLICABLE – pause not relevant
+      • PAUSED              – token is paused
       • UNPAUSED            – token is active
     """
+
     PAUSE_NOT_APPLICABLE = 0
     PAUSED = 1
     UNPAUSED = 2

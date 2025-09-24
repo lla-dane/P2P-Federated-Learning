@@ -103,7 +103,9 @@ class NodeUpdateTransaction(Transaction):
         self.node_id = node_id
         return self
 
-    def set_account_id(self, account_id: Optional[AccountId]) -> "NodeUpdateTransaction":
+    def set_account_id(
+        self, account_id: Optional[AccountId]
+    ) -> "NodeUpdateTransaction":
         """
         Sets the account id for this node update transaction.
 
@@ -331,4 +333,6 @@ class NodeUpdateTransaction(Transaction):
         Returns:
             _Method: An object containing the transaction function to update a node.
         """
-        return _Method(transaction_func=channel.address_book.updateNode, query_func=None)
+        return _Method(
+            transaction_func=channel.address_book.updateNode, query_func=None
+        )

@@ -13,39 +13,47 @@ to build and execute a file append transaction.
 
 import math
 from typing import Optional
-from hiero_sdk_python.file.file_id import FileId
-from hiero_sdk_python.hbar import Hbar
-from hiero_sdk_python.transaction.transaction import Transaction
+
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
-from hiero_sdk_python.transaction.transaction_id import TransactionId
+from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.hapi.services import file_append_pb2, timestamp_pb2
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
+from hiero_sdk_python.hbar import Hbar
+from hiero_sdk_python.transaction.transaction import Transaction
+from hiero_sdk_python.transaction.transaction_id import TransactionId
+
 
 # pylint: disable=too-many-instance-attributes
 class FileAppendTransaction(Transaction):
     """
     Represents a file append transaction on the network.
-    
+
     This transaction appends data to an existing file on the network. If a file has multiple keys,
     all keys must sign to modify its contents.
-    
+
     The transaction supports chunking for large files, automatically breaking content into
     smaller chunks if the content exceeds the chunk size limit.
-    
+
     Inherits from the base Transaction class and implements the required methods
     to build and execute a file append transaction.
     """
-    def __init__(self, file_id: Optional[FileId] = None, contents: Optional[str | bytes] = None,
-                 max_chunks: Optional[int] = None, chunk_size: Optional[int] = None):
+
+    def __init__(
+        self,
+        file_id: Optional[FileId] = None,
+        contents: Optional[str | bytes] = None,
+        max_chunks: Optional[int] = None,
+        chunk_size: Optional[int] = None,
+    ):
         """
         Initializes a new FileAppendTransaction instance with the specified parameters.
 
         Args:
             file_id (Optional[FileId], optional): The ID of the file to append to.
-            contents (Optional[str | bytes], optional): The contents to append to the file.                 
+            contents (Optional[str | bytes], optional): The contents to append to the file.
             Strings will be automatically encoded as UTF-8 bytes.
             max_chunks (Optional[int], optional): Maximum number of chunks allowed. Defaults to 20.
             chunk_size (Optional[int], optional): Size of each chunk in bytes. Defaults to 4096.
@@ -61,28 +69,30 @@ class FileAppendTransaction(Transaction):
         self._current_chunk_index: int = 0
         self._total_chunks: int = self._calculate_total_chunks()
         self._transaction_ids: list[TransactionId] = []
-        self._signing_keys: list = []  # Store all signing keys for multi-chunk transactions
+        self._signing_keys: list = (
+            []
+        )  # Store all signing keys for multi-chunk transactions
 
     def _encode_contents(self, contents: Optional[str | bytes]) -> Optional[bytes]:
         """
         Helper method to encode string contents to UTF-8 bytes.
-        
+
         Args:
             contents (Optional[str | bytes]): The contents to encode.
-            
+
         Returns:
             Optional[bytes]: The encoded contents or None if input is None.
         """
         if contents is None:
             return None
         if isinstance(contents, str):
-            return contents.encode('utf-8')
+            return contents.encode("utf-8")
         return contents
 
     def _calculate_total_chunks(self) -> int:
         """
         Calculates the total number of chunks needed for the current contents.
-        
+
         Returns:
             int: The total number of chunks needed.
         """
@@ -93,13 +103,13 @@ class FileAppendTransaction(Transaction):
     def get_required_chunks(self) -> int:
         """
         Gets the number of chunks required for the current contents.
-        
+
         Returns:
             int: The number of chunks required.
         """
         return self._calculate_total_chunks()
 
-    def set_file_id(self, file_id: FileId) -> 'FileAppendTransaction':
+    def set_file_id(self, file_id: FileId) -> "FileAppendTransaction":
         """
         Sets the file ID for this file append transaction.
 
@@ -113,12 +123,12 @@ class FileAppendTransaction(Transaction):
         self.file_id = file_id
         return self
 
-    def set_contents(self, contents: Optional[str | bytes]) -> 'FileAppendTransaction':
+    def set_contents(self, contents: Optional[str | bytes]) -> "FileAppendTransaction":
         """
         Sets the contents for this file append transaction.
 
         Args:
-            contents (Optional[str | bytes]): The contents to append to the file. 
+            contents (Optional[str | bytes]): The contents to append to the file.
                 Strings will be automatically encoded as UTF-8 bytes.
 
         Returns:
@@ -129,7 +139,7 @@ class FileAppendTransaction(Transaction):
         self._total_chunks = self._calculate_total_chunks()
         return self
 
-    def set_max_chunks(self, max_chunks: int) -> 'FileAppendTransaction':
+    def set_max_chunks(self, max_chunks: int) -> "FileAppendTransaction":
         """
         Sets the maximum number of chunks allowed for this transaction.
 
@@ -143,7 +153,7 @@ class FileAppendTransaction(Transaction):
         self.max_chunks = max_chunks
         return self
 
-    def set_chunk_size(self, chunk_size: int) -> 'FileAppendTransaction':
+    def set_chunk_size(self, chunk_size: int) -> "FileAppendTransaction":
         """
         Sets the chunk size for this transaction.
 
@@ -173,7 +183,7 @@ class FileAppendTransaction(Transaction):
             raise ValueError("Missing required FileID")
 
         if self.contents is None:
-            chunk_contents = b''
+            chunk_contents = b""
         else:
             start_index = self._current_chunk_index * self.chunk_size
             end_index = min(start_index + self.chunk_size, len(self.contents))
@@ -181,7 +191,7 @@ class FileAppendTransaction(Transaction):
 
         return file_append_pb2.FileAppendTransactionBody(
             fileID=self.file_id._to_proto() if self.file_id else None,
-            contents=chunk_contents
+            contents=chunk_contents,
         )
 
     def build_transaction_body(self):
@@ -217,16 +227,13 @@ class FileAppendTransaction(Transaction):
 
         Args:
             channel (_Channel): The channel containing service stubs
-        
+
         Returns:
             _Method: An object containing the transaction function to append to a file.
         """
-        return _Method(
-            transaction_func=channel.file.appendContent,
-            query_func=None
-        )
+        return _Method(transaction_func=channel.file.appendContent, query_func=None)
 
-    def _from_proto(self, proto) -> 'FileAppendTransaction':
+    def _from_proto(self, proto) -> "FileAppendTransaction":
         """
         Initializes a new FileAppendTransaction instance from a protobuf object.
 
@@ -245,7 +252,7 @@ class FileAppendTransaction(Transaction):
     def _validate_chunking(self):
         """
         Validates that the transaction doesn't exceed the maximum number of chunks.
-        
+
         Raises:
             ValueError: If the transaction exceeds the maximum number of chunks.
         """
@@ -255,11 +262,10 @@ class FileAppendTransaction(Transaction):
                 f"Required: {self.get_required_chunks()}"
             )
 
-
     def freeze_with(self, client):
         """
         Freezes the transaction by building the transaction body and setting necessary IDs.
-        
+
         For multi-chunk transactions, this method generates multiple transaction IDs
         with incremented timestamps based on the chunk interval.
 
@@ -287,12 +293,11 @@ class FileAppendTransaction(Transaction):
                 # Subsequent chunks get incremented timestamps
                 # Add i nanoseconds to space out chunks
                 chunk_valid_start = timestamp_pb2.Timestamp(
-                    seconds=base_timestamp.seconds,
-                    nanos=base_timestamp.nanos + i
+                    seconds=base_timestamp.seconds, nanos=base_timestamp.nanos + i
                 )
                 chunk_transaction_id = TransactionId(
                     account_id=self.transaction_id.account_id,
-                    valid_start=chunk_valid_start
+                    valid_start=chunk_valid_start,
                 )
             self._transaction_ids.append(chunk_transaction_id)
 
@@ -302,23 +307,24 @@ class FileAppendTransaction(Transaction):
         for node in client.network.nodes:
             self.node_account_id = node._account_id
             transaction_body = self.build_transaction_body()
-            self._transaction_body_bytes[node._account_id] = transaction_body.SerializeToString()
+            self._transaction_body_bytes[node._account_id] = (
+                transaction_body.SerializeToString()
+            )
 
         # Set the node account id to the current node in the network
         self.node_account_id = client.network.current_node._account_id
 
         return self
 
-
     def execute(self, client):
         """
         Executes the file append transaction.
-        
+
         For multi-chunk transactions, this method will execute all chunks sequentially.
-        
+
         Args:
             client: The client to execute the transaction with.
-            
+
         Returns:
             TransactionReceipt: The receipt from the first chunk execution.
         """
@@ -349,7 +355,6 @@ class FileAppendTransaction(Transaction):
                 # Call parent sign directly to avoid modifying _signing_keys
                 super().sign(signing_key)
 
-
             # Execute the chunk
             response = super().execute(client)
             responses.append(response)
@@ -360,9 +365,9 @@ class FileAppendTransaction(Transaction):
     def sign(self, private_key):
         """
         Signs the transaction using the provided private key.
-            
+
         For multi-chunk transactions, this stores the signing key for later use.
-        
+
         Args:
             private_key (PrivateKey): The private key to sign the transaction with.
 

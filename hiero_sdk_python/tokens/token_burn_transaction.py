@@ -5,33 +5,36 @@ hiero_sdk_python.tokens.token_burn_transaction.py
 Provides TokenBurnTransaction, a subclass of Transaction for burning fungible and
 non-fungible tokens on the Hedera network using the Hedera Token Service (HTS) API.
 """
+
 from typing import List, Optional
 
-from hiero_sdk_python.hapi.services.token_burn_pb2 import TokenBurnTransactionBody
-from hiero_sdk_python.hapi.services import transaction_pb2, token_burn_pb2
+from hiero_sdk_python.channels import _Channel
+from hiero_sdk_python.executable import _Method
+from hiero_sdk_python.hapi.services import token_burn_pb2, transaction_pb2
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
-from hiero_sdk_python.transaction.transaction import Transaction
-from hiero_sdk_python.channels import _Channel
-from hiero_sdk_python.executable import _Method
+from hiero_sdk_python.hapi.services.token_burn_pb2 import TokenBurnTransactionBody
 from hiero_sdk_python.tokens.token_id import TokenId
+from hiero_sdk_python.transaction.transaction import Transaction
+
 
 class TokenBurnTransaction(Transaction):
     """
     Represents a token burn transaction on the network.
-    
+
     This transaction burns tokens, effectively removing them from circulation.
     Can burn fungible tokens by amount or non-fungible tokens by serial numbers.
-    
+
     Inherits from the base Transaction class and implements the required methods
     to build and execute a token burn transaction.
     """
+
     def __init__(
         self,
         token_id: Optional[TokenId] = None,
         amount: Optional[int] = None,
-        serials: Optional[List[int]] = None
+        serials: Optional[List[int]] = None,
     ) -> None:
         """
         Initializes a new TokenBurnTransaction instance with optional token_id, amount, and serials.
@@ -106,10 +109,10 @@ class TokenBurnTransaction(Transaction):
     def _build_proto_body(self) -> token_burn_pb2.TokenBurnTransactionBody:
         """
         Returns the protobuf body for the token burn transaction.
-        
+
         Returns:
             TokenBurnTransactionBody: The protobuf body for this transaction.
-            
+
         Raises:
             ValueError: If the token ID is not set or if both amount and serials are provided.
         """
@@ -117,12 +120,14 @@ class TokenBurnTransaction(Transaction):
             raise ValueError("Missing token ID")
 
         if self.amount and self.serials:
-            raise ValueError("Cannot burn both amount and serial in the same transaction")
+            raise ValueError(
+                "Cannot burn both amount and serial in the same transaction"
+            )
 
         return TokenBurnTransactionBody(
             token=self.token_id._to_proto(),
             amount=self.amount,
-            serialNumbers=self.serials
+            serialNumbers=self.serials,
         )
 
     def build_transaction_body(self) -> transaction_pb2.TransactionBody:
@@ -133,7 +138,9 @@ class TokenBurnTransaction(Transaction):
             TransactionBody: The built transaction body.
         """
         token_burn_body = self._build_proto_body()
-        transaction_body: transaction_pb2.TransactionBody = self.build_base_transaction_body()
+        transaction_body: transaction_pb2.TransactionBody = (
+            self.build_base_transaction_body()
+        )
         transaction_body.tokenBurn.CopyFrom(token_burn_body)
         return transaction_body
 
@@ -158,14 +165,11 @@ class TokenBurnTransaction(Transaction):
 
         Args:
             channel (_Channel): The channel containing service stubs
-        
+
         Returns:
             _Method: An object containing the transaction function to burn tokens.
         """
-        return _Method(
-            transaction_func=channel.token.burnToken,
-            query_func=None
-        )
+        return _Method(transaction_func=channel.token.burnToken, query_func=None)
 
     def _from_proto(self, proto: TokenBurnTransactionBody) -> "TokenBurnTransaction":
         """

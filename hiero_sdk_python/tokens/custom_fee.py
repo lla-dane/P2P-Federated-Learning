@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import typing
 from abc import ABC, abstractmethod
 
@@ -6,7 +7,9 @@ if typing.TYPE_CHECKING:
     from hiero_sdk_python.account.account_id import AccountId
     from hiero_sdk_python.client import Client
     from hiero_sdk_python.hapi.services.basic_types_pb2 import AccountID
-    from hiero_sdk_python.hapi.services.token_service_pb2 import CustomFee as CustomFeeProto
+    from hiero_sdk_python.hapi.services.token_service_pb2 import (
+        CustomFee as CustomFeeProto,
+    )
 
 
 class CustomFee(ABC):
@@ -31,7 +34,9 @@ class CustomFee(ABC):
         return self
 
     @staticmethod
-    def _from_proto(custom_fee: "CustomFeeProto") -> "CustomFee":  # Changed from _from_protobuf
+    def _from_proto(
+        custom_fee: "CustomFeeProto",
+    ) -> "CustomFee":  # Changed from _from_protobuf
         from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
         from hiero_sdk_python.tokens.custom_fractional_fee import CustomFractionalFee
         from hiero_sdk_python.tokens.custom_royalty_fee import CustomRoyaltyFee
@@ -40,9 +45,13 @@ class CustomFee(ABC):
         if fee_case == "fixed_fee":
             return CustomFixedFee._from_proto(custom_fee)  # Changed from _from_protobuf
         if fee_case == "fractional_fee":
-            return CustomFractionalFee._from_proto(custom_fee)  # Changed from _from_protobuf
+            return CustomFractionalFee._from_proto(
+                custom_fee
+            )  # Changed from _from_protobuf
         if fee_case == "royalty_fee":
-            return CustomRoyaltyFee._from_proto(custom_fee)  # Changed from _from_protobuf
+            return CustomRoyaltyFee._from_proto(
+                custom_fee
+            )  # Changed from _from_protobuf
 
         raise ValueError(f"Unrecognized fee case: {fee_case}")
 

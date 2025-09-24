@@ -9,87 +9,86 @@ statuses, supply details, and timing), with conversion to and from protobuf mess
 """
 
 import warnings
-from dataclasses import dataclass, field, fields, MISSING
-from typing import Optional, ClassVar, Dict, Any, List, Callable, cast
+from dataclasses import MISSING, dataclass, field, fields
+from typing import Any, Callable, ClassVar, Dict, List, Optional, cast
 
-from hiero_sdk_python.tokens.token_id import TokenId
+from hiero_sdk_python._deprecated import _DeprecatedAliasesMixin
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.Duration import Duration
+from hiero_sdk_python.hapi.services import token_get_info_pb2 as hapi_pb
 from hiero_sdk_python.timestamp import Timestamp
-from hiero_sdk_python.tokens.supply_type import SupplyType
-from hiero_sdk_python.tokens.token_kyc_status import TokenKycStatus
-from hiero_sdk_python.tokens.token_pause_status import TokenPauseStatus
-from hiero_sdk_python.tokens.token_freeze_status import TokenFreezeStatus
-from hiero_sdk_python.tokens.token_type import TokenType
+from hiero_sdk_python.tokens.custom_fee import CustomFee
 from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
 from hiero_sdk_python.tokens.custom_fractional_fee import CustomFractionalFee
 from hiero_sdk_python.tokens.custom_royalty_fee import CustomRoyaltyFee
-from hiero_sdk_python._deprecated import _DeprecatedAliasesMixin
-from hiero_sdk_python.tokens.custom_fee import CustomFee
-from hiero_sdk_python.hapi.services import token_get_info_pb2 as hapi_pb
+from hiero_sdk_python.tokens.supply_type import SupplyType
+from hiero_sdk_python.tokens.token_freeze_status import TokenFreezeStatus
+from hiero_sdk_python.tokens.token_id import TokenId
+from hiero_sdk_python.tokens.token_kyc_status import TokenKycStatus
+from hiero_sdk_python.tokens.token_pause_status import TokenPauseStatus
+from hiero_sdk_python.tokens.token_type import TokenType
 
 
 @dataclass(init=False)
 class TokenInfo(_DeprecatedAliasesMixin):
     """Data class for basic token details: ID, name, and symbol inheriting deprecated aliases."""
-    token_id: Optional[TokenId]      = None
-    name:     Optional[str]          = None
-    symbol:   Optional[str]          = None
-    decimals: Optional[int]          = None
-    total_supply: Optional[int]      = None
-    treasury: Optional[AccountId]    = None
-    is_deleted: Optional[bool]       = None
-    memo:      Optional[str]         = None
-    token_type: Optional[TokenType]  = None
-    max_supply: Optional[int]        = None
-    ledger_id: Optional[bytes]       = None
-    metadata:  Optional[bytes]       = None
-    custom_fees: List[Any]           = field(default_factory=list)
 
-    admin_key: Optional[PublicKey]         = None
-    kyc_key: Optional[PublicKey]           = None
-    freeze_key: Optional[PublicKey]        = None
-    wipe_key: Optional[PublicKey]          = None
-    supply_key: Optional[PublicKey]        = None
-    metadata_key: Optional[PublicKey]      = None
-    fee_schedule_key: Optional[PublicKey]  = None
+    token_id: Optional[TokenId] = None
+    name: Optional[str] = None
+    symbol: Optional[str] = None
+    decimals: Optional[int] = None
+    total_supply: Optional[int] = None
+    treasury: Optional[AccountId] = None
+    is_deleted: Optional[bool] = None
+    memo: Optional[str] = None
+    token_type: Optional[TokenType] = None
+    max_supply: Optional[int] = None
+    ledger_id: Optional[bytes] = None
+    metadata: Optional[bytes] = None
+    custom_fees: List[Any] = field(default_factory=list)
+
+    admin_key: Optional[PublicKey] = None
+    kyc_key: Optional[PublicKey] = None
+    freeze_key: Optional[PublicKey] = None
+    wipe_key: Optional[PublicKey] = None
+    supply_key: Optional[PublicKey] = None
+    metadata_key: Optional[PublicKey] = None
+    fee_schedule_key: Optional[PublicKey] = None
     default_freeze_status: TokenFreezeStatus = field(
         default_factory=lambda: TokenFreezeStatus.FREEZE_NOT_APPLICABLE
     )
     default_kyc_status: TokenKycStatus = field(
         default_factory=lambda: TokenKycStatus.KYC_NOT_APPLICABLE
     )
-    auto_renew_account: Optional[AccountId]  = None
-    auto_renew_period: Optional[Duration]    = None
-    expiry: Optional[Timestamp]              = None
-    pause_key: Optional[PublicKey]           = None
+    auto_renew_account: Optional[AccountId] = None
+    auto_renew_period: Optional[Duration] = None
+    expiry: Optional[Timestamp] = None
+    pause_key: Optional[PublicKey] = None
     pause_status: TokenPauseStatus = field(
         default_factory=lambda: TokenPauseStatus.PAUSE_NOT_APPLICABLE
     )
-    supply_type: SupplyType = field(
-        default_factory=lambda: SupplyType.FINITE
-    )
+    supply_type: SupplyType = field(default_factory=lambda: SupplyType.FINITE)
 
     # map legacy camelCase → snake_case
     LEGACY_MAP: ClassVar[Dict[str, str]] = {
-        "tokenId":             "token_id",
-        "totalSupply":         "total_supply",
-        "isDeleted":           "is_deleted",
-        "tokenType":           "token_type",
-        "maxSupply":           "max_supply",
-        "adminKey":            "admin_key",
-        "kycKey":              "kyc_key",
-        "freezeKey":           "freeze_key",
-        "wipeKey":             "wipe_key",
-        "supplyKey":           "supply_key",
+        "tokenId": "token_id",
+        "totalSupply": "total_supply",
+        "isDeleted": "is_deleted",
+        "tokenType": "token_type",
+        "maxSupply": "max_supply",
+        "adminKey": "admin_key",
+        "kycKey": "kyc_key",
+        "freezeKey": "freeze_key",
+        "wipeKey": "wipe_key",
+        "supplyKey": "supply_key",
         "defaultFreezeStatus": "default_freeze_status",
-        "defaultKycStatus":    "default_kyc_status",
-        "autoRenewAccount":    "auto_renew_account",
-        "autoRenewPeriod":     "auto_renew_period",
-        "pauseStatus":         "pause_status",
-        "supplyType":          "supply_type",
-        "customFees":          "custom_fees",
+        "defaultKycStatus": "default_kyc_status",
+        "autoRenewAccount": "auto_renew_account",
+        "autoRenewPeriod": "auto_renew_period",
+        "pauseStatus": "pause_status",
+        "supplyType": "supply_type",
+        "customFees": "custom_fees",
     }
 
     def __init__(self, **kwargs: Any) -> None:
@@ -170,7 +169,9 @@ class TokenInfo(_DeprecatedAliasesMixin):
         self.fee_schedule_key = fee_schedule_key
         return self
 
-    def set_default_freeze_status(self, freeze_status: TokenFreezeStatus) -> "TokenInfo":
+    def set_default_freeze_status(
+        self, freeze_status: TokenFreezeStatus
+    ) -> "TokenInfo":
         """Set the default freeze status."""
         self.default_freeze_status = freeze_status
         return self
@@ -249,13 +250,19 @@ class TokenInfo(_DeprecatedAliasesMixin):
     @staticmethod
     def _copy_key_if_present(dst: "TokenInfo", setter: str, key_msg) -> None:
         # In proto3, keys are a oneof; check presence via WhichOneof
-        if key_msg is not None and hasattr(key_msg, "WhichOneof") and key_msg.WhichOneof("key"):
+        if (
+            key_msg is not None
+            and hasattr(key_msg, "WhichOneof")
+            and key_msg.WhichOneof("key")
+        ):
             getattr(dst, setter)(PublicKey._from_proto(key_msg))
 
     @staticmethod
     def _parse_custom_fees(proto_obj) -> List[CustomFee]:
         out: List[CustomFee] = []
-        for fee_proto in getattr(proto_obj, "custom_fees", []):  # snake_case matches your generated proto
+        for fee_proto in getattr(
+            proto_obj, "custom_fees", []
+        ):  # snake_case matches your generated proto
             if fee_proto.HasField("fixed_fee"):
                 out.append(CustomFixedFee._from_proto(fee_proto))
             elif fee_proto.HasField("fractional_fee"):
@@ -304,27 +311,47 @@ class TokenInfo(_DeprecatedAliasesMixin):
         tokenInfoObject.set_custom_fees(cls._parse_custom_fees(proto_obj))
 
         key_sources = [
-            (("adminKey",),                         "set_admin_key"),
-            (("kycKey",),                           "set_kyc_key"),
-            (("freezeKey",),                        "set_freeze_key"),
-            (("wipeKey",),                          "set_wipe_key"),
-            (("supplyKey",),                        "set_supply_key"),
-            (("metadataKey", "metadata_key"),       "set_metadata_key"),
-            (("feeScheduleKey", "fee_schedule_key"),"set_fee_schedule_key"),
-            (("pauseKey", "pause_key"),             "set_pause_key"),
+            (("adminKey",), "set_admin_key"),
+            (("kycKey",), "set_kyc_key"),
+            (("freezeKey",), "set_freeze_key"),
+            (("wipeKey",), "set_wipe_key"),
+            (("supplyKey",), "set_supply_key"),
+            (("metadataKey", "metadata_key"), "set_metadata_key"),
+            (("feeScheduleKey", "fee_schedule_key"), "set_fee_schedule_key"),
+            (("pauseKey", "pause_key"), "set_pause_key"),
         ]
         for names, setter in key_sources:
             key_msg = cls._get(proto_obj, *names)
             cls._copy_key_if_present(tokenInfoObject, setter, key_msg)
 
         conv_map = [
-            (("defaultFreezeStatus",), tokenInfoObject.set_default_freeze_status, TokenFreezeStatus._from_proto),
-            (("defaultKycStatus",),    tokenInfoObject.set_default_kyc_status,    TokenKycStatus._from_proto),
-            (("autoRenewAccount",),    tokenInfoObject.set_auto_renew_account,    AccountId._from_proto),
-            (("autoRenewPeriod",),     tokenInfoObject.set_auto_renew_period,     Duration._from_proto),
-            (("expiry",),              tokenInfoObject.set_expiry,                Timestamp._from_protobuf),
-            (("pauseStatus", "pause_status"), tokenInfoObject.set_pause_status,   TokenPauseStatus._from_proto),
-            (("supplyType",),          tokenInfoObject.set_supply_type,           SupplyType),
+            (
+                ("defaultFreezeStatus",),
+                tokenInfoObject.set_default_freeze_status,
+                TokenFreezeStatus._from_proto,
+            ),
+            (
+                ("defaultKycStatus",),
+                tokenInfoObject.set_default_kyc_status,
+                TokenKycStatus._from_proto,
+            ),
+            (
+                ("autoRenewAccount",),
+                tokenInfoObject.set_auto_renew_account,
+                AccountId._from_proto,
+            ),
+            (
+                ("autoRenewPeriod",),
+                tokenInfoObject.set_auto_renew_period,
+                Duration._from_proto,
+            ),
+            (("expiry",), tokenInfoObject.set_expiry, Timestamp._from_protobuf),
+            (
+                ("pauseStatus", "pause_status"),
+                tokenInfoObject.set_pause_status,
+                TokenPauseStatus._from_proto,
+            ),
+            (("supplyType",), tokenInfoObject.set_supply_type, SupplyType),
         ]
         for names, setter, conv in conv_map:
             val = cls._get(proto_obj, *names)
@@ -337,13 +364,19 @@ class TokenInfo(_DeprecatedAliasesMixin):
     @staticmethod
     def _copy_key_if_present(dst: "TokenInfo", setter: str, key_msg) -> None:
         # In proto3, keys are a oneof; check presence via WhichOneof
-        if key_msg is not None and hasattr(key_msg, "WhichOneof") and key_msg.WhichOneof("key"):
+        if (
+            key_msg is not None
+            and hasattr(key_msg, "WhichOneof")
+            and key_msg.WhichOneof("key")
+        ):
             getattr(dst, setter)(PublicKey._from_proto(key_msg))
 
     @staticmethod
     def _parse_custom_fees(proto_obj) -> List[CustomFee]:
         out: List[CustomFee] = []
-        for fee_proto in getattr(proto_obj, "custom_fees", []):  # snake_case matches your generated proto
+        for fee_proto in getattr(
+            proto_obj, "custom_fees", []
+        ):  # snake_case matches your generated proto
             if fee_proto.HasField("fixed_fee"):
                 out.append(CustomFixedFee._from_proto(fee_proto))
             elif fee_proto.HasField("fractional_fee"):
@@ -360,11 +393,15 @@ class TokenInfo(_DeprecatedAliasesMixin):
             return
         to_fn = getattr(val, "_to_proto", None) or getattr(val, "_to_protobuf", None)
         if to_fn is None:
-            raise AttributeError(f"{type(val).__name__} has neither _to_proto nor _to_protobuf")
+            raise AttributeError(
+                f"{type(val).__name__} has neither _to_proto nor _to_protobuf"
+            )
         getattr(dst_proto, dst_field).CopyFrom(to_fn())
 
     @staticmethod
-    def _set_bool(dst_proto, field_name: str, value: Optional[bool], default: bool = False) -> None:
+    def _set_bool(
+        dst_proto, field_name: str, value: Optional[bool], default: bool = False
+    ) -> None:
         """Assign a boolean, using default when value is None."""
         setattr(dst_proto, field_name, default if value is None else bool(value))
 
@@ -402,17 +439,17 @@ class TokenInfo(_DeprecatedAliasesMixin):
         self._append_custom_fees(proto, self.custom_fees)
 
         msg_fields = [
-            ("admin_key",          "adminKey"),
-            ("kyc_key",            "kycKey"),
-            ("freeze_key",         "freezeKey"),
-            ("wipe_key",           "wipeKey"),
-            ("supply_key",         "supplyKey"),
-            ("metadata_key",       "metadata_key"),
-            ("fee_schedule_key",   "fee_schedule_key"),
-            ("pause_key",          "pause_key"),
+            ("admin_key", "adminKey"),
+            ("kyc_key", "kycKey"),
+            ("freeze_key", "freezeKey"),
+            ("wipe_key", "wipeKey"),
+            ("supply_key", "supplyKey"),
+            ("metadata_key", "metadata_key"),
+            ("fee_schedule_key", "fee_schedule_key"),
+            ("pause_key", "pause_key"),
             ("auto_renew_account", "autoRenewAccount"),
-            ("auto_renew_period",  "autoRenewPeriod"),
-            ("expiry",             "expiry"),
+            ("auto_renew_period", "autoRenewPeriod"),
+            ("expiry", "expiry"),
         ]
         for src_attr, dst_field in msg_fields:
             self._copy_msg_to_proto(self, proto, src_attr, dst_field)

@@ -12,17 +12,19 @@ optional deprecated alias support via `_DeprecatedAliasesMixin`.
 Classes:
     - TransactionReceipt: Parses and exposes fields from a transaction receipt protobuf.
 """
+
 from typing import Optional, cast
-from hiero_sdk_python.file.file_id import FileId
+
+from hiero_sdk_python._deprecated import _DeprecatedAliasesMixin
+from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.consensus.topic_id import TopicId
 from hiero_sdk_python.contract.contract_id import ContractId
+from hiero_sdk_python.file.file_id import FileId
+from hiero_sdk_python.hapi.services import response_code_pb2, transaction_receipt_pb2
 from hiero_sdk_python.schedule.schedule_id import ScheduleId
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 
-from hiero_sdk_python.hapi.services import transaction_receipt_pb2, response_code_pb2
-from hiero_sdk_python._deprecated import _DeprecatedAliasesMixin
-from hiero_sdk_python.account.account_id import AccountId
-from hiero_sdk_python.consensus.topic_id import TopicId
 
 class TransactionReceipt(_DeprecatedAliasesMixin):  # type: ignore[misc]
     """
@@ -41,7 +43,7 @@ class TransactionReceipt(_DeprecatedAliasesMixin):  # type: ignore[misc]
     def __init__(
         self,
         receipt_proto: transaction_receipt_pb2.TransactionReceipt,
-        transaction_id: Optional[TransactionId] = None
+        transaction_id: Optional[TransactionId] = None,
     ) -> None:
         """
         Initializes the TransactionReceipt with the provided protobuf receipt.
@@ -196,7 +198,11 @@ class TransactionReceipt(_DeprecatedAliasesMixin):  # type: ignore[misc]
         return self._receipt_proto
 
     @classmethod
-    def _from_proto(cls, proto: transaction_receipt_pb2.TransactionReceipt, transaction_id: TransactionId) -> "TransactionReceipt":
+    def _from_proto(
+        cls,
+        proto: transaction_receipt_pb2.TransactionReceipt,
+        transaction_id: TransactionId,
+    ) -> "TransactionReceipt":
         """
         Creates a TransactionReceipt instance from a protobuf TransactionReceipt object.
         Args:

@@ -1,10 +1,12 @@
 import threading
 
+
 class SubscriptionHandle:
     """
     Represents a handle to an ongoing subscription.
     Calling .cancel() will signal the subscription thread to stop.
     """
+
     def __init__(self):
         self._cancelled = threading.Event()
         self._thread = None

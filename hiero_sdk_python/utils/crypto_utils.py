@@ -1,7 +1,7 @@
 from typing import Tuple
 
-from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import ec
 
 try:
     from Crypto.Hash import keccak
@@ -47,7 +47,9 @@ def decompress_point(data: bytes) -> Tuple[int, int]:
     else:
         raise ValueError("Not recognized as compressed or uncompressed SEC1 point.")
 
-    point = ec.EllipticCurvePublicKey.from_encoded_point(SECP256K1_CURVE, data).public_numbers()
+    point = ec.EllipticCurvePublicKey.from_encoded_point(
+        SECP256K1_CURVE, data
+    ).public_numbers()
     return (point.x, point.y)
 
 

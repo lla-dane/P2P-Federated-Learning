@@ -1,18 +1,20 @@
-from typing import Optional, Any
-from hiero_sdk_python.query.query import Query
-from hiero_sdk_python.hapi.services import query_pb2, consensus_get_topic_info_pb2
+import traceback
+from typing import Any, Optional
+
+from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.consensus.topic_id import TopicId
 from hiero_sdk_python.consensus.topic_info import TopicInfo
-from hiero_sdk_python.executable import _Method, _ExecutionState
-from hiero_sdk_python.channels import _Channel
+from hiero_sdk_python.executable import _ExecutionState, _Method
+from hiero_sdk_python.hapi.services import consensus_get_topic_info_pb2, query_pb2
+from hiero_sdk_python.query.query import Query
 from hiero_sdk_python.response_code import ResponseCode
-import traceback
+
 
 class TopicInfoQuery(Query):
     """
     A query to retrieve information about a specific Hedera topic.
-    
+
     This class constructs and executes a query to retrieve information about a topic
     on the Hedera network, including the topic's properties and settings.
 
@@ -32,7 +34,7 @@ class TopicInfoQuery(Query):
     def _require_not_frozen(self) -> None:
         """
         Ensures the query is not frozen before making changes.
-        
+
         Raises:
             ValueError: If the query is frozen and cannot be modified.
         """
@@ -48,7 +50,7 @@ class TopicInfoQuery(Query):
 
         Returns:
             TopicInfoQuery: Returns self for method chaining.
-            
+
         Raises:
             ValueError: If the query is frozen and cannot be modified.
         """
@@ -59,7 +61,7 @@ class TopicInfoQuery(Query):
     def freeze(self) -> "TopicInfoQuery":
         """
         Marks the query as frozen, preventing further modification.
-        
+
         Once frozen, properties like topic_id cannot be changed.
 
         Returns:
@@ -71,7 +73,7 @@ class TopicInfoQuery(Query):
     def _make_request(self) -> query_pb2.Query:
         """
         Constructs the protobuf request for the query.
-        
+
         Builds a ConsensusGetTopicInfoQuery protobuf message with the
         appropriate header and topic ID.
 
@@ -105,7 +107,7 @@ class TopicInfoQuery(Query):
     def _get_method(self, channel: _Channel) -> _Method:
         """
         Returns the appropriate gRPC method for the topic info query.
-        
+
         Implements the abstract method from Query to provide the specific
         gRPC method for getting topic information.
 
@@ -115,15 +117,12 @@ class TopicInfoQuery(Query):
         Returns:
             _Method: The method wrapper containing the query function
         """
-        return _Method(
-            transaction_func=None,
-            query_func=channel.topic.getTopicInfo
-        )
+        return _Method(transaction_func=None, query_func=channel.topic.getTopicInfo)
 
     def _should_retry(self, response: Any) -> _ExecutionState:
         """
         Determines whether the query should be retried based on the response.
-        
+
         Implements the abstract method from Query to decide whether to retry
         the query based on the response status code.
 
@@ -138,7 +137,7 @@ class TopicInfoQuery(Query):
         retryable_statuses = {
             ResponseCode.UNKNOWN,
             ResponseCode.BUSY,
-            ResponseCode.PLATFORM_NOT_ACTIVE
+            ResponseCode.PLATFORM_NOT_ACTIVE,
         }
 
         if status == ResponseCode.OK:
@@ -151,7 +150,7 @@ class TopicInfoQuery(Query):
     def execute(self, client: Client) -> TopicInfo:
         """
         Executes the topic info query.
-        
+
         Sends the query to the Hedera network and processes the response
         to return a TopicInfo object.
 
@@ -173,16 +172,18 @@ class TopicInfoQuery(Query):
 
         return TopicInfo._from_proto(response.consensusGetTopicInfo.topicInfo)
 
-    def _get_query_response(self, response: Any) -> consensus_get_topic_info_pb2.ConsensusGetTopicInfoResponse:
+    def _get_query_response(
+        self, response: Any
+    ) -> consensus_get_topic_info_pb2.ConsensusGetTopicInfoResponse:
         """
         Extracts the topic info response from the full response.
-        
+
         Implements the abstract method from Query to extract the
         specific topic info response object.
-        
+
         Args:
             response: The full response from the network
-            
+
         Returns:
             The consensus get topic info response object
         """

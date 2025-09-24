@@ -1,22 +1,28 @@
-from typing import Optional
-from hiero_sdk_python.query.query import Query
-from hiero_sdk_python.hapi.services import query_pb2, response_pb2, token_get_nft_info_pb2
-from hiero_sdk_python.executable import _Method
-from hiero_sdk_python.channels import _Channel
 import traceback
+from typing import Optional
 
+from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.client.client import Client
+from hiero_sdk_python.executable import _Method
+from hiero_sdk_python.hapi.services import (
+    query_pb2,
+    response_pb2,
+    token_get_nft_info_pb2,
+)
+from hiero_sdk_python.query.query import Query
 from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.tokens.token_nft_info import TokenNftInfo
+
 
 class TokenNftInfoQuery(Query):
     """
     A query to retrieve information about a specific Hedera NFT.
-    
+
     This class constructs and executes a query to retrieve information about a NFT
     on the Hedera network, including the NFT's properties and settings.
-    
+
     """
+
     def __init__(self, nft_id: Optional[NftId] = None) -> None:
         """
         Initializes a new TokenNftInfoQuery instance with an optional nft_id.
@@ -40,7 +46,7 @@ class TokenNftInfoQuery(Query):
     def _make_request(self) -> query_pb2.Query:
         """
         Constructs the protobuf request for the query.
-        
+
         Builds a TokenGetNftInfoQuery protobuf message with the
         appropriate header and nft ID.
 
@@ -73,7 +79,7 @@ class TokenNftInfoQuery(Query):
     def _get_method(self, channel: _Channel) -> _Method:
         """
         Returns the appropriate gRPC method for the nft info query.
-        
+
         Implements the abstract method from Query to provide the specific
         gRPC method for getting nft information.
 
@@ -83,15 +89,12 @@ class TokenNftInfoQuery(Query):
         Returns:
             _Method: The method wrapper containing the query function
         """
-        return _Method(
-            transaction_func=None,
-            query_func=channel.token.getTokenNftInfo
-        )
+        return _Method(transaction_func=None, query_func=channel.token.getTokenNftInfo)
 
     def execute(self, client: Client) -> TokenNftInfo:
         """
         Executes the nft info query.
-        
+
         Sends the query to the Hedera network and processes the response
         to return a TokenNftInfo object.
 
@@ -113,16 +116,18 @@ class TokenNftInfoQuery(Query):
 
         return TokenNftInfo._from_proto(response.tokenGetNftInfo.nft)
 
-    def _get_query_response(self, response: response_pb2.Response) -> token_get_nft_info_pb2.TokenGetNftInfoResponse:
+    def _get_query_response(
+        self, response: response_pb2.Response
+    ) -> token_get_nft_info_pb2.TokenGetNftInfoResponse:
         """
         Extracts the nft info response from the full response.
-        
+
         Implements the abstract method from Query to extract the
         specific nft info response object.
-        
+
         Args:
             response: The full response from the network
-            
+
         Returns:
             The token get nft info response object
         """

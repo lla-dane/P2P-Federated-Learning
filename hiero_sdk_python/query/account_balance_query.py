@@ -1,11 +1,13 @@
 import traceback
-from typing import Optional, Any
-from hiero_sdk_python.query.query import Query
-from hiero_sdk_python.hapi.services import crypto_get_account_balance_pb2, query_pb2
-from hiero_sdk_python.account.account_id import AccountId
+from typing import Any, Optional
+
 from hiero_sdk_python.account.account_balance import AccountBalance
-from hiero_sdk_python.executable import _Method
+from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
+from hiero_sdk_python.executable import _Method
+from hiero_sdk_python.hapi.services import crypto_get_account_balance_pb2, query_pb2
+from hiero_sdk_python.query.query import Query
+
 
 class CryptoGetAccountBalanceQuery(Query):
     """
@@ -55,13 +57,17 @@ class CryptoGetAccountBalanceQuery(Query):
                 raise ValueError("Account ID must be set before making the request.")
 
             query_header = self._make_request_header()
-            crypto_get_balance = crypto_get_account_balance_pb2.CryptoGetAccountBalanceQuery()
+            crypto_get_balance = (
+                crypto_get_account_balance_pb2.CryptoGetAccountBalanceQuery()
+            )
             crypto_get_balance.header.CopyFrom(query_header)
             crypto_get_balance.accountID.CopyFrom(self.account_id._to_proto())
 
             query = query_pb2.Query()
-            if not hasattr(query, 'cryptogetAccountBalance'):
-                raise AttributeError("Query object has no attribute 'cryptogetAccountBalance'")
+            if not hasattr(query, "cryptogetAccountBalance"):
+                raise AttributeError(
+                    "Query object has no attribute 'cryptogetAccountBalance'"
+                )
             query.cryptogetAccountBalance.CopyFrom(crypto_get_balance)
 
             return query
@@ -73,7 +79,7 @@ class CryptoGetAccountBalanceQuery(Query):
     def _get_method(self, channel: _Channel) -> _Method:
         """
         Returns the appropriate gRPC method for the account balance query.
-        
+
         Implements the abstract method from Query to provide the specific
         gRPC method for getting account balances.
 
@@ -84,16 +90,15 @@ class CryptoGetAccountBalanceQuery(Query):
             _Method: The method wrapper containing the query function
         """
         return _Method(
-            transaction_func=None,
-            query_func=channel.crypto.cryptoGetBalance
+            transaction_func=None, query_func=channel.crypto.cryptoGetBalance
         )
 
     def execute(self, client) -> AccountBalance:
         """
         Executes the account balance query.
-        
+
         This function delegates the core logic to `_execute()`, and may propagate exceptions raised by it.
-        
+
         Sends the query to the Hedera network and processes the response
         to return an AccountBalance object.
 
@@ -113,16 +118,18 @@ class CryptoGetAccountBalanceQuery(Query):
 
         return AccountBalance._from_proto(response.cryptogetAccountBalance)
 
-    def _get_query_response(self, response: Any) -> crypto_get_account_balance_pb2.CryptoGetAccountBalanceResponse:
+    def _get_query_response(
+        self, response: Any
+    ) -> crypto_get_account_balance_pb2.CryptoGetAccountBalanceResponse:
         """
         Extracts the account balance response from the full response.
-        
+
         Implements the abstract method from Query to extract the
         specific account balance response object.
-        
+
         Args:
             response: The full response from the network
-            
+
         Returns:
             The crypto get account balance response object
         """
@@ -131,7 +138,7 @@ class CryptoGetAccountBalanceQuery(Query):
     def _is_payment_required(self):
         """
         Account balance query does not require payment.
-        
+
         Returns:
             bool: False
         """
