@@ -1,28 +1,20 @@
 import os
-
+import time
 from dotenv import load_dotenv
-
 from hiero_sdk_python import (
-    AccountId,
     Client,
-    Hbar,
-    Network,
+    AccountId,
     PrivateKey,
+    Network,
+    ResponseCode
 )
 
-load_dotenv()
+from hiero_sdk_python.contract.contract_execute_transaction import ContractExecuteTransaction
 from hiero_sdk_python.contract.contract_call_query import ContractCallQuery
-from hiero_sdk_python.contract.contract_execute_transaction import (
-    ContractExecuteTransaction,
-)
-from hiero_sdk_python.contract.contract_function_parameters import (
-    ContractFunctionParameters,
-)
+from hiero_sdk_python.contract.contract_function_parameters import ContractFunctionParameters
+from hiero_sdk_python.contract.contract_id import ContractId
+from hiero_sdk_python.hbar import Hbar
 
-
-# ====================================
-# 🔑 Setup your Hiero operator account
-# ====================================
 def setup_client():
     """Initialize and set up the client with operator account"""
     network = Network(network="testnet")
@@ -34,111 +26,72 @@ def setup_client():
 
     return client
 
+def main():
+    """
+    This script demonstrates how to interact with a smart contract on the Hedera network.
+    It creates a task, retrieves the task info, and prints it.
+    """
+    load_dotenv()
 
-operator_id = AccountId.from_string(os.getenv("OPERATOR_ID"))
-operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY"))
-client = setup_client()
-# balance = client.getAccountBalance(operator_id)
-# print("Client balance:", balance.asTinybar())
+    # Replace with your actual Hedera account ID and private key
+    operator_id = AccountId.from_string(os.environ["OPERATOR_ID"])
+    operator_key = PrivateKey.from_string(os.environ["OPERATOR_KEY"])
 
-# ====================================
-# 📜 Deployed contract ID
-# ====================================
-CONTRACT_ID = "0.0.6884614"  # replace with your deployed contract id
+    # Replace with your actual contract ID
+    contract_id = ContractId.from_string(os.environ["CONTRACT_ID"])
 
+    # Configure the client
+    client = setup_client()
 
-# 🟢 1. Create a task
-def create_task(
-    model_hash: str, dataset_hash: str, num_chunks: int, total_reward_hbar: int
-):
-    tx = (
+    # Create a new task
+    print("Creating a new task...")
+    receipt = (
         ContractExecuteTransaction()
-        .setContractId(CONTRACT_ID)
-        .setGas(300_000)
-        .setPayableAmount(
-            Hbar.fromTinybars(total_reward_hbar * 100_000_000)
-        )  # convert HBAR -> tinybars
-        .setFunction(
+        .set_contract_id(contract_id)
+        .set_gas(10000000000)
+        .set_payable_amount(Hbar.from_tinybars(10000))
+        .set_function(
             "createTask",
             ContractFunctionParameters()
-            .addString(model_hash)
-            .addString(dataset_hash)
-            .addUint256(num_chunks),
+            .add_string("my_model_hash")
+            .add_string("my_dataset_hash")
+            .add_uint256(10),
         )
+        .execute(client)
     )
-    resp = tx.execute(client)
-    receipt = resp.getReceipt(client)
-    print("createTask status:", receipt.status)
 
+    if receipt.status != ResponseCode.SUCCESS:
+        status_message = ResponseCode(receipt.status).name
+        raise Exception(f"Transaction failed with status: {status_message}")
+    print(f"Create task response: {receipt}")
 
-# 🔵 2. Submit weights
-def submit_weights(task_id: int, weights_hash: str):
-    tx = (
-        ContractExecuteTransaction()
-        .setContractId(CONTRACT_ID)
-        .setGas(300_000)
-        .setFunction(
-            "submitWeights",
-            ContractFunctionParameters().addUint256(task_id).addString(weights_hash),
-        )
-    )
-    resp = tx.execute(client)
-    receipt = resp.getReceipt(client)
-    print("submitWeights status:", receipt.status)
-
-
-# 🟣 3. Withdraw pending balance
-def withdraw_pending():
-    tx = (
-        ContractExecuteTransaction()
-        .setContractId(CONTRACT_ID)
-        .setGas(200_000)
-        .setFunction("withdrawPending")
-    )
-    resp = tx.execute(client)
-    receipt = resp.getReceipt(client)
-    print("withdrawPending status:", receipt.status)
-
-
-# 🟡 4. Cancel a task
-def cancel_task(task_id: int):
-    tx = (
-        ContractExecuteTransaction()
-        .setContractId(CONTRACT_ID)
-        .setGas(200_000)
-        .setFunction("cancelTask", ContractFunctionParameters().addUint256(task_id))
-    )
-    resp = tx.execute(client)
-    receipt = resp.getReceipt(client)
-    print("cancelTask status:", receipt.status)
-
-
-# 🟠 5. Query taskCount (read-only)
-def get_task_count():
-    query = (
+    # Get the task info
+    print("Getting task info...")
+    get_task_query = (
         ContractCallQuery()
-        .setContractId(CONTRACT_ID)
-        .setGas(100_000)
-        .setFunction("taskCount")
+        .set_contract_id(contract_id)
+        .set_gas(100000)
+        .set_function("tasks", ContractFunctionParameters().add_uint256(task_id))
     )
-    result = query.execute(client)
-    count = result.getUint256(0)
-    print("Current taskCount:", count)
-    return count
+
+    result = get_task_query.execute(client)
+    depositor = result.get_address(0)
+    model_hash = result.get_string(1)
+    dataset_hash = result.get_string(2)
+    num_chunks = result.get_uint256(3)
+    remaining_chunks = result.get_uint256(4)
+    per_chunk_reward = result.get_uint256(5)
+    exists = result.get_bool(6)
+
+    print(f"Task Info:")
+    print(f"  Depositor: {depositor}")
+    print(f"  Model Hash: {model_hash}")
+    print(f"  Dataset Hash: {dataset_hash}")
+    print(f"  Num Chunks: {num_chunks}")
+    print(f"  Remaining Chunks: {remaining_chunks}")
+    print(f"  Per Chunk Reward: {per_chunk_reward}")
+    print(f"  Exists: {exists}")
 
 
-# ===========================
-# 🚀 Example Usage
-# ===========================
 if __name__ == "__main__":
-    # 1. Create task with 10 chunks and 1 HBAR total reward
-    create_task("QmModelHash", "QmDatasetHash", 10, 1)
-
-    # 2. Check how many tasks exist
-    get_task_count()
-
-    # 3. Trainer submits weights for task 1
-    submit_weights(1, "QmWeightsHash")
-
-    # 4. Withdraw any pending balance
-    withdraw_pending()
+    main()

@@ -1,6 +1,8 @@
 import os
 
 from dotenv import load_dotenv
+import sys
+print(sys.path)
 
 from hiero_sdk_python import (
     AccountId,
