@@ -5,6 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "p2p-fedlearn"
 version = "0.1.0"
+requires-python = ">=3.11, <=3.14"
 description = "Federated Learning over P2P network using py-libp2p, IPFS, and Hedera"
 authors = [
     { name = "Your Name", email = "you@example.com" }
@@ -21,8 +22,8 @@ dependencies = [
     "hedera-sdk-py",
     "hiero-sdk-python",
     "protobuf",
-    "grpcio-tools==1.62.1",
-    "grpcio==1.71.2",
+    "grpcio-tools==1.68.1",
+    "grpcio==1.68.1",
     "cryptography==44.0.0",
     "python-dotenv==1.0.1",
     "requests==2.32.3",
@@ -35,7 +36,7 @@ dependencies = [
 # Extras let you group optional deps
 [project.optional-dependencies]
 p2p = [
-    "libp2p @ git+https://github.com/libp2p/py-libp2p.git",
+    "libp2p @ git+https://github.com/lla-dane/py-libp2p.git@fed-learn",
 ]
 dev = [
     "black",
@@ -61,16 +62,15 @@ log_cli_level = "INFO"
 [tool.ruff]
 line-length = 150
 target-version = "py313"
+fix = true
+
+[tool.ruff.lint]
 select = [
     "E",    # pycodestyle errors
     "W",    # pycodestyle warnings
-    "F",    # pyflakes (includes unused imports/variables)
+    "F",    # pyflakes
 ]
-ignore = []
-fix = true
-
-[tools.ruff.lint]
-select = ["F401", "F841"] # unused import, unused variable
+ignore = ["F821"]  # ignore 'undefined name' like `dataset`
 
 [tool.ruff.format]
 quote-style = "double"
