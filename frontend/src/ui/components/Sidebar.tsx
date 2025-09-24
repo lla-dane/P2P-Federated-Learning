@@ -9,19 +9,18 @@ import {
   ExternalLink,
   LogOut,
 } from 'lucide-react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useWalletInterface } from '../services/useWalletInterface';
 
 const Sidebar = () => {
-  const { accountId, balance, connect, disconnect } = useWalletInterface();
+  const { accountId, balance, isConnected, actions } = useWalletInterface();
   const [isWalletExpanded, setIsWalletExpanded] = useState(false);
+  const navigate = useNavigate();
 
-  const isConnected = !!accountId;
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
+  const copyToClipboard = (text: string | undefined) => {
+    navigator.clipboard.writeText(text || '');
     toast.success('Address copied to clipboard!');
   };
 
@@ -39,7 +38,10 @@ const Sidebar = () => {
   return (
     <aside className='w-64 bg-surface text-text-primary p-4 flex flex-col'>
       <div className='mb-6'>
-        <div className='flex items-center gap-3 p-3 bg-primary/10 rounded-lg border border-primary/20'>
+        <div
+          className='flex items-center gap-3 p-3 bg-primary/10 rounded-lg border border-primary/20 cursor-pointer'
+          onClick={() => navigate('/')}
+        >
           <div className='w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center border border-primary/30'>
             <Brain className='w-6 h-6 text-primary' />
           </div>
@@ -60,7 +62,7 @@ const Sidebar = () => {
               </span>
             </div>
             <button
-              onClick={connect}
+              onClick={actions.connect}
               className='w-full bg-primary text-background text-sm font-medium py-2 px-3 rounded-lg hover:bg-primary/90 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary/50'
             >
               Connect Wallet
@@ -110,7 +112,7 @@ const Sidebar = () => {
                   <ExternalLink className='w-3 h-3' /> View on Explorer
                 </button>
                 <button
-                  onClick={disconnect}
+                  onClick={actions.disconnect}
                   className='w-full flex items-center gap-2 p-2 text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded transition-colors duration-200'
                 >
                   <LogOut className='w-3 h-3' /> Disconnect
@@ -123,7 +125,7 @@ const Sidebar = () => {
 
       <nav className='flex flex-col gap-2'>
         <NavLink
-          to='/'
+          to='/training'
           className={({ isActive }) =>
             `${linkClasses} ${isActive ? activeLinkClasses : ''}`
           }

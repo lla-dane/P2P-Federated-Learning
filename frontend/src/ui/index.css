@@ -12,3 +12,54 @@
   /* Font family */
   --font-sans: Inter, sans-serif;
 }
+
+.svg-background {
+  min-width: 100%;
+  min-height: 100vh;
+  /* Start with at least viewport height */
+  background-image: url("./assets/Background.svg");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center top;
+  background-color: #0D1224;
+  position: relative;
+  /* Ensure proper positioning context */
+}
+
+/* Add this to your CSS file */
+@keyframes gradient-x {
+
+  0%,
+  100% {
+    background-size: 200% 200%;
+    background-position: left center;
+  }
+
+  50% {
+    background-size: 200% 200%;
+    background-position: right center;
+  }
+}
+
+.animate-gradient-x {
+  animation: gradient-x 4s ease infinite;
+}
+
+.bg-300\% {
+  background-size: 300%;
+}
+
+/* Create a utility class to hide the scrollbar */
+
+/* For Chrome, Safari, Opera, and Electron */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* For IE, Edge, and Firefox */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
+}

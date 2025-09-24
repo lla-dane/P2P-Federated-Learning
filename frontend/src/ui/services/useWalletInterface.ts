@@ -1,21 +1,22 @@
-import { useWallet } from '../contexts/WalletConnectContext';
+import { useWalletConnect } from '../contexts/WalletConnectContext';
+import {
+  openWalletConnectModal,
+  walletConnectWallet,
+} from './walletConnectClient';
+import type { WalletInterface } from './walletInterface';
 
-export const useWalletInterface = () => {
-  const walletConnectCtx = useWallet();
+export const useWalletInterface = (): WalletInterface => {
+  const { accountId, isConnected, balance } = useWalletConnect();
 
-  if (walletConnectCtx.accountId) {
-    return {
-      accountId: walletConnectCtx.accountId,
-      balance: walletConnectCtx.balance,
-      connect: walletConnectCtx.connect,
-      disconnect: walletConnectCtx.disconnect,
-    };
-  }
+  const actions = {
+    connect: openWalletConnectModal,
+    disconnect: walletConnectWallet.disconnect,
+  };
 
   return {
-    accountId: undefined,
-    balance: null,
-    connect: walletConnectCtx.connect,
-    disconnect: walletConnectCtx.disconnect,
+    accountId,
+    isConnected,
+    balance,
+    actions,
   };
 };

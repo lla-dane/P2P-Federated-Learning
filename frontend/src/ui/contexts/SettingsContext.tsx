@@ -6,12 +6,7 @@ import {
   useEffect,
 } from 'react';
 import { loadCredentials, saveCredentials } from '../utils/credentialsHelper';
-
-interface ISettings {
-  apiKey: string;
-  apiSecret: string;
-  jwt: string;
-}
+import type { ISettings } from '../renderer';
 
 interface ISettingsContext {
   settings: ISettings;
@@ -23,9 +18,8 @@ const SettingsContext = createContext<ISettingsContext | undefined>(undefined);
 
 export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const [settings, setSettings] = useState<ISettings>({
-    apiKey: '',
-    apiSecret: '',
-    jwt: '',
+    awsAccessKeyId: '',
+    awsSecretAccessKey: '',
   });
 
   useEffect(() => {
@@ -44,9 +38,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const isConfigured = !!(
-    settings.apiKey &&
-    settings.apiSecret &&
-    settings.jwt
+    settings.awsAccessKeyId && settings.awsSecretAccessKey
   );
 
   return (

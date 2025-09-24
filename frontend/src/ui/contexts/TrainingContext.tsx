@@ -7,13 +7,13 @@ import {
 } from 'react';
 import { toast } from 'sonner';
 import { useSettings } from './SettingsContext';
-import {
-  initializePinata,
-  uploadDatasetInChunks,
-  uploadFile,
-  onProgress,
-} from '../utils/ipfsHelper';
 import { addTrainingHistory } from '../utils/historyHelper';
+import {
+  configureAkave,
+  onAkaveProgress,
+  uploadDatasetToAkave,
+  uploadFileToAkave,
+} from '../utils/akaveHelpers';
 
 interface ITrainingResult {
   datasetHash?: string;
@@ -41,9 +41,9 @@ export const TrainingProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     if (isConfigured) {
-      initializePinata(settings.jwt);
+      configureAkave(settings);
     }
-    onProgress((message) => {
+    onAkaveProgress((message) => {
       if (isLoading) setStatusMessage(message);
     });
   }, [settings, isConfigured, isLoading]);
@@ -66,11 +66,13 @@ export const TrainingProvider = ({ children }: { children: ReactNode }) => {
     const toastId = toast.loading('Preparing to upload...');
 
     try {
-      const datasetHash = await uploadDatasetInChunks(datasetPath);
-      toast.loading('Uploading model file...', { id: toastId });
-      const modelHash = await uploadFile(modelPath);
+      toast.loading('Uploading dataset to Akave...', { id: toastId });
+      const datasetHash = await uploadDatasetToAkave(datasetPath);
 
-      toast.success('Upload successful!', { id: toastId });
+      toast.loading('Uploading model to Akave...', { id: toastId });
+      const modelHash = await uploadFileToAkave(modelPath);
+
+      toast.success('Upload to Akave successful!', { id: toastId });
       setResult({ datasetHash, modelHash });
 
       await addTrainingHistory({

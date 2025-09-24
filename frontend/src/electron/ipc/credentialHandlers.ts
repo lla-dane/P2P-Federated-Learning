@@ -1,8 +1,8 @@
 import { ipcMain } from 'electron';
 import keytar from 'keytar';
 
-const SERVICE_NAME = 'Pinata';
-const ACCOUNT_NAME = 'PinataAPIKey';
+const SERVICE_NAME = 'AWS';
+const ACCOUNT_NAME = 'AWSAPIKey';
 
 export function registerCredentialHandlers() {
   ipcMain.handle('credentials:save', async (_event, settings: object) => {

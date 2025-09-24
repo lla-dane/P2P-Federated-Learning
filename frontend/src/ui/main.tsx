@@ -5,17 +5,19 @@ import App from './App.tsx';
 import { HashRouter } from 'react-router-dom';
 import { SettingsProvider } from './contexts/SettingsContext.tsx';
 import { TrainingProvider } from './contexts/TrainingContext.tsx';
-import { WalletProvider } from './contexts/WalletConnectContext.tsx';
+import { WalletConnectProvider } from './contexts/WalletConnectContext.tsx';
+import { WalletConnectClient } from './services/walletConnectClient.ts';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <SettingsProvider>
       <TrainingProvider>
-        <WalletProvider>
+        <WalletConnectProvider>
+          <WalletConnectClient />
           <HashRouter>
             <App />
           </HashRouter>
-        </WalletProvider>
+        </WalletConnectProvider>
       </TrainingProvider>
     </SettingsProvider>
   </StrictMode>

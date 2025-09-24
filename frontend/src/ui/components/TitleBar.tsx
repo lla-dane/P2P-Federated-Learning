@@ -3,7 +3,7 @@ import { BrainCircuit, Minus, Copy, X } from 'lucide-react';
 import {
   handleMinimize,
   handleMaximize,
-  handleClose, 
+  handleClose,
 } from '../utils/windowHelper';
 
 const TitleBar = () => {
