@@ -1,5 +1,7 @@
 from __future__ import annotations
+
 import typing
+
 from hiero_sdk_python.tokens.custom_fee import CustomFee
 from hiero_sdk_python.tokens.fee_assessment_method import FeeAssessmentMethod
 
@@ -46,7 +48,9 @@ class CustomFractionalFee(CustomFee):
         self.max_amount = max_amount
         return self
 
-    def set_assessment_method(self, assessment_method: FeeAssessmentMethod) -> "CustomFractionalFee":
+    def set_assessment_method(
+        self, assessment_method: FeeAssessmentMethod
+    ) -> "CustomFractionalFee":
         self.assessment_method = assessment_method
         return self
 
@@ -77,14 +81,18 @@ class CustomFractionalFee(CustomFee):
 
         fee_collector_account_id = None
         if proto_fee.HasField("fee_collector_account_id"):  # Changed from WhichOneof
-            fee_collector_account_id = AccountId._from_proto(proto_fee.fee_collector_account_id)
+            fee_collector_account_id = AccountId._from_proto(
+                proto_fee.fee_collector_account_id
+            )
 
         return cls(
             numerator=fractional_fee_proto.fractional_amount.numerator,
             denominator=fractional_fee_proto.fractional_amount.denominator,
             min_amount=fractional_fee_proto.minimum_amount,
             max_amount=fractional_fee_proto.maximum_amount,
-            assessment_method=FeeAssessmentMethod(fractional_fee_proto.net_of_transfers),
+            assessment_method=FeeAssessmentMethod(
+                fractional_fee_proto.net_of_transfers
+            ),
             fee_collector_account_id=fee_collector_account_id,
-            all_collectors_are_exempt=proto_fee.all_collectors_are_exempt
+            all_collectors_are_exempt=proto_fee.all_collectors_are_exempt,
         )

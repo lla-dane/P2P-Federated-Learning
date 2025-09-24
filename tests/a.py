@@ -1,24 +1,25 @@
-from hiero_sdk_python import (
-    Client,
-    AccountId,
-    PrivateKey,
-    Network,
-    Hbar,
-)
-
 import os
+
 from dotenv import load_dotenv
 
+from hiero_sdk_python import (
+    AccountId,
+    Client,
+    Hbar,
+    Network,
+    PrivateKey,
+)
+
 load_dotenv()
+from hiero_sdk_python.contract.contract_call_query import ContractCallQuery
 from hiero_sdk_python.contract.contract_execute_transaction import (
     ContractExecuteTransaction,
 )
-
-from hiero_sdk_python.contract.contract_call_query import ContractCallQuery
-
 from hiero_sdk_python.contract.contract_function_parameters import (
     ContractFunctionParameters,
 )
+
+
 # ====================================
 # 🔑 Setup your Hiero operator account
 # ====================================
@@ -32,6 +33,8 @@ def setup_client():
     client.set_operator(operator_id, operator_key)
 
     return client
+
+
 operator_id = AccountId.from_string(os.getenv("OPERATOR_ID"))
 operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY"))
 client = setup_client()
@@ -41,22 +44,26 @@ client = setup_client()
 # ====================================
 # 📜 Deployed contract ID
 # ====================================
-CONTRACT_ID = "0.0.6884614"   # replace with your deployed contract id
+CONTRACT_ID = "0.0.6884614"  # replace with your deployed contract id
 
 
 # 🟢 1. Create a task
-def create_task(model_hash: str, dataset_hash: str, num_chunks: int, total_reward_hbar: int):
+def create_task(
+    model_hash: str, dataset_hash: str, num_chunks: int, total_reward_hbar: int
+):
     tx = (
         ContractExecuteTransaction()
         .setContractId(CONTRACT_ID)
         .setGas(300_000)
-        .setPayableAmount(Hbar.fromTinybars(total_reward_hbar * 100_000_000))  # convert HBAR -> tinybars
+        .setPayableAmount(
+            Hbar.fromTinybars(total_reward_hbar * 100_000_000)
+        )  # convert HBAR -> tinybars
         .setFunction(
             "createTask",
             ContractFunctionParameters()
             .addString(model_hash)
             .addString(dataset_hash)
-            .addUint256(num_chunks)
+            .addUint256(num_chunks),
         )
     )
     resp = tx.execute(client)
@@ -72,9 +79,7 @@ def submit_weights(task_id: int, weights_hash: str):
         .setGas(300_000)
         .setFunction(
             "submitWeights",
-            ContractFunctionParameters()
-            .addUint256(task_id)
-            .addString(weights_hash)
+            ContractFunctionParameters().addUint256(task_id).addString(weights_hash),
         )
     )
     resp = tx.execute(client)
@@ -101,10 +106,7 @@ def cancel_task(task_id: int):
         ContractExecuteTransaction()
         .setContractId(CONTRACT_ID)
         .setGas(200_000)
-        .setFunction(
-            "cancelTask",
-            ContractFunctionParameters().addUint256(task_id)
-        )
+        .setFunction("cancelTask", ContractFunctionParameters().addUint256(task_id))
     )
     resp = tx.execute(client)
     receipt = resp.getReceipt(client)

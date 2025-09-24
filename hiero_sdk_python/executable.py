@@ -1,11 +1,13 @@
 import time
-from typing import Callable, Optional, Any, TYPE_CHECKING
-import grpc
 from abc import ABC, abstractmethod
 from enum import IntEnum
+from typing import TYPE_CHECKING, Any, Callable, Optional
+
+import grpc
 
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.exceptions import MaxAttemptsError
+
 if TYPE_CHECKING:
     from hiero_sdk_python.client.client import Client
 
@@ -58,12 +60,12 @@ class _ExecutionState(IntEnum):
 class _Executable(ABC):
     """
     Abstract base class for all executable operations (transactions and queries).
-    
+
     This class defines the core interface for operations that can be executed on the
     Hedera network. It provides implementations for configuration properties with
     validation (max_backoff, min_backoff, grpc_deadline) and includes
     the execution flow with retry logic.
-    
+
     Subclasses like Transaction and Query will extend this and implement the abstract methods
     to define specific behavior for different types of operations.
     """
@@ -91,10 +93,10 @@ class _Executable(ABC):
     def _map_status_error(self, response):
         """
         Maps a response status code to an appropriate error object.
-    
+
         Args:
             response: The response from the network
-        
+
         Returns:
             Exception: An error object representing the error status
         """
@@ -182,7 +184,17 @@ class _Executable(ABC):
             # Create a channel wrapper from the client's channel
             channel = node._get_channel()
 
-            logger.trace("Executing", "requestId", self._get_request_id(), "nodeAccountID", self.node_account_id, "attempt", attempt + 1, "maxAttempts", max_attempts)
+            logger.trace(
+                "Executing",
+                "requestId",
+                self._get_request_id(),
+                "nodeAccountID",
+                self.node_account_id,
+                "attempt",
+                attempt + 1,
+                "maxAttempts",
+                max_attempts,
+            )
 
             # Get the appropriate gRPC method to call
             method = self._get_method(channel)
@@ -202,14 +214,30 @@ class _Executable(ABC):
                 # Determine if we should retry based on the response
                 execution_state = self._should_retry(response)
 
-                logger.trace(f"{self.__class__.__name__} status received", "nodeAccountID", self.node_account_id, "network", client.network.network, "state", execution_state.name, "txID", tx_id)
+                logger.trace(
+                    f"{self.__class__.__name__} status received",
+                    "nodeAccountID",
+                    self.node_account_id,
+                    "network",
+                    client.network.network,
+                    "state",
+                    execution_state.name,
+                    "txID",
+                    tx_id,
+                )
 
                 # Handle the execution state
                 match execution_state:
                     case _ExecutionState.RETRY:
                         # If we should retry, wait for the backoff period and try again
                         err_persistant = status_error
-                        _delay_for_attempt(self._get_request_id(), current_backoff, attempt, logger, err_persistant)
+                        _delay_for_attempt(
+                            self._get_request_id(),
+                            current_backoff,
+                            attempt,
+                            logger,
+                            err_persistant,
+                        )
                         continue
                     case _ExecutionState.EXPIRED:
                         raise status_error
@@ -218,20 +246,42 @@ class _Executable(ABC):
                     case _ExecutionState.FINISHED:
                         # If the transaction completed successfully, map the response and return it
                         logger.trace(f"{self.__class__.__name__} finished execution")
-                        return self._map_response(response, self.node_account_id, proto_request)
+                        return self._map_response(
+                            response, self.node_account_id, proto_request
+                        )
             except grpc.RpcError as e:
                 # Save the error
                 err_persistant = f"Status: {e.code()}, Details: {e.details()}"
                 node = client.network._select_node()
-                logger.trace("Switched to a different node for the next attempt", "error", err_persistant, "from node", self.node_account_id, "to node", node._account_id)
+                logger.trace(
+                    "Switched to a different node for the next attempt",
+                    "error",
+                    err_persistant,
+                    "from node",
+                    self.node_account_id,
+                    "to node",
+                    node._account_id,
+                )
                 continue
 
-        logger.error("Exceeded maximum attempts for request", "requestId", self._get_request_id(), "last exception being", err_persistant)
+        logger.error(
+            "Exceeded maximum attempts for request",
+            "requestId",
+            self._get_request_id(),
+            "last exception being",
+            err_persistant,
+        )
 
-        raise MaxAttemptsError("Exceeded maximum attempts for request", self.node_account_id, err_persistant)
+        raise MaxAttemptsError(
+            "Exceeded maximum attempts for request",
+            self.node_account_id,
+            err_persistant,
+        )
 
 
-def _delay_for_attempt(request_id: str, current_backoff: int, attempt: int, logger, error):
+def _delay_for_attempt(
+    request_id: str, current_backoff: int, attempt: int, logger, error
+):
     """
     Delay for the specified backoff period before retrying.
 
@@ -239,8 +289,19 @@ def _delay_for_attempt(request_id: str, current_backoff: int, attempt: int, logg
         attempt (int): The current attempt number (0-based)
         current_backoff (int): The current backoff period in milliseconds
     """
-    logger.trace("Retrying request attempt", "requestId", request_id, "delay", current_backoff, "attempt", attempt, "error", error)
+    logger.trace(
+        "Retrying request attempt",
+        "requestId",
+        request_id,
+        "delay",
+        current_backoff,
+        "attempt",
+        attempt,
+        "error",
+        error,
+    )
     time.sleep(current_backoff * 0.001)
+
 
 def _execute_method(method, proto_request):
     """

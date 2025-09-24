@@ -5,38 +5,43 @@ hiero_sdk_python.tokens.token_id.py
 Defines TokenId, a frozen dataclass for representing Hedera token identifiers
 (shard, realm, num) with validation and protobuf conversion utilities.
 """
+
 from dataclasses import dataclass
 from typing import List, Optional
 
 from hiero_sdk_python.hapi.services import basic_types_pb2
 
+
 @dataclass(frozen=True, eq=True, init=True, repr=True)
 class TokenId:
     """Immutable token identifier (shard, realm, num) with validation and protobuf conversion."""
+
     shard: int
     realm: int
     num: int
 
     def __post_init__(self) -> None:
         if self.shard < 0:
-            raise ValueError('Shard must be >= 0')
+            raise ValueError("Shard must be >= 0")
         if self.realm < 0:
-            raise ValueError('Realm must be >= 0')
+            raise ValueError("Realm must be >= 0")
         if self.num < 0:
-            raise ValueError('Num must be >= 0')
+            raise ValueError("Num must be >= 0")
 
     @classmethod
-    def _from_proto(cls, token_id_proto: Optional[basic_types_pb2.TokenID] = None) -> "TokenId":
+    def _from_proto(
+        cls, token_id_proto: Optional[basic_types_pb2.TokenID] = None
+    ) -> "TokenId":
         """
         Creates a TokenId instance from a protobuf TokenID object.
         """
         if token_id_proto is None:
-            raise ValueError('TokenId is required')
+            raise ValueError("TokenId is required")
 
         return cls(
             shard=token_id_proto.shardNum,
             realm=token_id_proto.realmNum,
-            num=token_id_proto.tokenNum
+            num=token_id_proto.tokenNum,
         )
 
     def _to_proto(self) -> basic_types_pb2.TokenID:
@@ -65,11 +70,7 @@ class TokenId:
         if len(parts) != 3:
             raise ValueError("Invalid TokenId format. Expected 'shard.realm.num'")
 
-        return cls(
-            shard=int(parts[0]),
-            realm=int(parts[1]),
-            num=int(parts[2])
-        )
+        return cls(shard=int(parts[0]), realm=int(parts[1]), num=int(parts[2]))
 
     def __str__(self) -> str:
         """
@@ -78,5 +79,5 @@ class TokenId:
         return f"{self.shard}.{self.realm}.{self.num}"
 
     def __hash__(self) -> int:
-        """ Returns a hash of the TokenId instance. """
+        """Returns a hash of the TokenId instance."""
         return hash((self.shard, self.realm, self.num))

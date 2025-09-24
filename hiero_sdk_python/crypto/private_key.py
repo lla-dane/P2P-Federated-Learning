@@ -1,10 +1,12 @@
 """This module handles private key operations for ECDSA and Ed25519."""
+
 import warnings
 from typing import Optional, Union
 
 from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import ed25519, ec
+from cryptography.hazmat.primitives.asymmetric import ec, ed25519
 from cryptography.hazmat.primitives.asymmetric import utils as asym_utils
+
 from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.utils.crypto_utils import keccak256
 
@@ -19,8 +21,7 @@ class PrivateKey:
     """
 
     def __init__(
-        self,
-        private_key: Union[ec.EllipticCurvePrivateKey, ed25519.Ed25519PrivateKey]
+        self, private_key: Union[ec.EllipticCurvePrivateKey, ed25519.Ed25519PrivateKey]
     ) -> None:
         """
         Initializes a PrivateKey from a cryptography PrivateKey object.
@@ -68,7 +69,9 @@ class PrivateKey:
         try:
             key_bytes = bytes.fromhex(hex_str)
         except ValueError as exc:
-            raise ValueError(f"Invalid hex string for Ed25519 private key: {hex_str}") from exc
+            raise ValueError(
+                f"Invalid hex string for Ed25519 private key: {hex_str}"
+            ) from exc
         return cls.from_bytes_ed25519(key_bytes)
 
     @classmethod
@@ -81,7 +84,9 @@ class PrivateKey:
         try:
             key_bytes = bytes.fromhex(hex_str)
         except ValueError as exc:
-            raise ValueError(f"Invalid hex string for ECDSA private key: {hex_str}") from exc
+            raise ValueError(
+                f"Invalid hex string for ECDSA private key: {hex_str}"
+            ) from exc
         return cls.from_bytes_ecdsa(key_bytes)
 
     @classmethod
@@ -94,7 +99,9 @@ class PrivateKey:
         try:
             der_data = bytes.fromhex(hex_str)
         except ValueError as exc:
-            raise ValueError(f"Invalid hex string for DER private key: {hex_str}") from exc
+            raise ValueError(
+                f"Invalid hex string for DER private key: {hex_str}"
+            ) from exc
         return cls.from_der(der_data)
 
     #
@@ -150,7 +157,7 @@ class PrivateKey:
                 "If your data is 32 bytes, there's no guaranteed way to distinguish which type. "
                 "Consider using from_bytes_ed25519() or from_bytes_ecdsa() for clarity.",
                 UserWarning,
-                stacklevel=2
+                stacklevel=2,
             )
 
             ed_priv = cls._try_load_ed25519(key_bytes)
@@ -197,9 +204,9 @@ class PrivateKey:
             return None
 
     @staticmethod
-    def _try_load_der(key_bytes: bytes) -> Optional[Union[
-        ed25519.Ed25519PrivateKey, ec.EllipticCurvePrivateKey
-    ]]:
+    def _try_load_der(
+        key_bytes: bytes,
+    ) -> Optional[Union[ed25519.Ed25519PrivateKey, ec.EllipticCurvePrivateKey]]:
         """
         Attempt to parse the bytes as a DER-encoded private key.
         Auto-detect Ed25519 vs. ECDSA(secp256k1). Return None on failure.
@@ -233,7 +240,9 @@ class PrivateKey:
         try:
             return cls(ed25519.Ed25519PrivateKey.from_private_bytes(seed_32))
         except Exception as e:
-            raise ValueError(f"Could not load Ed25519 private key from seed: {e}") from e
+            raise ValueError(
+                f"Could not load Ed25519 private key from seed: {e}"
+            ) from e
 
     @classmethod
     def from_bytes_ecdsa(cls, scalar_32: bytes) -> "PrivateKey":
@@ -250,7 +259,9 @@ class PrivateKey:
             ec_priv = ec.derive_private_key(private_int, ec.SECP256K1())
             return cls(ec_priv)
         except Exception as e:
-            raise ValueError(f"Could not load ECDSA private key from scalar: {e}") from e
+            raise ValueError(
+                f"Could not load ECDSA private key from scalar: {e}"
+            ) from e
 
     @classmethod
     def from_der(cls, der_data: bytes) -> "PrivateKey":
@@ -297,7 +308,9 @@ class PrivateKey:
             return self._private_key.sign(data)
 
         data_hash = keccak256(data)
-        signature_der = self._private_key.sign(data_hash, ec.ECDSA(asym_utils.Prehashed(hashes.SHA256())))
+        signature_der = self._private_key.sign(
+            data_hash, ec.ECDSA(asym_utils.Prehashed(hashes.SHA256()))
+        )
         r, s = asym_utils.decode_dss_signature(signature_der)
         signature = r.to_bytes(32, "big") + s.to_bytes(32, "big")
         return signature
@@ -307,7 +320,6 @@ class PrivateKey:
         Derive the public key from this private key.
         """
         return PublicKey(self._private_key.public_key())
-
 
     #
     # ---------------------------------
@@ -344,8 +356,7 @@ class PrivateKey:
         if not isinstance(self._private_key, ec.EllipticCurvePrivateKey):
             raise TypeError("Not an ECDSA (secp256k1) key.")
 
-        return self._private_key.private_numbers()\
-                   .private_value.to_bytes(32, "big")
+        return self._private_key.private_numbers().private_value.to_bytes(32, "big")
 
     def to_bytes_der(self) -> bytes:
         """
@@ -356,14 +367,14 @@ class PrivateKey:
             return self._private_key.private_bytes(
                 encoding=serialization.Encoding.DER,
                 format=serialization.PrivateFormat.PKCS8,
-                encryption_algorithm=serialization.NoEncryption()
+                encryption_algorithm=serialization.NoEncryption(),
             )
         # ECDSA can be exported in Traditional OpenSSL or PKCS#8
         return self._private_key.private_bytes(
             encoding=serialization.Encoding.DER,
             format=serialization.PrivateFormat.TraditionalOpenSSL,
-            encryption_algorithm=serialization.NoEncryption()
-            )
+            encryption_algorithm=serialization.NoEncryption(),
+        )
 
     def to_string_raw(self) -> str:
         """
@@ -395,6 +406,7 @@ class PrivateKey:
         Matches old usage that calls to_string().
         """
         return self.to_string_raw()
+
     #
     # ---------------------------------
     # is_ed25519 / is_ecdsa checks

@@ -51,7 +51,7 @@ class AccountId:
             num=account_id_proto.accountNum,
         )
         if account_id_proto.alias:
-            alias = account_id_proto.alias[2:] # remove 0x prefix
+            alias = account_id_proto.alias[2:]  # remove 0x prefix
             result.alias_key = PublicKey.from_bytes(alias)
         return result
 

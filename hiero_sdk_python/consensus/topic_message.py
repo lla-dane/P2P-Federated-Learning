@@ -4,10 +4,10 @@ Hedera Consensus Service topic messages using the Hiero SDK.
 """
 
 from datetime import datetime
-from typing import Optional, List, Union, Dict
+from typing import Dict, List, Optional, Union
 
-from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.hapi.mirror import consensus_service_pb2 as mirror_proto
+from hiero_sdk_python.timestamp import Timestamp
 
 
 class TopicMessageChunk:
@@ -36,11 +36,11 @@ class TopicMessage:
     """
 
     def __init__(
-            self,
-            consensus_timestamp: datetime,
-            message_data: Dict[str, Union[bytes, int]],
-            chunks: List[TopicMessageChunk],
-            transaction_id: Optional[str] = None,
+        self,
+        consensus_timestamp: datetime,
+        message_data: Dict[str, Union[bytes, int]],
+        chunks: List[TopicMessageChunk],
+        transaction_id: Optional[str] = None,
     ) -> None:
         """
         Args:
@@ -73,7 +73,9 @@ class TopicMessage:
         sequence_number: Union[bytes, int] = chunk.sequence_number
 
         transaction_id: Optional[str] = None
-        if response.HasField("chunkInfo") and response.chunkInfo.HasField("initialTransactionID"):
+        if response.HasField("chunkInfo") and response.chunkInfo.HasField(
+            "initialTransactionID"
+        ):
             tx_id = response.chunkInfo.initialTransactionID
             transaction_id = (
                 f"{tx_id.shardNum}.{tx_id.realmNum}.{tx_id.accountNum}-"
@@ -88,7 +90,7 @@ class TopicMessage:
                 "sequence_number": sequence_number,
             },
             [chunk],
-            transaction_id
+            transaction_id,
         )
 
     @classmethod
@@ -110,9 +112,9 @@ class TopicMessage:
             total_size += len(r.message)
 
             if (
-                    transaction_id is None
-                    and r.HasField("chunkInfo")
-                    and r.chunkInfo.HasField("initialTransactionID")
+                transaction_id is None
+                and r.HasField("chunkInfo")
+                and r.chunkInfo.HasField("initialTransactionID")
             ):
                 tx_id = r.chunkInfo.initialTransactionID
                 transaction_id = (
@@ -142,17 +144,17 @@ class TopicMessage:
                 "sequence_number": sequence_number,
             },
             chunks,
-            transaction_id
+            transaction_id,
         )
 
     @classmethod
     def _from_proto(
-            cls,
-            response_or_responses: Union[
-                mirror_proto.ConsensusTopicResponse,
-                List[mirror_proto.ConsensusTopicResponse]
-            ],
-            chunking_enabled: bool = False
+        cls,
+        response_or_responses: Union[
+            mirror_proto.ConsensusTopicResponse,
+            List[mirror_proto.ConsensusTopicResponse],
+        ],
+        chunking_enabled: bool = False,
     ) -> "TopicMessage":
         """
         Creates a TopicMessage from either:
@@ -172,7 +174,11 @@ class TopicMessage:
             return cls.of_many(response_or_responses)
 
         response: mirror_proto.ConsensusTopicResponse = response_or_responses
-        if chunking_enabled and response.HasField("chunkInfo") and response.chunkInfo.total > 1:
+        if (
+            chunking_enabled
+            and response.HasField("chunkInfo")
+            and response.chunkInfo.total > 1
+        ):
             raise ValueError(
                 "Cannot handle multi-chunk in a single response."
                 " Pass all chunk responses in a list."

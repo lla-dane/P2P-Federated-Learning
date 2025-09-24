@@ -1,17 +1,19 @@
-from dataclasses import dataclass, field
 import datetime
+from dataclasses import dataclass, field
 from typing import Optional
+
 from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.file.file_id import FileId
-from hiero_sdk_python.timestamp import Timestamp
-from hiero_sdk_python.hapi.services.file_get_info_pb2 import FileGetInfoResponse
 from hiero_sdk_python.hapi.services.basic_types_pb2 import KeyList as KeyListProto
+from hiero_sdk_python.hapi.services.file_get_info_pb2 import FileGetInfoResponse
+from hiero_sdk_python.timestamp import Timestamp
+
 
 @dataclass
 class FileInfo:
     """
     Information about a file stored on the Hedera network.
-    
+
     Attributes:
         file_id (Optional[FileId]): The ID of the file
         size (Optional[int]): The size of the file in bytes
@@ -21,6 +23,7 @@ class FileInfo:
         file_memo (Optional[str]): The memo associated with the file
         ledger_id (Optional[bytes]): The ID of the ledger this file exists in
     """
+
     file_id: Optional[FileId] = None
     size: Optional[int] = None
     expiration_time: Optional[Timestamp] = None
@@ -30,7 +33,7 @@ class FileInfo:
     ledger_id: Optional[bytes] = None
 
     @classmethod
-    def _from_proto(cls, proto: FileGetInfoResponse.FileInfo) -> 'FileInfo':
+    def _from_proto(cls, proto: FileGetInfoResponse.FileInfo) -> "FileInfo":
         """
         Creates a FileInfo instance from its protobuf representation.
 
@@ -50,7 +53,7 @@ class FileInfo:
             is_deleted=proto.deleted,
             keys=[PublicKey._from_proto(key) for key in proto.keys.keys],
             file_memo=proto.memo,
-            ledger_id=proto.ledger_id
+            ledger_id=proto.ledger_id,
         )
 
     def _to_proto(self) -> FileGetInfoResponse.FileInfo:
@@ -63,11 +66,13 @@ class FileInfo:
         return FileGetInfoResponse.FileInfo(
             fileID=self.file_id._to_proto() if self.file_id else None,
             size=self.size,
-            expirationTime=self.expiration_time._to_protobuf() if self.expiration_time else None,
+            expirationTime=(
+                self.expiration_time._to_protobuf() if self.expiration_time else None
+            ),
             deleted=self.is_deleted,
             keys=KeyListProto(keys=[key._to_proto() for key in self.keys or []]),
             memo=self.file_memo,
-            ledger_id=self.ledger_id
+            ledger_id=self.ledger_id,
         )
 
     def __repr__(self) -> str:

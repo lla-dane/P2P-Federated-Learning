@@ -7,23 +7,24 @@ defining the execution method required to perform the deletion transaction.
 """
 
 from typing import Optional
-from hiero_sdk_python.transaction.transaction import Transaction
+
+from hiero_sdk_python.channels import _Channel
+from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services import (
+    basic_types_pb2,
     consensus_delete_topic_pb2,
     transaction_pb2,
-    basic_types_pb2
 )
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
-from hiero_sdk_python.channels import _Channel
-from hiero_sdk_python.executable import _Method
+from hiero_sdk_python.transaction.transaction import Transaction
 
 
 class TopicDeleteTransaction(Transaction):
     """
-        Represents a transaction to delete an existing topic in the Hedera
-        Consensus Service (HCS).
+    Represents a transaction to delete an existing topic in the Hedera
+    Consensus Service (HCS).
 
     """
 
@@ -32,10 +33,12 @@ class TopicDeleteTransaction(Transaction):
         self.topic_id: Optional[basic_types_pb2.TopicID] = topic_id
         self.transaction_fee: int = 10_000_000
 
-    def set_topic_id(self, topic_id: basic_types_pb2.TopicID ) -> "TopicDeleteTransaction":
+    def set_topic_id(
+        self, topic_id: basic_types_pb2.TopicID
+    ) -> "TopicDeleteTransaction":
         """
         Sets the topic ID for the transaction.
-        
+
         Args:
             topic_id: The topic ID to delete.
 
@@ -46,13 +49,15 @@ class TopicDeleteTransaction(Transaction):
         self.topic_id = topic_id
         return self
 
-    def _build_proto_body(self) -> consensus_delete_topic_pb2.ConsensusDeleteTopicTransactionBody:
+    def _build_proto_body(
+        self,
+    ) -> consensus_delete_topic_pb2.ConsensusDeleteTopicTransactionBody:
         """
         Returns the protobuf body for the topic delete transaction.
-        
+
         Returns:
             ConsensusDeleteTopicTransactionBody: The protobuf body for this transaction.
-            
+
         Raises:
             ValueError: If required fields are missing.
         """
@@ -95,7 +100,4 @@ class TopicDeleteTransaction(Transaction):
         Returns:
             _Method: The method to execute the transaction.
         """
-        return _Method(
-            transaction_func=channel.topic.deleteTopic,
-            query_func=None
-        )
+        return _Method(transaction_func=channel.topic.deleteTopic, query_func=None)

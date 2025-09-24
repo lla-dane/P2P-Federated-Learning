@@ -1,5 +1,6 @@
 import re
 
+
 class _ManagedNodeAddress:
     """
     Represents a managed node address with a host and port.
@@ -7,12 +8,12 @@ class _ManagedNodeAddress:
     """
 
     # Regular expression to parse a host:port string
-    HOST_PORT_PATTERN = re.compile(r'^(\S+):(\d+)$')
+    HOST_PORT_PATTERN = re.compile(r"^(\S+):(\d+)$")
 
     def __init__(self, address=None, port=None):
         """
         Initialize a new ManagedNodeAddress instance.
-        
+
         Args:
             address (str, optional): The host address.
             port (int, optional): The port number.
@@ -24,13 +25,13 @@ class _ManagedNodeAddress:
     def _from_string(cls, address_str):
         """
         Create a ManagedNodeAddress from a string in the format 'host:port'.
-        
+
         Args:
             address_str (str): A string in the format 'host:port'.
-            
+
         Returns:
             ManagedNodeAddress: A new ManagedNodeAddress instance.
-            
+
         Raises:
             ValueError: If the address string is not in the correct format.
         """
@@ -49,7 +50,7 @@ class _ManagedNodeAddress:
     def _is_transport_security(self):
         """
         Check if the address uses a secure port.
-        
+
         Returns:
             bool: True if the port is a secure port (50212 or 443), False otherwise.
         """
@@ -58,7 +59,7 @@ class _ManagedNodeAddress:
     def __str__(self):
         """
         Get a string representation of the ManagedNodeAddress.
-        
+
         Returns:
             str: The string representation in the format 'host:port'.
         """

@@ -1,16 +1,19 @@
-import grpc
 from typing import Optional
+
+import grpc
+
 from hiero_sdk_python.account.account_id import AccountId
-from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.address_book.node_address import NodeAddress
+from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.managed_node_address import _ManagedNodeAddress
+
 
 class _Node:
 
     def __init__(self, account_id: AccountId, address: str, address_book: NodeAddress):
         """
         Initialize a new Node instance.
-        
+
         Args:
             account_id (AccountId): The account ID of the node.
             address (str): The address of the node.
@@ -25,7 +28,7 @@ class _Node:
     def _close(self):
         """
         Close the channel for this node.
-        
+
         Returns:
             None
         """
@@ -36,7 +39,7 @@ class _Node:
     def _get_channel(self):
         """
         Get the channel for this node.
-        
+
         Returns:
             _Channel: The channel for this node.
         """

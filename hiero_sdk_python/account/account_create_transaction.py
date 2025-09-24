@@ -4,7 +4,11 @@ from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.executable import _Method
-from hiero_sdk_python.hapi.services import crypto_create_pb2, duration_pb2, transaction_pb2
+from hiero_sdk_python.hapi.services import (
+    crypto_create_pb2,
+    duration_pb2,
+    transaction_pb2,
+)
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
@@ -23,8 +27,8 @@ class AccountCreateTransaction(Transaction):
         initial_balance: Union[Hbar, int] = 0,
         receiver_signature_required: bool = False,
         auto_renew_period: Duration = Duration(7890000),  # 90 days in seconds
-        memo: str = ""
-     ) -> None:
+        memo: str = "",
+    ) -> None:
         """
         Initializes a new AccountCreateTransaction instance with default values or specified keyword arguments.
 
@@ -57,7 +61,9 @@ class AccountCreateTransaction(Transaction):
         self.key = key
         return self
 
-    def set_initial_balance(self, balance: Union[Hbar, int]) -> "AccountCreateTransaction":
+    def set_initial_balance(
+        self, balance: Union[Hbar, int]
+    ) -> "AccountCreateTransaction":
         """
         Sets the initial balance for the new account.
 
@@ -75,7 +81,9 @@ class AccountCreateTransaction(Transaction):
         self.initial_balance = balance
         return self
 
-    def set_receiver_signature_required(self, required: bool) -> "AccountCreateTransaction":
+    def set_receiver_signature_required(
+        self, required: bool
+    ) -> "AccountCreateTransaction":
         """
         Sets whether a receiver signature is required.
 
@@ -89,7 +97,9 @@ class AccountCreateTransaction(Transaction):
         self.receiver_signature_required = required
         return self
 
-    def set_auto_renew_period(self, seconds: Union[int,Duration]) -> "AccountCreateTransaction":
+    def set_auto_renew_period(
+        self, seconds: Union[int, Duration]
+    ) -> "AccountCreateTransaction":
         """
         Sets the auto-renew period in seconds.
 
@@ -147,8 +157,10 @@ class AccountCreateTransaction(Transaction):
             key=self.key._to_proto(),
             initialBalance=initial_balance_tinybars,
             receiverSigRequired=self.receiver_signature_required,
-            autoRenewPeriod=duration_pb2.Duration(seconds=self.auto_renew_period.seconds),
-            memo=self.account_memo
+            autoRenewPeriod=duration_pb2.Duration(
+                seconds=self.auto_renew_period.seconds
+            ),
+            memo=self.account_memo,
         )
 
     def build_transaction_body(self) -> transaction_pb2.TransactionBody:
@@ -159,7 +171,9 @@ class AccountCreateTransaction(Transaction):
             TransactionBody: The protobuf transaction body containing the account creation details.
         """
         crypto_create_body = self._build_proto_body()
-        transaction_body: transaction_pb2.TransactionBody = self.build_base_transaction_body()
+        transaction_body: transaction_pb2.TransactionBody = (
+            self.build_base_transaction_body()
+        )
         transaction_body.cryptoCreateAccount.CopyFrom(crypto_create_body)
         return transaction_body
 
@@ -183,7 +197,4 @@ class AccountCreateTransaction(Transaction):
         Returns:
             _Method: An instance of _Method containing the transaction and query functions.
         """
-        return _Method(
-            transaction_func=channel.crypto.createAccount,
-            query_func=None
-        )
+        return _Method(transaction_func=channel.crypto.createAccount, query_func=None)

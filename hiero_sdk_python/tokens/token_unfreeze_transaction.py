@@ -5,32 +5,32 @@ hiero_sdk_python.tokens.token_unfreeze_transaction.py
 Provides TokenUnfreezeTransaction, a subclass of Transaction for un-freezing a specified token
 for an account on the Hedera network using the Hedera Token Service (HTS) API.
 """
+
 from typing import Optional
-from hiero_sdk_python.transaction.transaction import Transaction
+
+from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.channels import _Channel
+from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services import token_unfreeze_account_pb2, transaction_pb2
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
-
-from hiero_sdk_python.channels import _Channel
-from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.tokens.token_id import TokenId
-from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.transaction.transaction import Transaction
+
 
 class TokenUnfreezeTransaction(Transaction):
     """
     Represents a token unfreeze transaction on the Hedera network.
-    
+
     This transaction unfreezes specified tokens for a given account.
-    
+
     Inherits from the base Transaction class and implements the required methods
     to build and execute a token unfreeze transaction.
     """
 
     def __init__(
-        self,
-        account_id: Optional[AccountId] = None,
-        token_id: Optional[TokenId] = None
+        self, account_id: Optional[AccountId] = None, token_id: Optional[TokenId] = None
     ) -> None:
         """
         Initializes a new TokenUnfreezeTransaction instance with default values.
@@ -77,13 +77,15 @@ class TokenUnfreezeTransaction(Transaction):
         if self._is_frozen:
             raise ValueError("Transaction is already frozen and cannot be modified.")
 
-    def _build_proto_body(self) -> token_unfreeze_account_pb2.TokenUnfreezeAccountTransactionBody:
+    def _build_proto_body(
+        self,
+    ) -> token_unfreeze_account_pb2.TokenUnfreezeAccountTransactionBody:
         """
         Returns the protobuf body for the token unfreeze transaction.
-        
+
         Returns:
             TokenUnfreezeAccountTransactionBody: The protobuf body for this transaction.
-            
+
         Raises:
             ValueError: If account ID or token ID is not set.
         """
@@ -94,8 +96,7 @@ class TokenUnfreezeTransaction(Transaction):
             raise ValueError("Missing required AccountID.")
 
         return token_unfreeze_account_pb2.TokenUnfreezeAccountTransactionBody(
-            account=self.account_id._to_proto(),
-            token=self.token_id._to_proto()
+            account=self.account_id._to_proto(), token=self.token_id._to_proto()
         )
 
     def build_transaction_body(self) -> transaction_pb2.TransactionBody:
@@ -106,7 +107,9 @@ class TokenUnfreezeTransaction(Transaction):
             TransactionBody: The protobuf transaction body containing the token unfreeze details.
         """
         token_unfreeze_body = self._build_proto_body()
-        transaction_body: transaction_pb2.TransactionBody = self.build_base_transaction_body()
+        transaction_body: transaction_pb2.TransactionBody = (
+            self.build_base_transaction_body()
+        )
         transaction_body.tokenUnfreeze.CopyFrom(token_unfreeze_body)
         return transaction_body
 
@@ -124,6 +127,5 @@ class TokenUnfreezeTransaction(Transaction):
 
     def _get_method(self, channel: _Channel) -> _Method:
         return _Method(
-            transaction_func=channel.token.unfreezeTokenAccount,
-            query_func=None
+            transaction_func=channel.token.unfreezeTokenAccount, query_func=None
         )

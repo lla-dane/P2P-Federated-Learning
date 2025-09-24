@@ -31,6 +31,8 @@ dependencies = [
     "eth-abi==5.2.0",
     "rlp>=4.0.0",
     "eth-keys==0.5.1",
+    "quart-trio",
+    "hypercorn[trio]",
 ]
 
 # Extras let you group optional deps
@@ -63,6 +65,7 @@ log_cli_level = "INFO"
 line-length = 150
 target-version = "py313"
 fix = true
+exclude = ["hiero_sdk_python", "a.py"]
 
 [tool.ruff.lint]
 select = [
@@ -70,7 +73,7 @@ select = [
     "W",    # pycodestyle warnings
     "F",    # pyflakes
 ]
-ignore = ["F821"]  # ignore 'undefined name' like `dataset`
+ignore = ["F821"]  # ignore 'undefined name' like `dataset`]
 
 [tool.ruff.format]
 quote-style = "double"

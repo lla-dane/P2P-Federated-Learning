@@ -7,13 +7,16 @@ Non-Fungible Token (NFT) identifier, including conversion to/from
 Protobuf and string serialization.
 Supports both snake_case and legacy camelCase keyword arguments for backward compatibility.
 """
+
 import re
 import warnings
 from dataclasses import dataclass, field
 from typing import Optional
+
+from hiero_sdk_python._deprecated import _DeprecatedAliasesMixin
 from hiero_sdk_python.hapi.services import basic_types_pb2
 from hiero_sdk_python.tokens.token_id import TokenId
-from hiero_sdk_python._deprecated import _DeprecatedAliasesMixin
+
 
 @dataclass(frozen=True, init=False)
 class NftId(_DeprecatedAliasesMixin):
@@ -27,16 +30,17 @@ class NftId(_DeprecatedAliasesMixin):
         tokenId       (legacy, deprecated)
         serialNumber  (legacy, deprecated)
     """
-    token_id: TokenId      = field()
-    serial_number: int     = field()
+
+    token_id: TokenId = field()
+    serial_number: int = field()
 
     def __init__(
         self,
-        token_id: Optional[TokenId]      = None,
-        serial_number: Optional[int]     = None,
+        token_id: Optional[TokenId] = None,
+        serial_number: Optional[int] = None,
         *,
-        tokenId:  Optional[TokenId]      = None,
-        serialNumber: Optional[int]      = None,
+        tokenId: Optional[TokenId] = None,
+        serialNumber: Optional[int] = None,
     ) -> None:
         # Map legacy tokenId -> token_id
         if token_id is None and tokenId is not None:
@@ -74,14 +78,20 @@ class NftId(_DeprecatedAliasesMixin):
         if self.token_id is None:
             raise TypeError("token_id is required")
         if not isinstance(self.token_id, TokenId):
-            raise TypeError(f"token_id must be of type TokenId, got {type(self.token_id)}")
+            raise TypeError(
+                f"token_id must be of type TokenId, got {type(self.token_id)}"
+            )
         if not isinstance(self.serial_number, int):
-            raise TypeError(f"serial_number must be an integer, got {type(self.serial_number)}")
+            raise TypeError(
+                f"serial_number must be an integer, got {type(self.serial_number)}"
+            )
         if self.serial_number < 0:
             raise ValueError("serial_number must be non-negative")
 
     @classmethod
-    def _from_proto(cls, nft_id_proto: Optional[basic_types_pb2.NftID] = None) -> "NftId":
+    def _from_proto(
+        cls, nft_id_proto: Optional[basic_types_pb2.NftID] = None
+    ) -> "NftId":
         """
         :param nft_id_proto: the proto NftID object
         :return: an NftId object

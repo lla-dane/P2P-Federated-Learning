@@ -8,7 +8,11 @@ from typing import Optional
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.executable import _Method
-from hiero_sdk_python.hapi.services import query_pb2, response_pb2, schedule_get_info_pb2
+from hiero_sdk_python.hapi.services import (
+    query_pb2,
+    response_pb2,
+    schedule_get_info_pb2,
+)
 from hiero_sdk_python.hapi.services.schedule_get_info_pb2 import ScheduleGetInfoResponse
 from hiero_sdk_python.query.query import Query
 from hiero_sdk_python.schedule.schedule_id import ScheduleId
@@ -89,7 +93,9 @@ class ScheduleInfoQuery(Query):
         Returns:
             _Method: The method wrapper containing the query function
         """
-        return _Method(transaction_func=None, query_func=channel.schedule.getScheduleInfo)
+        return _Method(
+            transaction_func=None, query_func=channel.schedule.getScheduleInfo
+        )
 
     def execute(self, client: Client) -> ScheduleInfo:
         """

@@ -1,13 +1,20 @@
 import hashlib
-
 from typing import TYPE_CHECKING
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.executable import _Executable, _ExecutionState
-from hiero_sdk_python.hapi.services import (basic_types_pb2, transaction_contents_pb2, transaction_pb2)
-from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import SchedulableTransactionBody
-from hiero_sdk_python.hapi.services.transaction_response_pb2 import (TransactionResponse as TransactionResponseProto)
+from hiero_sdk_python.hapi.services import (
+    basic_types_pb2,
+    transaction_contents_pb2,
+    transaction_pb2,
+)
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
+from hiero_sdk_python.hapi.services.transaction_response_pb2 import (
+    TransactionResponse as TransactionResponseProto,
+)
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.transaction.transaction_response import TransactionResponse
@@ -70,11 +77,7 @@ class Transaction(_Executable):
         """
         return self._to_proto()
 
-    def _map_response(
-            self,
-            response,
-            node_id,
-            proto_request):
+    def _map_response(self, response, node_id, proto_request):
         """
         Implements the Executable._map_response method to create a TransactionResponse.
 
@@ -119,7 +122,9 @@ class Transaction(_Executable):
             _ExecutionState: The execution state indicating what to do next
         """
         if not isinstance(response, TransactionResponseProto):
-            raise ValueError(f"Expected TransactionResponseProto but got {type(response)}")
+            raise ValueError(
+                f"Expected TransactionResponseProto but got {type(response)}"
+            )
 
         status = response.nodeTransactionPrecheckCode
 
@@ -180,13 +185,11 @@ class Transaction(_Executable):
 
             if private_key.is_ed25519():
                 sig_pair = basic_types_pb2.SignaturePair(
-                    pubKeyPrefix=public_key_bytes,
-                    ed25519=signature
+                    pubKeyPrefix=public_key_bytes, ed25519=signature
                 )
             else:
                 sig_pair = basic_types_pb2.SignaturePair(
-                    pubKeyPrefix=public_key_bytes,
-                    ECDSA_secp256k1=signature
+                    pubKeyPrefix=public_key_bytes, ECDSA_secp256k1=signature
                 )
 
             # We initialize the signature map for this body_bytes if it doesn't exist yet
@@ -212,15 +215,16 @@ class Transaction(_Executable):
 
         body_bytes = self._transaction_body_bytes.get(self.node_account_id)
         if body_bytes is None:
-            raise ValueError(f"No transaction body found for node {self.node_account_id}")
+            raise ValueError(
+                f"No transaction body found for node {self.node_account_id}"
+            )
 
         sig_map = self._signature_map.get(body_bytes)
         if sig_map is None:
             raise ValueError("No signature map found for the current transaction body")
 
         signed_transaction = transaction_contents_pb2.SignedTransaction(
-            bodyBytes=body_bytes,
-            sigMap=sig_map
+            bodyBytes=body_bytes, sigMap=sig_map
         )
 
         return transaction_pb2.Transaction(
@@ -251,7 +255,9 @@ class Transaction(_Executable):
         # This allows the transaction to be submitted to any node in the network
         for node in client.network.nodes:
             self.node_account_id = node._account_id
-            self._transaction_body_bytes[node._account_id] = self.build_transaction_body().SerializeToString()
+            self._transaction_body_bytes[node._account_id] = (
+                self.build_transaction_body().SerializeToString()
+            )
 
         # Set the node account id to the current node in the network
         self.node_account_id = client.network.current_node._account_id
@@ -305,7 +311,9 @@ class Transaction(_Executable):
         """
         public_key_bytes = public_key.to_bytes_raw()
 
-        sig_map = self._signature_map.get(self._transaction_body_bytes.get(self.node_account_id))
+        sig_map = self._signature_map.get(
+            self._transaction_body_bytes.get(self.node_account_id)
+        )
 
         if sig_map is None:
             return False
@@ -356,9 +364,9 @@ class Transaction(_Executable):
             ValueError: If required IDs are not set.
         """
         if self.transaction_id is None:
-                if self.operator_account_id is None:
-                    raise ValueError("Operator account ID is not set.")
-                self.transaction_id = TransactionId.generate(self.operator_account_id)
+            if self.operator_account_id is None:
+                raise ValueError("Operator account ID is not set.")
+            self.transaction_id = TransactionId.generate(self.operator_account_id)
 
         transaction_id_proto = self.transaction_id._to_proto()
 
@@ -369,9 +377,13 @@ class Transaction(_Executable):
         transaction_body.transactionID.CopyFrom(transaction_id_proto)
         transaction_body.nodeAccountID.CopyFrom(self.node_account_id._to_proto())
 
-        transaction_body.transactionFee = self.transaction_fee or self._default_transaction_fee
+        transaction_body.transactionFee = (
+            self.transaction_fee or self._default_transaction_fee
+        )
 
-        transaction_body.transactionValidDuration.seconds = self.transaction_valid_duration
+        transaction_body.transactionValidDuration.seconds = (
+            self.transaction_valid_duration
+        )
         transaction_body.generateRecord = self.generate_record
         transaction_body.memo = self.memo
 

@@ -7,23 +7,24 @@ from typing import List, Union
 
 import grpc
 
-from hiero_sdk_python.logger.logger import Logger, LogLevel
+from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.hapi.mirror import (
     consensus_service_pb2_grpc as mirror_consensus_grpc,
 )
-
+from hiero_sdk_python.logger.logger import Logger, LogLevel
 from hiero_sdk_python.transaction.transaction_id import TransactionId
-from hiero_sdk_python.account.account_id import AccountId
-from hiero_sdk_python.crypto.private_key import PrivateKey
 
 from .network import Network
 
-Operator = namedtuple('Operator', ['account_id', 'private_key'])
+Operator = namedtuple("Operator", ["account_id", "private_key"])
+
 
 class Client:
     """
     Client to interact with Hedera network services including mirror nodes and transactions.
     """
+
     def __init__(self, network: Network = None) -> None:
         """
         Initializes the Client with a given network configuration.
@@ -51,8 +52,12 @@ class Client:
         We now use self.network.get_mirror_address() for a configurable mirror address.
         """
         mirror_address = self.network.get_mirror_address()
-        self.mirror_channel = grpc.secure_channel(mirror_address, grpc.ssl_channel_credentials())
-        self.mirror_stub = mirror_consensus_grpc.ConsensusServiceStub(self.mirror_channel)
+        self.mirror_channel = grpc.secure_channel(
+            mirror_address, grpc.ssl_channel_credentials()
+        )
+        self.mirror_stub = mirror_consensus_grpc.ConsensusServiceStub(
+            self.mirror_channel
+        )
 
     def set_operator(self, account_id: AccountId, private_key: PrivateKey) -> None:
         """
@@ -62,14 +67,15 @@ class Client:
         self.operator_private_key = private_key
 
     @property
-    def operator(self) -> Union[Operator,None]:
+    def operator(self) -> Union[Operator, None]:
         """
         Returns an Operator namedtuple if both account ID and private key are set,
         otherwise None.
         """
         if self.operator_account_id and self.operator_private_key:
             return Operator(
-                account_id=self.operator_account_id, private_key=self.operator_private_key
+                account_id=self.operator_account_id,
+                private_key=self.operator_private_key,
             )
         return None
 
@@ -78,7 +84,9 @@ class Client:
         Generates a new transaction ID, requiring that the operator_account_id is set.
         """
         if self.operator_account_id is None:
-            raise ValueError("Operator account ID must be set to generate transaction ID.")
+            raise ValueError(
+                "Operator account ID must be set to generate transaction ID."
+            )
         return TransactionId.generate(self.operator_account_id)
 
     def get_node_account_ids(self) -> List[AccountId]:
@@ -86,7 +94,9 @@ class Client:
         Returns a list of node AccountIds that the client can use to send queries and transactions.
         """
         if self.network and self.network.nodes:
-            return [node._account_id for node in self.network.nodes]  # pylint: disable=W0212
+            return [
+                node._account_id for node in self.network.nodes
+            ]  # pylint: disable=W0212
         raise ValueError("No nodes available in the network configuration.")
 
     def close(self) -> None:

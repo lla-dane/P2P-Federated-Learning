@@ -74,7 +74,9 @@ class Query(_Executable):
         Raises:
             NotImplementedError: Always, since subclasses must implement this method
         """
-        raise NotImplementedError("_get_query_response must be implemented by subclasses.")
+        raise NotImplementedError(
+            "_get_query_response must be implemented by subclasses."
+        )
 
     def set_query_payment(self, payment_amount: Hbar) -> "Query":
         """
@@ -215,13 +217,11 @@ class Query(_Executable):
         # Create signature pair
         if payer_private_key.is_ed25519():
             sig_pair = basic_types_pb2.SignaturePair(
-                pubKeyPrefix=public_key_bytes,
-                ed25519=signature
-                )
+                pubKeyPrefix=public_key_bytes, ed25519=signature
+            )
         else:
             sig_pair = basic_types_pb2.SignaturePair(
-                pubKeyPrefix=public_key_bytes,
-                ECDSA_secp256k1=signature
+                pubKeyPrefix=public_key_bytes, ECDSA_secp256k1=signature
             )
 
         # Create signature map

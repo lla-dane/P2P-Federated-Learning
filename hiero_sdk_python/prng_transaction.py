@@ -16,7 +16,7 @@ class PrngTransaction(Transaction):
 
     This transaction can be used to request a pseudo-random number.
     You can specify the range of the pseudo-random number.
-    
+
     If no range is specified, the transaction will return
     a 48 byte unsigned pseudo-random number.
 
@@ -51,7 +51,7 @@ class PrngTransaction(Transaction):
 
         Returns:
             UtilPrngTransactionBody: The protobuf body for the prng transaction.
-        
+
         Raises:
             ValueError: If the range is negative.
         """
@@ -67,7 +67,7 @@ class PrngTransaction(Transaction):
         Returns:
             TransactionBody: The protobuf transaction body containing the
                 prng details.
-        
+
         Raises:
             ValueError: If the range is negative.
         """

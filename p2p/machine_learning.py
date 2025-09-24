@@ -1,9 +1,7 @@
 import os
 import sys
 
-
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
 
 
 import requests
@@ -67,7 +65,9 @@ class MLTrainer:
 
             # Expect the model to define 'weights' variable
             if "weights" not in local_vars:
-                raise ValueError("Model script must define 'weights' variable after execution")
+                raise ValueError(
+                    "Model script must define 'weights' variable after execution"
+                )
 
             print("Training completed. Returning weights.")
             return local_vars["weights"]

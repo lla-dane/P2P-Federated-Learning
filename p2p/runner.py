@@ -38,12 +38,12 @@ async def interactive_shell() -> None:
         )
     )
     pvt_key = await trio.to_thread.run_sync(
-        lambda: input(
-            "Enter the private key [default: pvt-key]: "
-        )
+        lambda: input("Enter the private key [default: private-key]: ")
     )
 
-    node = Node(role=role.strip() or "bootstrap", pvt_key=pvt_key.strip() or "private-key")
+    node = Node(
+        role=role.strip() or "bootstrap", pvt_key=pvt_key.strip() or "private-key"
+    )
     node.mesh.fed_mesh_id = FED_LEARNING_MESH
 
     logger.info(f"Running as {node.role.upper()} node")
@@ -75,7 +75,7 @@ async def interactive_shell() -> None:
                 nursery.start_soon(node.command_executor, nursery)
                 nursery.start_soon(node.connected_peer_monitoring_loop)
                 nursery.start_soon(node.periodic_mesh_summary_update)
-                nursery.start_soon(node.api_listener)
+                nursery.start_soon(node.api_server)
                 await trio.sleep(1)
 
                 # TODO: There will be a bootstrap node, of the whole fed-learn mesh

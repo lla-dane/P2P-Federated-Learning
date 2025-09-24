@@ -148,3 +148,13 @@ ssh -i "Desktop/libp2p/P2P-Federated-Learning/aws-keys/p2p-1.pem" ubuntu@ec2-65-
 # TRAINER
 ssh -i "Desktop/libp2p/P2P-Federated-Learning/aws-keys/p2p-1.pem" ubuntu@ec2-13-201-70-151.ap-south-1.compute.amazonaws.com
 ```
+
+# CLOUD API
+
+```bash
+curl -X POST http://localhost:9000/command \
+    -H "Content-Type: application/json" \
+    -d '["publish","fed-learn","hello"]'
+
+curl http://localhost:9000/status
+```

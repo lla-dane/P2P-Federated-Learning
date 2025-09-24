@@ -6,36 +6,37 @@ It handles constructing the object from a protobuf message, formatting
 optional fields, and providing a readable string representation of the
 topic state.
 """
+
 from datetime import datetime
 from typing import Optional
-from hiero_sdk_python.hapi.services.basic_types_pb2 import Key, AccountID
-from hiero_sdk_python.hapi.services.timestamp_pb2 import Timestamp
-from hiero_sdk_python.hapi.services import consensus_topic_info_pb2
+
 from hiero_sdk_python.Duration import Duration
+from hiero_sdk_python.hapi.services import consensus_topic_info_pb2
+from hiero_sdk_python.hapi.services.basic_types_pb2 import AccountID, Key
+from hiero_sdk_python.hapi.services.timestamp_pb2 import Timestamp
 from hiero_sdk_python.utils.key_format import format_key
 
 
 class TopicInfo:
     """
-        Represents consensus topic information on the Hedera network.
+    Represents consensus topic information on the Hedera network.
 
-        It wraps the `ConsensusTopicInfo` protobuf message, exposing attributes
-        such as memo, running hash, sequence number, expiration time, admin key,
-        submit key, auto-renewal configuration, and ledger ID.
+    It wraps the `ConsensusTopicInfo` protobuf message, exposing attributes
+    such as memo, running hash, sequence number, expiration time, admin key,
+    submit key, auto-renewal configuration, and ledger ID.
     """
 
     def __init__(
-            self,
-            memo: str,
-            running_hash: bytes,
-            sequence_number: int,
-            expiration_time: Optional[Timestamp],
-            admin_key: Optional[Key],
-            submit_key: Optional[Key],
-            auto_renew_period: Optional[Duration],
-            auto_renew_account: Optional[AccountID],
-            ledger_id: Optional[bytes],
-
+        self,
+        memo: str,
+        running_hash: bytes,
+        sequence_number: int,
+        expiration_time: Optional[Timestamp],
+        admin_key: Optional[Key],
+        submit_key: Optional[Key],
+        auto_renew_period: Optional[Duration],
+        auto_renew_account: Optional[AccountID],
+        ledger_id: Optional[bytes],
     ) -> None:
         """
         Initializes a new instance of the TopicInfo class.
@@ -62,8 +63,7 @@ class TopicInfo:
 
     @classmethod
     def _from_proto(
-            cls,
-            topic_info_proto: consensus_topic_info_pb2.ConsensusTopicInfo
+        cls, topic_info_proto: consensus_topic_info_pb2.ConsensusTopicInfo
     ) -> "TopicInfo":
         """
         Constructs a TopicInfo object from a protobuf ConsensusTopicInfo message.
@@ -80,23 +80,28 @@ class TopicInfo:
             sequence_number=topic_info_proto.sequenceNumber,
             expiration_time=(
                 topic_info_proto.expirationTime
-                if topic_info_proto.HasField("expirationTime") else None
+                if topic_info_proto.HasField("expirationTime")
+                else None
             ),
             admin_key=(
                 topic_info_proto.adminKey
-                if topic_info_proto.HasField("adminKey") else None
+                if topic_info_proto.HasField("adminKey")
+                else None
             ),
             submit_key=(
                 topic_info_proto.submitKey
-                if topic_info_proto.HasField("submitKey") else None
+                if topic_info_proto.HasField("submitKey")
+                else None
             ),
             auto_renew_period=(
                 Duration._from_proto(proto=topic_info_proto.autoRenewPeriod)
-                if topic_info_proto.HasField("autoRenewPeriod") else None
+                if topic_info_proto.HasField("autoRenewPeriod")
+                else None
             ),
             auto_renew_account=(
                 topic_info_proto.autoRenewAccount
-                if topic_info_proto.HasField("autoRenewAccount") else None
+                if topic_info_proto.HasField("autoRenewAccount")
+                else None
             ),
             ledger_id=getattr(topic_info_proto, "ledger_id", None),
             # fallback if the field doesn't exist

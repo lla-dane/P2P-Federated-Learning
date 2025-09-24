@@ -5,7 +5,8 @@ hiero_sdk_python.tokens.token_associate_transaction.py
 Provides TokenAssociateTransaction, a subclass of Transaction for associating
 tokens with accounts on the Hedera network using the Hedera Token Service (HTS) API.
 """
-from typing import Optional, List
+
+from typing import List, Optional
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
@@ -24,16 +25,16 @@ class TokenAssociateTransaction(Transaction):
 
     This transaction associates the specified tokens with an account,
     allowing the account to hold and transact with those tokens.
-    
+
     Inherits from the base Transaction class and implements the required methods
     to build and execute a token association transaction.
     """
 
     def __init__(
-            self,
-            account_id: Optional[AccountId] = None,
-            token_ids: Optional[List[TokenId]] = None
-        ) -> None:
+        self,
+        account_id: Optional[AccountId] = None,
+        token_ids: Optional[List[TokenId]] = None,
+    ) -> None:
         """
         Initializes a new TokenAssociateTransaction instance with optional keyword arguments.
 
@@ -47,7 +48,7 @@ class TokenAssociateTransaction(Transaction):
         self._default_transaction_fee: int = 500_000_000
 
     def set_account_id(self, account_id: AccountId) -> "TokenAssociateTransaction":
-        """        
+        """
         Sets the account ID for the token association transaction.
         Args:
             account_id (AccountId): The account ID to associate tokens with.
@@ -67,10 +68,10 @@ class TokenAssociateTransaction(Transaction):
     def _build_proto_body(self) -> token_associate_pb2.TokenAssociateTransactionBody:
         """
         Returns the protobuf body for the token associate transaction.
-        
+
         Returns:
             TokenAssociateTransactionBody: The protobuf body for this transaction.
-            
+
         Raises:
             ValueError: If account ID or token IDs are not set.
         """
@@ -79,7 +80,7 @@ class TokenAssociateTransaction(Transaction):
 
         return token_associate_pb2.TokenAssociateTransactionBody(
             account=self.account_id._to_proto(),
-            tokens=[token_id._to_proto() for token_id in self.token_ids]
+            tokens=[token_id._to_proto() for token_id in self.token_ids],
         )
 
     def build_transaction_body(self) -> transaction_pb2.TransactionBody:
@@ -90,7 +91,9 @@ class TokenAssociateTransaction(Transaction):
             TransactionBody: The protobuf transaction body containing the token association details.
         """
         token_associate_body = self._build_proto_body()
-        transaction_body: transaction_pb2.TransactionBody = self.build_base_transaction_body()
+        transaction_body: transaction_pb2.TransactionBody = (
+            self.build_base_transaction_body()
+        )
         transaction_body.tokenAssociate.CopyFrom(token_associate_body)
 
         return transaction_body
@@ -108,7 +111,4 @@ class TokenAssociateTransaction(Transaction):
         return schedulable_body
 
     def _get_method(self, channel: _Channel) -> _Method:
-        return _Method(
-            transaction_func=channel.token.associateTokens,
-            query_func=None
-        )
+        return _Method(transaction_func=channel.token.associateTokens, query_func=None)

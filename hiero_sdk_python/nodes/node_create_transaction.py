@@ -11,11 +11,11 @@ from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services.node_create_pb2 import NodeCreateTransactionBody
-from hiero_sdk_python.hapi.services.transaction_pb2 import TransactionBody
-from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
+from hiero_sdk_python.hapi.services.transaction_pb2 import TransactionBody
+from hiero_sdk_python.transaction.transaction import Transaction
 
 
 @dataclass
@@ -83,7 +83,9 @@ class NodeCreateTransaction(Transaction):
             node_create_params.grpc_web_proxy_endpoint
         )
 
-    def set_account_id(self, account_id: Optional[AccountId]) -> "NodeCreateTransaction":
+    def set_account_id(
+        self, account_id: Optional[AccountId]
+    ) -> "NodeCreateTransaction":
         """
         Sets the account id for this node create transaction.
 
@@ -281,7 +283,6 @@ class NodeCreateTransaction(Transaction):
         scheduled_body.nodeCreate.CopyFrom(node_create_body)
         return scheduled_body
 
-
     def _get_method(self, channel: _Channel) -> _Method:
         """
         Gets the method to execute the node create transaction.
@@ -295,4 +296,6 @@ class NodeCreateTransaction(Transaction):
         Returns:
             _Method: An object containing the transaction function to create a node.
         """
-        return _Method(transaction_func=channel.address_book.createNode, query_func=None)
+        return _Method(
+            transaction_func=channel.address_book.createNode, query_func=None
+        )
