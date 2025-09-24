@@ -2,7 +2,7 @@ import uuid
 
 import pytest
 
-from ipfs.mcache import Ipfs
+from akave.mcache import Ipfs
 from logs import setup_logging
 
 logger = setup_logging("mcache_test")

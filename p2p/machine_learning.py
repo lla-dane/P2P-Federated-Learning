@@ -1,73 +1,83 @@
 import os
 import sys
 
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from io import StringIO
 
 import pandas as pd
 
-from ipfs.mcache import Ipfs
+import requests
+
+from akave.mcache import Akave
 
 
 class MLTrainer:
     def __init__(self):
-        self.ipfs_client = Ipfs()
+        self.akave_client = Akave()
 
-    def assign_chunks_to_nodes(self, dataset_cid: str, nodes: list) -> dict:
+    def assign_chunks_to_nodes(self, dataset_url: str, nodes: list) -> dict:
         """
         Assigns dataset chunks to different trainer nodes.
-        """
-        print(f"Fetching dataset manifest from CID: {dataset_cid}")
-        manifest_content = self.ipfs_client.fetch_file(dataset_cid)
+        """ 
+        print(f"Fetching dataset manifest from URL: {dataset_url}")
+        manifest_content = requests.get(dataset_url, stream=True)
         if not manifest_content:
-            raise Exception("Failed to fetch dataset manifest from IPFS.")
+            raise Exception("Failed to fetch dataset manifest from dataset_url.")
 
-        chunk_cids = manifest_content.strip().split(",")
-        print(f"Found {len(chunk_cids)} dataset chunks.")
+        chunk_urls = manifest_content.strip().split(",")
+        print(f"Found {len(chunk_urls)} dataset chunks.")
 
         assignments = {node: [] for node in nodes}
-        for i, chunk_cid in enumerate(chunk_cids):
+        for i, chunk_url in enumerate(chunk_urls):
             node = nodes[i % len(nodes)]
-            assignments[node].append(chunk_cid)
+            assignments[node].append(chunk_url)
 
         return assignments
 
-    def train_on_chunk(self, chunk_cid: str, model_cid: str) -> any:
+    def train_on_chunk(self, chunk_url: str, model_url: str) -> any:
         """
-        Fetches a single dataset chunk and model code, then executes training and returns the model weights.
+        Download a dataset chunk and model from URLs, execute the model with exec(),
+        clean up temporary files, and return the model weights.
+        Assumes model.py reads data from ./dataset.
         """
+        dataset_file = "./dataset.csv"
+        model_file = "./model.py"
+
+        # Clean slate
+        if os.path.exists(dataset_file):
+            os.remove(dataset_file)
+
+        if os.path.exists(model_file):
+            os.remove(model_file)
+
         try:
-            # 1. Fetch data and code
-            print(f"Fetching chunk with CID: {chunk_cid}")
-            chunk_content = self.ipfs_client.fetch_file(chunk_cid)
-            if not chunk_content:
-                raise Exception(f"Failed to fetch chunk {chunk_cid}")
-            dataset_chunk_df = pd.read_csv(StringIO(chunk_content))
+            # Download dataset chunk and model
+            print("Downloading dataset chunk...")
+            self.akave_client.download_file_from_url(chunk_url, dataset_file)
+            print("Downloading model...")
+            self.akave_client.download_file_from_url(model_url, model_file)
 
-            print(f"Fetching model code from CID: {model_cid}")
-            model_code = self.ipfs_client.fetch_file(model_cid)
-            if not model_code:
-                raise Exception("Failed to fetch model code from IPFS.")
+            # Read model file and exec it
+            with open(model_file, "r") as f:
+                model_code = f.read()
 
-            # 2. Prepare for execution
-            exec_globals = {"pd": pd, "dataset": dataset_chunk_df}
+            local_vars = {}
+            print("Training model...")
+            exec(model_code, {}, local_vars)
 
-            # 3. Execute the model code
-            print("Executing training code on chunk...")
-            exec(model_code, exec_globals)
-            print("Training code execution finished for chunk.")
+            # Expect the model to define 'weights' variable
+            if "weights" not in local_vars:
+                raise ValueError("Model script must define 'weights' variable after execution")
 
-            # 4. Handle the results
-            if "model_weights" in exec_globals:
-                print("Returning model weights from training on chunk.")
-                return exec_globals["model_weights"]
-            else:
-                print(
-                    "No model weights were returned from the training script for the chunk."
-                )
-                return None
+            print("Training completed. Returning weights.")
+            return local_vars["weights"]
 
-        except Exception as e:
-            print(f"An error occurred during chunk training: {e}")
-            return None
+        finally:
+            # Clean up
+            print("Cleaning up temporary files...")
+            if os.path.exists(model_file):
+                os.remove(model_file)
+            if os.path.exists(dataset_file):
+                os.remove(dataset_file)

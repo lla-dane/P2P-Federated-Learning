@@ -17,7 +17,19 @@ dependencies = [
     "rich",
     "trio-util",
     "pandas",
-    "scikit-learn"
+    "scikit-learn",
+    "hedera-sdk-py",
+    "hiero-sdk-python",
+    "protobuf",
+    "grpcio-tools==1.62.1",
+    "grpcio==1.71.2",
+    "cryptography==44.0.0",
+    "python-dotenv==1.0.1",
+    "requests==2.32.3",
+    "pycryptodome==3.23.0",
+    "eth-abi==5.2.0",
+    "rlp>=4.0.0",
+    "eth-keys==0.5.1",
 ]
 
 # Extras let you group optional deps

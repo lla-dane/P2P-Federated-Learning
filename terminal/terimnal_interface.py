@@ -6,7 +6,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import trio
 from dotenv import load_dotenv, set_key
 
-from ipfs.mcache import Ipfs
+from akave.mcache import Akave
 from logs import setup_logging
 
 env_path = Path("..") / ".env"
@@ -17,28 +17,28 @@ logger = setup_logging("runner")
 
 COMMANDS = """
 Available commands:
-- upload <dataset|model> <file_path>        - Upload a dataset or model to IPFS
-- change <API_KEY|API_SECRET|JWT_TOKEN> <value> - Change IPFS credentials
-- train <dataset_ipfs_hash> <model_ipfs_hash> - Start a training round
+- upload <dataset|model> <file_path>        - Upload a dataset or model to Akave
+- change <API_KEY|API_SECRET|JWT_TOKEN> <value> - Change Akave credentials
+- train <dataset_akave_hash> <model_akave_hash> - Start a training round
 - help                      - List the existing commands
 - exit                      - Shut down
 """
 
 
-def upload_dataset_to_ipfs(file_path: str) -> str:
+def upload_dataset_to_akave(file_path: str) -> str:
     """
     Split a dataset into <50KB chunks without breaking rows,
-    upload each to IPFS, then upload a manifest of chunk CIDs.
+    upload each to Akave, then upload a manifest of chunk CIDs.
     Returns the manifest CID.
     """
-    client = Ipfs()
-    chunk_hashes = []
+    client = Akave()
+    chunk_urls = []
 
     with open(file_path, "r", encoding="utf-8") as f:
         i = 0
         current_chunk = []
         current_size = 0
-        CHUNK_SIZE = 50 * 1024  # 50KB
+        CHUNK_SIZE = 5 * 1024  # 5KB
 
         # read the first line separately (header)
         header = f.readline()
@@ -50,11 +50,12 @@ def upload_dataset_to_ipfs(file_path: str) -> str:
             # if adding this line exceeds chunk size → flush current chunk
             if current_size + line_size > CHUNK_SIZE and current_chunk:
                 # prepend header to this chunk before upload
-                res = client.upload_string(header + "".join(current_chunk))
+                chunk_content = header + "".join(current_chunk)
+                res = client.upload_string(chunk_content)
                 if not res:
-                    raise Exception("Failed to upload chunk of dataset to IPFS")
-                chunk_hash = client.cids[-1]
-                chunk_hashes.append(chunk_hash)
+                    raise Exception("Failed to upload chunk of dataset to Akave")
+                chunk_url = client.urls[-1]
+                chunk_urls.append(chunk_url)
                 i += 1
                 current_chunk = []
                 current_size = 0
@@ -64,20 +65,21 @@ def upload_dataset_to_ipfs(file_path: str) -> str:
 
         # flush last chunk
         if current_chunk:
-            res = client.upload_string(header + "".join(current_chunk))
+            chunk_content = header + "".join(current_chunk)
+            res = client.upload_string(chunk_content)
             if not res:
-                raise Exception("Failed to upload chunk of dataset to IPFS")
-            chunk_hash = client.cids[-1]
-            chunk_hashes.append(chunk_hash)
+                raise Exception("Failed to upload chunk of dataset to Akave")
+            chunk_url = client.urls[-1]
+            chunk_urls.append(chunk_url)
             i += 1
 
-    res = client.upload_string(",".join(chunk_hashes))
+    res = client.upload_string(",".join(chunk_urls))
     if not res:
-        raise Exception("Failed to upload chunk list of dataset to IPFS")
-    manifest_hash = client.cids[-1]
+        raise Exception("Failed to upload chunk list of dataset to Akave")
+    manifest_urls = client.urls[-1]
 
     logger.info(
-        f"Dataset uploaded to IPFS in {i} chunks, dataset hash: {manifest_hash}"
+        f"Dataset uploaded to Akave in {i} chunks, dataset hash: {manifest_urls}"
     )
 
 
@@ -144,20 +146,20 @@ async def interactive_shell() -> None:
                     if not os.path.isfile(file_path):
                         logger.error(f"File {file_path} does not exist.")
                         continue
-                    upload_dataset_to_ipfs(file_path)
+                    upload_dataset_to_akave(file_path)
 
                 if parts[1] == "model":
                     model = parts[2]
                     if not os.path.isfile(model):
                         logger.error(f"File {model} does not exist.")
                         continue
-                    ipfs_client = Ipfs()
-                    success = ipfs_client.upload_file(model)
+                    akave_client = Akave()
+                    success = akave_client.upload_file(model)
                     if success:
-                        file_hash = ipfs_client.cids[-1]
-                        logger.info(f"Code uploaded to IPFS with hash: {file_hash}")
+                        file_url = akave_client.urls[-1]
+                        logger.info(f"Code uploaded to Akave with hash: {file_url}")
                     else:
-                        logger.error("Failed to upload model to IPFS.")
+                        logger.error("Failed to upload model to Akave.")
 
             if cmd == "train" and len(parts) == 3:
                 dataset = parts[1]
