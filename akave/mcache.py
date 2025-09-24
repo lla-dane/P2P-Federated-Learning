@@ -18,8 +18,6 @@ ACCESS_TOKEN = os.getenv("JWT_TOKEN")
 
 logger = setup_logging("ipfs-client")
 
-
-
 class Akave:
     """The Akave client instance"""
 
