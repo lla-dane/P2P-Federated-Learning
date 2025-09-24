@@ -157,4 +157,6 @@ curl -X POST http://localhost:9000/command \
     -d '["publish","fed-learn","hello"]'
 
 curl http://localhost:9000/status
+curl "http://localhost:9000/command?cmd=bootmesh"
+
 ```
