@@ -81,7 +81,7 @@ class TokenAssociateTransaction(Transaction):
             account=self.account_id._to_proto(),
             tokens=[token_id._to_proto() for token_id in self.token_ids]
         )
-        
+
     def build_transaction_body(self) -> transaction_pb2.TransactionBody:
         """
         Builds and returns the protobuf transaction body for token association.
@@ -94,7 +94,7 @@ class TokenAssociateTransaction(Transaction):
         transaction_body.tokenAssociate.CopyFrom(token_associate_body)
 
         return transaction_body
-        
+
     def build_scheduled_body(self) -> SchedulableTransactionBody:
         """
         Builds the scheduled transaction body for this token associate transaction.

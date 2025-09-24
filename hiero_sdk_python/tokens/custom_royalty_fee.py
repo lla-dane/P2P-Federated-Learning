@@ -58,24 +58,24 @@ class CustomRoyaltyFee(CustomFee):
                 fallback_fee=fallback_fee_proto,
             ),
         )
-    
+
     @classmethod
     def _from_proto(cls, proto_fee) -> "CustomRoyaltyFee":
         """Create CustomRoyaltyFee from protobuf CustomFee message."""
         from hiero_sdk_python.account.account_id import AccountId
         from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
-        
+
         royalty_fee_proto = proto_fee.royalty_fee
-        
+
         fallback_fee = None
         if royalty_fee_proto.HasField("fallback_fee"):
             # Use the existing _from_fixed_fee_proto method
             fallback_fee = CustomFixedFee._from_fixed_fee_proto(royalty_fee_proto.fallback_fee)
-        
+
         fee_collector_account_id = None
         if proto_fee.HasField("fee_collector_account_id"):  # Changed from WhichOneof
             fee_collector_account_id = AccountId._from_proto(proto_fee.fee_collector_account_id)
-        
+
         return cls(
             numerator=royalty_fee_proto.exchange_value_fraction.numerator,
             denominator=royalty_fee_proto.exchange_value_fraction.denominator,

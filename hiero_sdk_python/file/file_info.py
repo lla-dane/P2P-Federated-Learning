@@ -42,7 +42,7 @@ class FileInfo:
         """
         if proto is None:
             raise ValueError("File info proto is None")
-        
+
         return cls(
             file_id=FileId._from_proto(proto.fileID),
             size=proto.size,
@@ -69,7 +69,7 @@ class FileInfo:
             memo=self.file_memo,
             ledger_id=self.ledger_id
         )
-        
+
     def __repr__(self) -> str:
         """
         Returns a string representation of the FileInfo object.

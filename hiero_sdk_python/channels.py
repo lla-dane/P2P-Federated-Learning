@@ -53,7 +53,7 @@ class _Channel:
         if self._crypto is None and self.channel is not None:
             self._crypto = crypto_service_pb2_grpc.CryptoServiceStub(self.channel)
         return self._crypto
-    
+
     @property
     def file(self):
         """
@@ -70,7 +70,7 @@ class _Channel:
         if self._file is None and self.channel is not None:
             self._file = file_service_pb2_grpc.FileServiceStub(self.channel)
         return self._file
-    
+
     @property
     def smart_contract(self):
         """
@@ -88,7 +88,7 @@ class _Channel:
         if self._smart_contract is None and self.channel is not None:
             self._smart_contract = smart_contract_service_pb2_grpc.SmartContractServiceStub(self.channel)
         return self._smart_contract
-    
+
     @property
     def topic(self):
         """
@@ -107,7 +107,7 @@ class _Channel:
         if self._topic is None and self.channel is not None:
             self._topic = consensus_service_pb2_grpc.ConsensusServiceStub(self.channel)
         return self._topic
-    
+
     @property
     def freeze(self):
         """
@@ -123,7 +123,7 @@ class _Channel:
         if self._freeze is None and self.channel is not None:
             self._freeze = freeze_service_pb2_grpc.FreezeServiceStub(self.channel)
         return self._freeze
-    
+
     @property
     def network(self):
         """
@@ -140,7 +140,7 @@ class _Channel:
         if self._network is None and self.channel is not None:
             self._network = network_service_pb2_grpc.NetworkServiceStub(self.channel)
         return self._network
-    
+
     @property
     def token(self):
         """
@@ -158,7 +158,7 @@ class _Channel:
         if self._token is None and self.channel is not None:
             self._token = token_service_pb2_grpc.TokenServiceStub(self.channel)
         return self._token
-    
+
     @property
     def schedule(self):
         """
@@ -175,7 +175,7 @@ class _Channel:
         if self._schedule is None and self.channel is not None:
             self._schedule = schedule_service_pb2_grpc.ScheduleServiceStub(self.channel)
         return self._schedule
-    
+
     @property
     def util(self):
         """
@@ -191,7 +191,7 @@ class _Channel:
         if self._util is None and self.channel is not None:
             self._util = util_service_pb2_grpc.UtilServiceStub(self.channel)
         return self._util
-    
+
     @property
     def address_book(self):
         """

@@ -127,7 +127,7 @@ class CryptoGetAccountBalanceQuery(Query):
             The crypto get account balance response object
         """
         return response.cryptogetAccountBalance
-    
+
     def _is_payment_required(self):
         """
         Account balance query does not require payment.

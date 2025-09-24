@@ -1,13 +1,12 @@
 from typing import Optional, Any
 from hiero_sdk_python.query.query import Query
-from hiero_sdk_python.hapi.services import query_pb2, consensus_get_topic_info_pb2, response_pb2
+from hiero_sdk_python.hapi.services import query_pb2, consensus_get_topic_info_pb2
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.consensus.topic_id import TopicId
 from hiero_sdk_python.consensus.topic_info import TopicInfo
 from hiero_sdk_python.executable import _Method, _ExecutionState
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.response_code import ResponseCode
-from hiero_sdk_python.exceptions import PrecheckError
 import traceback
 
 class TopicInfoQuery(Query):
@@ -28,7 +27,7 @@ class TopicInfoQuery(Query):
         """
         super().__init__()
         self.topic_id: Optional[TopicId] = topic_id
-        self._frozen: bool = False 
+        self._frozen: bool = False
 
     def _require_not_frozen(self) -> None:
         """
@@ -95,9 +94,9 @@ class TopicInfoQuery(Query):
 
             query = query_pb2.Query()
             query.consensusGetTopicInfo.CopyFrom(topic_info_query)
-                  
+
             return query
-        
+
         except Exception as e:
             print(f"Exception in _make_request: {e}")
             traceback.print_exc()
@@ -141,7 +140,7 @@ class TopicInfoQuery(Query):
             ResponseCode.BUSY,
             ResponseCode.PLATFORM_NOT_ACTIVE
         }
-        
+
         if status == ResponseCode.OK:
             return _ExecutionState.FINISHED
         elif status in retryable_statuses:
@@ -171,7 +170,7 @@ class TopicInfoQuery(Query):
         """
         self._before_execute(client)
         response = self._execute(client)
-        
+
         return TopicInfo._from_proto(response.consensusGetTopicInfo.topicInfo)
 
     def _get_query_response(self, response: Any) -> consensus_get_topic_info_pb2.ConsensusGetTopicInfoResponse:

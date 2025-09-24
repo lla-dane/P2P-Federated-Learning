@@ -91,7 +91,7 @@ class TokenGrantKycTransaction(Transaction):
             token=self.token_id._to_proto(),
             account=self.account_id._to_proto()
         )
-        
+
     def build_transaction_body(self) -> transaction_pb2.TransactionBody:
         """
         Builds the transaction body for this token grant KYC transaction.
@@ -103,7 +103,7 @@ class TokenGrantKycTransaction(Transaction):
         transaction_body: transaction_pb2.TransactionBody = self.build_base_transaction_body()
         transaction_body.tokenGrantKyc.CopyFrom(token_grant_kyc_body)
         return transaction_body
-        
+
     def build_scheduled_body(self) -> SchedulableTransactionBody:
         """
         Builds the scheduled transaction body for this token grant KYC transaction.

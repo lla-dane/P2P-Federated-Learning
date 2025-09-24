@@ -171,7 +171,7 @@ class FileAppendTransaction(Transaction):
         # Calculate the current chunk's content
         if self.file_id is None:
             raise ValueError("Missing required FileID")
-            
+
         if self.contents is None:
             chunk_contents = b''
         else:

@@ -7,7 +7,6 @@ non-fungible tokens on the Hedera network via the Hedera Token Service (HTS) API
 """
 from typing import List, Optional, Union
 from hiero_sdk_python.transaction.transaction import Transaction
-from hiero_sdk_python.hapi.services.token_mint_pb2 import TokenMintTransactionBody
 
 from hiero_sdk_python.hapi.services import token_mint_pb2, transaction_pb2
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
@@ -140,7 +139,7 @@ class TokenMintTransaction(Transaction):
             "Specify either amount for fungible tokens or metadata for NFTs."
         )
 
- 
+
     def build_transaction_body(self) -> transaction_pb2.TransactionBody:
         """
         Builds and returns the protobuf transaction body for token minting.
@@ -152,7 +151,7 @@ class TokenMintTransaction(Transaction):
         transaction_body = self.build_base_transaction_body()
         transaction_body.tokenMint.CopyFrom(token_mint_body)
         return transaction_body
-        
+
     def build_scheduled_body(self) -> SchedulableTransactionBody:
         """
         Builds the scheduled transaction body for this token mint transaction.

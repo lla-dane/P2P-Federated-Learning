@@ -57,7 +57,7 @@ class PrngTransaction(Transaction):
         """
         if self.range is not None and self.range < 0:
             raise ValueError("Range can't be negative.")
-            
+
         return UtilPrngTransactionBody(range=self.range)
 
     def build_transaction_body(self):

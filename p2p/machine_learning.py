@@ -4,9 +4,7 @@ import sys
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from io import StringIO
 
-import pandas as pd
 
 import requests
 
@@ -20,7 +18,7 @@ class MLTrainer:
     def assign_chunks_to_nodes(self, dataset_url: str, nodes: list) -> dict:
         """
         Assigns dataset chunks to different trainer nodes.
-        """ 
+        """
         print(f"Fetching dataset manifest from URL: {dataset_url}")
         manifest_content = requests.get(dataset_url, stream=True)
         if not manifest_content:

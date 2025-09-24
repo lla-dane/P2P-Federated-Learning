@@ -26,7 +26,7 @@ class AccountInfoQuery(Query):
         """
         super().__init__()
         self.account_id : Optional[AccountId] = account_id
-        
+
     def set_account_id(self, account_id: AccountId):
         """
         Sets the ID of the account to query. 
@@ -39,7 +39,7 @@ class AccountInfoQuery(Query):
         """
         self.account_id = account_id
         return self
-    
+
     def _make_request(self):
         """
         Constructs the protobuf request for the query.
@@ -66,12 +66,12 @@ class AccountInfoQuery(Query):
 
             query = query_pb2.Query()
             query.cryptoGetInfo.CopyFrom(crypto_info_query)
-                  
+
             return query
         except Exception as e:
             print(f"Exception in _make_request: {e}")
             raise
-        
+
     def _get_method(self, channel: _Channel) -> _Method:
         """
         Returns the appropriate gRPC method for the account info query.

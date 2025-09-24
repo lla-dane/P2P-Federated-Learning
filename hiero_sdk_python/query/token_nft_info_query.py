@@ -1,4 +1,4 @@
-from typing import Optional, Any
+from typing import Optional
 from hiero_sdk_python.query.query import Query
 from hiero_sdk_python.hapi.services import query_pb2, response_pb2, token_get_nft_info_pb2
 from hiero_sdk_python.executable import _Method
@@ -63,7 +63,7 @@ class TokenNftInfoQuery(Query):
 
             query = query_pb2.Query()
             query.tokenGetNftInfo.CopyFrom(nft_info_query)
-                  
+
             return query
         except Exception as e:
             print(f"Exception in _make_request: {e}")

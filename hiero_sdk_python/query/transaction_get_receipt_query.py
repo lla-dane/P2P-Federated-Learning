@@ -144,7 +144,7 @@ class TransactionGetReceiptQuery(Query):
             _ExecutionState: The execution state indicating what to do next
         """
         status = response.transactionGetReceipt.header.nodeTransactionPrecheckCode
-        
+
         retryable_statuses = {
             ResponseCode.UNKNOWN,
             ResponseCode.BUSY,
@@ -152,21 +152,21 @@ class TransactionGetReceiptQuery(Query):
             ResponseCode.RECORD_NOT_FOUND,
             ResponseCode.PLATFORM_NOT_ACTIVE
         }
-        
+
         if status == ResponseCode.OK:
             pass
         elif status in retryable_statuses or status == ResponseCode.PLATFORM_TRANSACTION_NOT_CREATED:
             return _ExecutionState.RETRY
         else:
             return _ExecutionState.ERROR
-    
+
         status = response.transactionGetReceipt.receipt.status
-        
+
         if status in retryable_statuses or status == ResponseCode.OK:
             return _ExecutionState.RETRY
         else:
             return _ExecutionState.FINISHED
-        
+
     def _map_status_error(self, response: Any) -> Union[PrecheckError,ReceiptStatusError]:
         """
         Maps a response status code to an appropriate error object.
@@ -188,14 +188,14 @@ class TransactionGetReceiptQuery(Query):
             ResponseCode.UNKNOWN,
             ResponseCode.OK
         }
-        
+
         if status not in retryable_statuses:
             return PrecheckError(status)
-        
+
         status = response.transactionGetReceipt.receipt.status
-        
+
         return ReceiptStatusError(status, self.transaction_id, TransactionReceipt._from_proto(response.transactionGetReceipt.receipt, self.transaction_id))
-        
+
     def execute(self, client: Client) -> TransactionReceipt:
         """
         Executes the transaction receipt query.

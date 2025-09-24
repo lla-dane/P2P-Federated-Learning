@@ -1,9 +1,6 @@
-import hashlib
-import math
-from typing import Optional, Tuple
+from typing import Tuple
 
 from cryptography.hazmat.primitives.asymmetric import ec
-from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 
 try:
@@ -32,7 +29,7 @@ def compress_point_unchecked(x: int, y: int) -> bytes:
     Compress an (x, y) for secp256k1 (or similar). 33 bytes: [0x02 or 0x03] + x(32).
     sign bit of y => 0x03 if odd, 0x02 if even
     """
-    prefix = 0x02 | (y & 1) 
+    prefix = 0x02 | (y & 1)
     return bytes([prefix]) + x.to_bytes(32, "big")
 
 

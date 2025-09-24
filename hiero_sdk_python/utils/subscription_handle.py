@@ -7,7 +7,7 @@ class SubscriptionHandle:
     """
     def __init__(self):
         self._cancelled = threading.Event()
-        self._thread = None 
+        self._thread = None
 
     def cancel(self):
         """

@@ -17,7 +17,6 @@ from hiero_sdk_python.hapi.services import (
     duration_pb2,
     query_header_pb2,
     query_pb2,
-    transaction_pb2,
     transaction_contents_pb2,
     transaction_pb2,
 )

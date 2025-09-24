@@ -19,7 +19,6 @@ from hiero_sdk_python.schedule.schedule_id import ScheduleId
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 
-from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.hapi.services import transaction_receipt_pb2, response_code_pb2
 from hiero_sdk_python._deprecated import _DeprecatedAliasesMixin
 from hiero_sdk_python.account.account_id import AccountId

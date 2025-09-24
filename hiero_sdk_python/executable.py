@@ -1,4 +1,3 @@
-from os import error
 import time
 from typing import Callable, Optional, Any, TYPE_CHECKING
 import grpc
@@ -138,7 +137,7 @@ class _Executable(ABC):
             The appropriate response object for the operation
         """
         raise NotImplementedError("_map_response must be implemented by subclasses")
-    
+
     def _get_request_id(self):
         """
         Format the request ID for the logger.
@@ -166,23 +165,23 @@ class _Executable(ABC):
         max_attempts = client.max_attempts
         current_backoff = self._min_backoff
         err_persistant = None
-        
+
         tx_id = self.transaction_id if hasattr(self, "transaction_id") else None
-        
+
         logger = client.logger
-        
+
         for attempt in range(max_attempts):
             # Exponential backoff for retries
             if attempt > 0 and current_backoff < self._max_backoff:
                 current_backoff *= 2
-                        
+
             # Set the node account id to the client's node account id
             node = client.network.current_node
             self.node_account_id = node._account_id
-  
+
             # Create a channel wrapper from the client's channel
             channel = node._get_channel()
-            
+
             logger.trace("Executing", "requestId", self._get_request_id(), "nodeAccountID", self.node_account_id, "attempt", attempt + 1, "maxAttempts", max_attempts)
 
             # Get the appropriate gRPC method to call
@@ -193,18 +192,18 @@ class _Executable(ABC):
 
             try:
                 logger.trace("Executing gRPC call", "requestId", self._get_request_id())
-                
+
                 # Execute the transaction method with the protobuf request
                 response = _execute_method(method, proto_request)
-                
+
                 # Map the response to an error
                 status_error = self._map_status_error(response)
-                
+
                 # Determine if we should retry based on the response
                 execution_state = self._should_retry(response)
-                
+
                 logger.trace(f"{self.__class__.__name__} status received", "nodeAccountID", self.node_account_id, "network", client.network.network, "state", execution_state.name, "txID", tx_id)
-                
+
                 # Handle the execution state
                 match execution_state:
                     case _ExecutionState.RETRY:
@@ -226,9 +225,9 @@ class _Executable(ABC):
                 node = client.network._select_node()
                 logger.trace("Switched to a different node for the next attempt", "error", err_persistant, "from node", self.node_account_id, "to node", node._account_id)
                 continue
-            
+
         logger.error("Exceeded maximum attempts for request", "requestId", self._get_request_id(), "last exception being", err_persistant)
-        
+
         raise MaxAttemptsError("Exceeded maximum attempts for request", self.node_account_id, err_persistant)
 
 
@@ -240,7 +239,7 @@ def _delay_for_attempt(request_id: str, current_backoff: int, attempt: int, logg
         attempt (int): The current attempt number (0-based)
         current_backoff (int): The current backoff period in milliseconds
     """
-    logger.trace(f"Retrying request attempt", "requestId", request_id, "delay", current_backoff, "attempt", attempt, "error", error)
+    logger.trace("Retrying request attempt", "requestId", request_id, "delay", current_backoff, "attempt", attempt, "error", error)
     time.sleep(current_backoff * 0.001)
 
 def _execute_method(method, proto_request):

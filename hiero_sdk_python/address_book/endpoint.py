@@ -20,7 +20,7 @@ class Endpoint:
     Represents an endpoint with address, port, and domain name information.
     This class is used to handle service endpoints in the Hedera network.
     """
-    
+
     def __init__(
         self,
         address: bytes = None,
@@ -38,7 +38,7 @@ class Endpoint:
         self._address: bytes = address
         self._port: int = port
         self._domain_name: str = domain_name
-    
+
     def set_address(self, address: bytes) -> "Endpoint":
         """
         Set the IP address of the endpoint.
@@ -51,7 +51,7 @@ class Endpoint:
         """
         self._address = address
         return self
-    
+
     def get_address(self) -> bytes:
         """
         Get the IP address of the endpoint.
@@ -60,7 +60,7 @@ class Endpoint:
             bytes: The IP address in bytes format.
         """
         return self._address
-    
+
     def set_port(self, port: int) -> "Endpoint":
         """
         Set the port of the endpoint.
@@ -73,7 +73,7 @@ class Endpoint:
         """
         self._port = port
         return self
-    
+
     def get_port(self) -> int:
         """
         Get the port of the endpoint.
@@ -82,7 +82,7 @@ class Endpoint:
             int: The port number.
         """
         return self._port
-    
+
     def set_domain_name(self, domain_name: str) -> "Endpoint":
         """
         Set the domain name of the endpoint.
@@ -95,7 +95,7 @@ class Endpoint:
         """
         self._domain_name = domain_name
         return self
-    
+
     def get_domain_name(self) -> str:
         """
         Get the domain name of the endpoint.
@@ -104,7 +104,7 @@ class Endpoint:
             str: The domain name.
         """
         return self._domain_name
-    
+
     @classmethod
     def _from_proto(cls, service_endpoint: ServiceEndpoint) -> "Endpoint":
         """
@@ -117,16 +117,16 @@ class Endpoint:
             Endpoint: A new Endpoint instance.
         """
         port = service_endpoint.port
-        
+
         if port == 0 or port == 50111:
             port = 50211
-        
+
         return cls(
             address=service_endpoint.ipAddressV4,
             port=port,
             domain_name=service_endpoint.domain_name
         )
-    
+
     def _to_proto(self) -> ServiceEndpoint:
         """
         Convert this Endpoint to a protobuf ServiceEndpoint.
@@ -134,13 +134,13 @@ class Endpoint:
         Returns:
             ServiceEndpoint: A protobuf ServiceEndpoint object.
         """
-        
+
         return ServiceEndpoint(
             ipAddressV4=self._address,
             port=self._port,
             domain_name=self._domain_name
         )
-    
+
     def __str__(self) -> str:
         """
         Get a string representation of the Endpoint.
@@ -148,7 +148,7 @@ class Endpoint:
         Returns:
             str: The string representation in the format 'domain:port' or 'ip:port'.
         """
-        
+
         return f"{self._address.decode('utf-8')}:{self._port}"
 
     @classmethod

@@ -16,7 +16,7 @@ class PendingAirdropRecord:
         """
         self.pending_airdrop_id = pending_airdrop_id
         self.amount = amount
-    
+
     @classmethod
     def _from_proto(cls, proto: transaction_record_pb2.PendingAirdropRecord) -> "PendingAirdropRecord":
         """
@@ -32,7 +32,7 @@ class PendingAirdropRecord:
             pending_airdrop_id=PendingAirdropId._from_proto(proto.pending_airdrop_id),
             amount=proto.pending_airdrop_value.amount
         )
-    
+
     def _to_proto(self) -> transaction_record_pb2.PendingAirdropRecord:
         """
         Converts the PendingAirdropRecord instance to its protobuf message.
@@ -45,7 +45,7 @@ class PendingAirdropRecord:
             pending_airdrop_id=self.pending_airdrop_id._to_proto(),
             pending_airdrop_value=basic_types_pb2.PendingAirdropValue(amount=self.amount)
         )
-    
+
     def __str__(self):
         """
         Returns a string representation of this PendingAirdropRecord instance.

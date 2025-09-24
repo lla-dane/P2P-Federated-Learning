@@ -66,7 +66,7 @@ class TokenInfoQuery(Query):
 
             query = query_pb2.Query()
             query.tokenGetInfo.CopyFrom(token_info_query)
-                  
+
             return query
         except Exception as e:
             print(f"Exception in _make_request: {e}")

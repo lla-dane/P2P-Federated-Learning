@@ -35,7 +35,7 @@ def setup_client():
 operator_id = AccountId.from_string(os.getenv("OPERATOR_ID"))
 operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY"))
 client = setup_client()
-# balance = client.getAccountBalance(operator_id)     
+# balance = client.getAccountBalance(operator_id)
 # print("Client balance:", balance.asTinybar())
 
 # ====================================

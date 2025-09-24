@@ -97,7 +97,7 @@ class TokenUnfreezeTransaction(Transaction):
             account=self.account_id._to_proto(),
             token=self.token_id._to_proto()
         )
-        
+
     def build_transaction_body(self) -> transaction_pb2.TransactionBody:
         """
         Builds and returns the protobuf transaction body for token unfreeze.
@@ -109,7 +109,7 @@ class TokenUnfreezeTransaction(Transaction):
         transaction_body: transaction_pb2.TransactionBody = self.build_base_transaction_body()
         transaction_body.tokenUnfreeze.CopyFrom(token_unfreeze_body)
         return transaction_body
-        
+
     def build_scheduled_body(self) -> SchedulableTransactionBody:
         """
         Builds the scheduled transaction body for this token unfreeze transaction.

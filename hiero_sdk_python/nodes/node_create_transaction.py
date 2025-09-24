@@ -268,7 +268,7 @@ class NodeCreateTransaction(Transaction):
         transaction_body = self.build_base_transaction_body()
         transaction_body.nodeCreate.CopyFrom(node_create_body)
         return transaction_body
-    
+
     def build_scheduled_body(self) -> SchedulableTransactionBody:
         """
         Builds the scheduled transaction body for node create transaction.

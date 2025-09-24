@@ -1,14 +1,11 @@
 import os
 import tempfile
-from typing import Any
 import time
 import requests
 import hashlib
 from dotenv import load_dotenv
-from pinata import Pinata
 import subprocess
 from logs import setup_logging
-import tempfile
 
 load_dotenv()
 
@@ -85,17 +82,17 @@ class Akave:
             "--endpoint-url", "https://o3-rc2.akave.xyz",
             "--profile", "akave-o3"
         ]
-        
+
         result = subprocess.run(command, capture_output=True, text=True)
-        
+
         if result.returncode == 0:
-            print(f"Bucket 'akave-bucket' created successfully!")
+            print("Bucket 'akave-bucket' created successfully!")
             print(result.stdout)
         else:
             print("Error creating bucket:")
             print(result.stderr)
             return True
-    
+
 
     def get_presigned_url(self, file_name: str, expires_in: int = 36000000, profile: str = "akave-o3", endpoint_url: str = "https://o3-rc2.akave.xyz"):
         """
@@ -135,10 +132,10 @@ class Akave:
             "--endpoint-url", "https://o3-rc2.akave.xyz",
             "--profile", "akave-o3"
         ]
-        
+
         result = subprocess.run(command, capture_output=True, text=True)
         file_name=os.path.basename(file_path)
-        
+
         if result.returncode == 0:
             print(f"object '{file_name}' created successfully!")
             print(result.stdout)
@@ -193,16 +190,16 @@ class Akave:
         except Exception as e:
             print(f"Error uploading file: {e}")
             return False
-        
+
         self.put_object(file_path)
         return self.cids[-1]
-    
+
     def upload_string(self, content: str) -> bool:
         """
         Upload a string as an object to S3 and return the presigned URL.
         The key will be the SHA256 hash of the string content.
         """
-        
+
         try:
             # 1. Save string to a temporary file
             with tempfile.NamedTemporaryFile(delete=False, mode="w", encoding="utf-8") as tmp_file:

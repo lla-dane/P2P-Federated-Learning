@@ -91,9 +91,10 @@ def load_keypair_from_env(env_path):
 
 
 class Node:
-    def __init__(self, role: str):
+    def __init__(self, role: str, pvt_key: str):
         self.mesh = Mesh()
         self.ml_trainer = MLTrainer()
+        self.pvt_key = pvt_key
         # Set up the general host configs
 
         if role == "bootstrap":

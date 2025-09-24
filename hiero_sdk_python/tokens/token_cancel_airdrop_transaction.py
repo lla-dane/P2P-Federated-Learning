@@ -47,7 +47,7 @@ class TokenCancelAirdropTransaction(Transaction):
         """
         self.pending_airdrops.append(pending_airdrop)
         return self
-    
+
     def clear_pending_airdrops(self) -> "TokenCancelAirdropTransaction":
         """
         Clears all pending airdrop IDs from the list.
@@ -57,7 +57,7 @@ class TokenCancelAirdropTransaction(Transaction):
         """
         self.pending_airdrops.clear()
         return self
-    
+
     def _build_proto_body(self):
         """
         Returns the protobuf body for the token cancel airdrop transaction.
@@ -74,12 +74,12 @@ class TokenCancelAirdropTransaction(Transaction):
             pending_airdrops_proto.append(pending_airdrop._to_proto())
 
         if (len(pending_airdrops_proto) < 1 or len(pending_airdrops_proto) > 10):
-            raise ValueError("Pending airdrops list must contain mininum 1 and maximum 10 pendingAirdrop.") 
+            raise ValueError("Pending airdrops list must contain mininum 1 and maximum 10 pendingAirdrop.")
 
         return token_cancel_airdrop_pb2.TokenCancelAirdropTransactionBody(
             pending_airdrops=pending_airdrops_proto
         )
-        
+
     def build_transaction_body(self):
         """
         Builds and returns the protobuf transaction body for canceling a token airdrop.
@@ -88,7 +88,7 @@ class TokenCancelAirdropTransaction(Transaction):
         transaction_body = self.build_base_transaction_body()
         transaction_body.tokenCancelAirdrop.CopyFrom(token_airdrop_cancel_body)
         return transaction_body
-        
+
     def build_scheduled_body(self) -> SchedulableTransactionBody:
         """
         Builds the scheduled transaction body for this token cancel airdrop transaction.
@@ -100,7 +100,7 @@ class TokenCancelAirdropTransaction(Transaction):
         schedulable_body = self.build_base_scheduled_body()
         schedulable_body.tokenCancelAirdrop.CopyFrom(token_airdrop_cancel_body)
         return schedulable_body
-    
+
     def _get_method(self, channel):
         return _Method(
             transaction_func=channel.token.cancelAirdrop,

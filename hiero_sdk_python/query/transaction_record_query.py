@@ -22,7 +22,7 @@ class TransactionRecordQuery(Query):
         """
         super().__init__()
         self.transaction_id : Optional[TransactionId] = transaction_id
-        
+
     def set_transaction_id(self, transaction_id: TransactionId):
         """
         Sets the transaction ID for the query.
@@ -58,12 +58,12 @@ class TransactionRecordQuery(Query):
             transaction_get_record = transaction_get_record_pb2.TransactionGetRecordQuery()
             transaction_get_record.header.CopyFrom(query_header)
             transaction_get_record.transactionID.CopyFrom(self.transaction_id._to_proto())
-            
+
             query = query_pb2.Query()
             if not hasattr(query, 'transactionGetRecord'):
                 raise AttributeError("Query object has no attribute 'transactionGetRecord'")
             query.transactionGetRecord.CopyFrom(transaction_get_record)
-            
+
             return query
         except Exception as e:
             print(f"Exception in _make_request: {e}")
@@ -102,7 +102,7 @@ class TransactionRecordQuery(Query):
             _ExecutionState: The execution state indicating what to do next
         """
         status = response.transactionGetRecord.header.nodeTransactionPrecheckCode
-        
+
         retryable_statuses = {
             ResponseCode.UNKNOWN,
             ResponseCode.BUSY,
@@ -110,7 +110,7 @@ class TransactionRecordQuery(Query):
             ResponseCode.RECORD_NOT_FOUND,
             ResponseCode.PLATFORM_NOT_ACTIVE
         }
-        
+
         if status == ResponseCode.OK:
             if response.transactionGetRecord.header.responseType == query_header_pb2.ResponseType.COST_ANSWER:
                 return _ExecutionState.FINISHED
@@ -119,16 +119,16 @@ class TransactionRecordQuery(Query):
             return _ExecutionState.RETRY
         else:
             return _ExecutionState.ERROR
-    
+
         status = response.transactionGetRecord.transactionRecord.receipt.status
-        
+
         if status in retryable_statuses or status == ResponseCode.OK:
             return _ExecutionState.RETRY
         elif status == ResponseCode.SUCCESS:
             return _ExecutionState.FINISHED
         else:
             return _ExecutionState.ERROR
-        
+
     def _map_status_error(self, response: Any) -> Union[PrecheckError,ReceiptStatusError]:
         """
         Maps a response status code to an appropriate error object.
@@ -152,14 +152,14 @@ class TransactionRecordQuery(Query):
             ResponseCode.RECORD_NOT_FOUND,
             ResponseCode.OK
         }
-        
+
         if status not in retryable_statuses:
             return PrecheckError(status)
-        
+
         receipt = response.transactionGetRecord.transactionRecord.receipt
-        
+
         return ReceiptStatusError(status, self.transaction_id, TransactionReceipt._from_proto(receipt, self.transaction_id))
-        
+
     def execute(self, client):
         """
         Executes the transaction record query.

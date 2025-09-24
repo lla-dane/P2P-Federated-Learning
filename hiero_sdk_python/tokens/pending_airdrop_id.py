@@ -21,7 +21,7 @@ class PendingAirdropId:
         """
         if (token_id is None) == (nft_id is None):
             raise ValueError("Exactly one of 'token_id' or 'nft_id' must be required.")
-        
+
         self.sender_id = sender_id
         self.receiver_id = receiver_id
         self.token_id = token_id
@@ -53,7 +53,7 @@ class PendingAirdropId:
             token_id=fungible_token_type,
             nft_id=non_fungible_token
         )
-    
+
     def _to_proto(self) -> basic_types_pb2.PendingAirdropId:
         """
         Converts this PendingAirdropId instance to its protobuf representation.
@@ -75,7 +75,7 @@ class PendingAirdropId:
             fungible_token_type=fungible_token_type,
             non_fungible_token=non_fungible_token
         )
-    
+
     def __str__(self):
         """
         Returns a string representation of this PendingAirdropId instance.

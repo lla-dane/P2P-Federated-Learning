@@ -47,7 +47,7 @@ class LogLevel(IntEnum):
             return cls[level_str.upper()]
         except KeyError:
             raise ValueError(f"Invalid log level: {level_str}")
-        
+
     @classmethod
     def from_env(cls) -> "LogLevel":
         """

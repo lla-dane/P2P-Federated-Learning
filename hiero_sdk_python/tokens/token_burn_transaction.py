@@ -29,7 +29,7 @@ class TokenBurnTransaction(Transaction):
     """
     def __init__(
         self,
-        token_id: Optional[TokenId] = None, 
+        token_id: Optional[TokenId] = None,
         amount: Optional[int] = None,
         serials: Optional[List[int]] = None
     ) -> None:
@@ -124,7 +124,7 @@ class TokenBurnTransaction(Transaction):
             amount=self.amount,
             serialNumbers=self.serials
         )
-        
+
     def build_transaction_body(self) -> transaction_pb2.TransactionBody:
         """
         Builds the transaction body for this token burn transaction.
@@ -136,7 +136,7 @@ class TokenBurnTransaction(Transaction):
         transaction_body: transaction_pb2.TransactionBody = self.build_base_transaction_body()
         transaction_body.tokenBurn.CopyFrom(token_burn_body)
         return transaction_body
-        
+
     def build_scheduled_body(self) -> SchedulableTransactionBody:
         """
         Builds the scheduled transaction body for this token burn transaction.

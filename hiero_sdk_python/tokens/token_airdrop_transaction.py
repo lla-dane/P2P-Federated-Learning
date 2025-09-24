@@ -172,7 +172,7 @@ class TokenAirdropTransaction(AbstractTokenTransferTransaction):
         self._require_not_frozen()
         self._add_nft_transfer(nft_id.token_id, sender, receiver, nft_id.serial_number,True)
         return self
-    
+
     def _build_proto_body(self) -> token_airdrop_pb2.TokenAirdropTransactionBody:
         """
         Returns the protobuf body for the token airdrop transaction.
@@ -193,7 +193,7 @@ class TokenAirdropTransaction(AbstractTokenTransferTransaction):
         return token_airdrop_pb2.TokenAirdropTransactionBody(
             token_transfers=token_transfers
         )
-        
+
     def build_transaction_body(self) -> transaction_pb2.TransactionBody :
         """
         Builds and returns the protobuf transaction body for token airdrop.
@@ -205,7 +205,7 @@ class TokenAirdropTransaction(AbstractTokenTransferTransaction):
         transaction_body = self.build_base_transaction_body()
         transaction_body.tokenAirdrop.CopyFrom(token_airdrop_body)
         return transaction_body
-        
+
     def build_scheduled_body(self) -> SchedulableTransactionBody:
         """
         Builds the scheduled transaction body for this token airdrop transaction.

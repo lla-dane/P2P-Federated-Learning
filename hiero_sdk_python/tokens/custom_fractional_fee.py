@@ -72,13 +72,13 @@ class CustomFractionalFee(CustomFee):
     def _from_proto(cls, proto_fee) -> "CustomFractionalFee":
         """Create CustomFractionalFee from protobuf CustomFee message."""
         from hiero_sdk_python.account.account_id import AccountId
-        
+
         fractional_fee_proto = proto_fee.fractional_fee
-        
+
         fee_collector_account_id = None
         if proto_fee.HasField("fee_collector_account_id"):  # Changed from WhichOneof
             fee_collector_account_id = AccountId._from_proto(proto_fee.fee_collector_account_id)
-        
+
         return cls(
             numerator=fractional_fee_proto.fractional_amount.numerator,
             denominator=fractional_fee_proto.fractional_amount.denominator,

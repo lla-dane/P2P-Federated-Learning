@@ -80,7 +80,7 @@ class TokenDissociateTransaction(Transaction):
             account=self.account_id._to_proto(),
             tokens=[token_id._to_proto() for token_id in self.token_ids]
         )
-        
+
     def build_transaction_body(self) -> transaction_pb2.TransactionBody:
         """
         Builds and returns the protobuf transaction body for token dissociation.
@@ -92,7 +92,7 @@ class TokenDissociateTransaction(Transaction):
         transaction_body: transaction_pb2.TransactionBody = self.build_base_transaction_body()
         transaction_body.tokenDissociate.CopyFrom(token_dissociate_body)
         return transaction_body
-        
+
     def build_scheduled_body(self) -> SchedulableTransactionBody:
         """
         Builds the scheduled transaction body for this token dissociate transaction.

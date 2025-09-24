@@ -37,7 +37,13 @@ async def interactive_shell() -> None:
             "Configure the role of the node client/trainer/bootstrap [default: bootstrap]: "
         )
     )
-    node = Node(role=role.strip() or "bootstrap")
+    pvt_key = await trio.to_thread.run_sync(
+        lambda: input(
+            "Enter the private key [default: pvt-key]: "
+        )
+    )
+
+    node = Node(role=role.strip() or "bootstrap", pvt_key=pvt_key.strip() or "private-key")
     node.mesh.fed_mesh_id = FED_LEARNING_MESH
 
     logger.info(f"Running as {node.role.upper()} node")

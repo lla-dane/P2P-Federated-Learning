@@ -295,7 +295,7 @@ class PrivateKey:
         if isinstance(self._private_key, ed25519.Ed25519PrivateKey):
             # Ed25519 automatically handles the hashing internally
             return self._private_key.sign(data)
-        
+
         data_hash = keccak256(data)
         signature_der = self._private_key.sign(data_hash, ec.ECDSA(asym_utils.Prehashed(hashes.SHA256())))
         r, s = asym_utils.decode_dss_signature(signature_der)

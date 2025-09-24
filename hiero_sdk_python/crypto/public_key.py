@@ -514,7 +514,7 @@ class PublicKey:
         """
         if not isinstance(self._public_key, ec.EllipticCurvePublicKey):
             raise TypeError("Not an ECDSA key")
-        
+
         # Convert raw 64-byte signature to DER format
         if len(signature) == 64:
             r = int.from_bytes(signature[:32], "big")
@@ -522,7 +522,7 @@ class PublicKey:
             signature_der = asym_utils.encode_dss_signature(r, s)
         else:
             signature_der = signature
-            
+
         data_hash = keccak256(data)
         self._public_key.verify(signature_der, data_hash, ec.ECDSA(asym_utils.Prehashed(hashes.SHA256())))
 

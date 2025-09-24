@@ -22,10 +22,10 @@ class FileCreateTransaction(Transaction):
     Inherits from the base Transaction class and implements the required methods
     to build and execute a file create transaction.
     """
-    
+
     # 90 days in seconds is the default expiration time
     DEFAULT_EXPIRY_SECONDS = 90 * 24 * 60 * 60  # 7776000
-    
+
     def __init__(self, keys: Optional[list[PublicKey]] = None, contents: Optional[str | bytes] = None, expiration_time: Optional[Timestamp] = None, file_memo: Optional[str] = None):
         """
         Initializes a new FileCreateTransaction instance with the specified parameters.
@@ -103,7 +103,7 @@ class FileCreateTransaction(Transaction):
         self._require_not_frozen()
         self.expiration_time = expiration_time
         return self
-    
+
     def set_file_memo(self, file_memo: Optional[str]) -> 'FileCreateTransaction':
         """
         Sets the memo for this file create transaction.
@@ -173,7 +173,7 @@ class FileCreateTransaction(Transaction):
             transaction_func=channel.file.createFile,
             query_func=None
         )
-    
+
     def _from_proto(self, proto: file_create_pb2.FileCreateTransactionBody) -> 'FileCreateTransaction':
         """
         Initializes a new FileCreateTransaction instance from a protobuf object.
@@ -185,7 +185,7 @@ class FileCreateTransaction(Transaction):
             FileCreateTransaction: This transaction instance.
         """
         self.keys = [PublicKey._from_proto(key) for key in proto.keys.keys] if proto.keys.keys else []
-        self.contents = proto.contents 
+        self.contents = proto.contents
         self.expiration_time = Timestamp._from_protobuf(proto.expirationTime) if proto.expirationTime else None
-        self.file_memo = proto.memo 
+        self.file_memo = proto.memo
         return self

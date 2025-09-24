@@ -362,7 +362,7 @@ class ResponseCode(IntEnum):
         unknown._name_ = f'UNKNOWN_CODE_{value}'
         unknown._value_ = value
         return unknown
-    
+
     @classmethod
     def get_name(cls,code: int) -> str:
         """
@@ -370,7 +370,7 @@ class ResponseCode(IntEnum):
         """
         warnings.warn(
             "The `get_name` method to be deprecated in v0.1.4. "
-            "Please use `ResponseCode(code).name` instead.", 
+            "Please use `ResponseCode(code).name` instead.",
             FutureWarning
         )
         return cls(code).name

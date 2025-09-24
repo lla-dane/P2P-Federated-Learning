@@ -27,7 +27,7 @@ class NodeAddress:
     """
     Represents the address of a node on the Hedera network.
     """
-    
+
     def __init__(
         self,
         public_key: str = None,
@@ -54,7 +54,7 @@ class NodeAddress:
         self._cert_hash: bytes = cert_hash
         self._addresses: List[Endpoint] = addresses
         self._description: str = description
-    
+
     @classmethod
     def _from_proto(cls, node_address_proto: NodeAddressProto) -> "NodeAddress":
         """
@@ -67,14 +67,14 @@ class NodeAddress:
             NodeAddress: A new NodeAddress instance.
         """
         addresses: List[Endpoint] = []
-        
+
         for endpoint_proto in node_address_proto.serviceEndpoint:
             addresses.append(Endpoint._from_proto(endpoint_proto))
-        
+
         account_id: AccountId = None
         if node_address_proto.nodeAccountId:
             account_id = AccountId._from_proto(node_address_proto.nodeAccountId)
-        
+
         return cls(
             public_key=node_address_proto.RSA_PubKey,
             account_id=account_id,
@@ -83,7 +83,7 @@ class NodeAddress:
             addresses=addresses,
             description=node_address_proto.description
         )
-    
+
     def _to_proto(self):
         """
         Convert this NodeAddress to a protobuf NodeAddress.
@@ -97,18 +97,18 @@ class NodeAddress:
             nodeCertHash=self._cert_hash,
             description=self._description
         )
-        
+
         if self._account_id:
             node_address_proto.nodeAccountId.CopyFrom(self._account_id._to_proto())
-        
+
         service_endpoints: List[Endpoint] = []
         for endpoint in self._addresses:
             service_endpoints.append(endpoint._to_proto())
-        
+
         node_address_proto.serviceEndpoint = service_endpoints
-        
+
         return node_address_proto
-    
+
     def __str__(self):
         """
         Get a string representation of the NodeAddress.
@@ -122,7 +122,7 @@ class NodeAddress:
         cert_hash_str: str = self._cert_hash.hex()
         node_id_str: str = str(self._node_id)
         account_id_str: str = str(self._account_id)
-        
+
         return (
             f"NodeAccountId: {account_id_str} {addresses_str}\n"
             f"CertHash: {cert_hash_str}\n"
@@ -135,7 +135,7 @@ class NodeAddress:
         """
         Create a NodeAddress from a dictionary.
         """
-        
+
         service_endpoints: List[EndpointDict] = node.get('service_endpoints', [])
         public_key: str = node.get('public_key')
         account_id: AccountId = AccountId.from_string(node.get('node_account_id'))
@@ -143,11 +143,11 @@ class NodeAddress:
         # Get the hash from the node, remove the 0x prefix and convert to bytes
         cert_hash: bytes = bytes.fromhex(node.get('node_cert_hash').removeprefix('0x'))
         description: str = node.get('description')
-        
+
         endpoints: List[Endpoint] = []
         for endpoint in service_endpoints:
             endpoints.append(Endpoint.from_dict(endpoint))
-        
+
         return cls(
             public_key=public_key,
             account_id=account_id,

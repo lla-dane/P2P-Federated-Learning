@@ -19,7 +19,7 @@ class FileId:
     shard: int = 0
     realm: int = 0
     file: int = 0
-    
+
     @classmethod
     def _from_proto(cls, file_id_proto: basic_types_pb2.FileID) -> 'FileId':
         """
@@ -40,7 +40,7 @@ class FileId:
             realmNum=self.realm,
             fileNum=self.file
         )
-        
+
     @classmethod
     def from_string(cls, file_id_str: str) -> 'FileId':
         """
@@ -51,7 +51,7 @@ class FileId:
             raise ValueError("Invalid file ID string format. Expected 'shard.realm.file'")
         shard, realm, file = map(int, parts)
         return cls(shard, realm, file)
-    
+
     def __str__(self) -> str:
         """
         Returns a string representation of the FileId instance.

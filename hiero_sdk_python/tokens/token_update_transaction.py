@@ -17,13 +17,11 @@ from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
-from hiero_sdk_python.hapi.services.token_update_pb2 import TokenUpdateTransactionBody
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
 from hiero_sdk_python.hapi.services import token_update_pb2, transaction_pb2
 
-from google.protobuf.wrappers_pb2 import BytesValue, StringValue
 
 @dataclass
 class TokenUpdateParams:
@@ -374,7 +372,7 @@ class TokenUpdateTransaction(Transaction):
         )
         self._set_keys_to_proto(token_update_body)
         return token_update_body
-        
+
     def build_transaction_body(self) -> transaction_pb2.TransactionBody:
         """
         Builds and returns the protobuf transaction body for token update.
@@ -386,7 +384,7 @@ class TokenUpdateTransaction(Transaction):
         transaction_body: transaction_pb2.TransactionBody = self.build_base_transaction_body()
         transaction_body.tokenUpdate.CopyFrom(token_update_body)
         return transaction_body
-        
+
     def build_scheduled_body(self) -> SchedulableTransactionBody:
         """
         Builds the scheduled transaction body for this token update transaction.

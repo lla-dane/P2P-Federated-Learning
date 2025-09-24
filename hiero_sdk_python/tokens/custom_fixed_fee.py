@@ -39,7 +39,7 @@ class CustomFixedFee(CustomFee):
     def set_denominating_token_id(self, token_id: typing.Optional["TokenId"]) -> "CustomFixedFee":
         self.denominating_token_id = token_id
         return self
-    
+
     def set_denominating_token_to_same_token(self) -> "CustomFixedFee":
         from hiero_sdk_python.tokens.token_id import TokenId
         self.denominating_token_id = TokenId(0, 0, 0)
@@ -83,17 +83,17 @@ class CustomFixedFee(CustomFee):
     @classmethod
     def _from_proto(cls, proto_fee: custom_fees_pb2.CustomFee) -> "CustomFixedFee":
         """Create CustomFixedFee from protobuf CustomFee message."""
-        
+
         fixed_fee_proto = proto_fee.fixed_fee
-        
+
         denominating_token_id = None
         if fixed_fee_proto.HasField("denominating_token_id"):
             denominating_token_id = TokenId._from_proto(fixed_fee_proto.denominating_token_id)
-        
+
         fee_collector_account_id = None
         if proto_fee.HasField("fee_collector_account_id"):
             fee_collector_account_id = AccountId._from_proto(proto_fee.fee_collector_account_id)
-        
+
         return cls(
             amount=fixed_fee_proto.amount,
             denominating_token_id=denominating_token_id,

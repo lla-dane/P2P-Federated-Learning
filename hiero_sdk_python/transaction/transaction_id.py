@@ -18,8 +18,8 @@ class TransactionId:
     """
 
     def __init__(
-        self, 
-        account_id: Optional[AccountId] = None, 
+        self,
+        account_id: Optional[AccountId] = None,
         valid_start: Optional[timestamp_pb2.Timestamp] = None,
         scheduled: bool = False
     ) -> None:

@@ -26,7 +26,6 @@ from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.tokens.custom_fee import CustomFee
-from hiero_sdk_python.crypto.public_key import PublicKey
 
 DEFAULT_TRANSACTION_FEE = 3_000_000_000
 

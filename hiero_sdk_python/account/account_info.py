@@ -39,7 +39,7 @@ class AccountInfo:
     token_relationships : list[TokenRelationship] = field(default_factory=list)
     account_memo : Optional[str] = None
     owned_nfts : Optional[int] = None
-    
+
     @classmethod
     def _from_proto(cls, proto: CryptoGetInfoResponse.AccountInfo) -> 'AccountInfo':
         if proto is None:
@@ -59,7 +59,7 @@ class AccountInfo:
             account_memo=proto.memo,
             owned_nfts=proto.ownedNfts
         )
-        
+
     def _to_proto(self) -> CryptoGetInfoResponse.AccountInfo:
         return CryptoGetInfoResponse.AccountInfo(
             accountID=self.account_id._to_proto() if self.account_id else None,

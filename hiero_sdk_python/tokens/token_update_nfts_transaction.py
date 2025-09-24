@@ -17,7 +17,6 @@ from hiero_sdk_python.hapi.services import transaction_pb2
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
-from google.protobuf.wrappers_pb2 import BytesValue
 from hiero_sdk_python.hapi.services import token_update_nfts_pb2
 
 class TokenUpdateNftsTransaction(Transaction):
@@ -110,7 +109,7 @@ class TokenUpdateNftsTransaction(Transaction):
             serial_numbers=self.serial_numbers,
             metadata=BytesValue(value=self.metadata)
         )
-        
+
     def build_transaction_body(self) -> transaction_pb2.TransactionBody:
         """
         Builds and returns the protobuf transaction body for token update NFTs.
@@ -122,7 +121,7 @@ class TokenUpdateNftsTransaction(Transaction):
         transaction_body = self.build_base_transaction_body()
         transaction_body.token_update_nfts.CopyFrom(token_update_body)
         return transaction_body
-        
+
     def build_scheduled_body(self) -> SchedulableTransactionBody:
         """
         Builds the scheduled transaction body for this token update NFTs transaction.

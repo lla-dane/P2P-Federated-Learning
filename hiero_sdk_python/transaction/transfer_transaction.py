@@ -18,9 +18,9 @@ class TransferTransaction(Transaction):
     """
 
     def __init__(
-        self, 
-        hbar_transfers:  Optional[Dict[AccountId, int]] = None, 
-        token_transfers: Optional[Dict[TokenId, Dict[AccountId, int]]] = None, 
+        self,
+        hbar_transfers:  Optional[Dict[AccountId, int]] = None,
+        token_transfers: Optional[Dict[TokenId, Dict[AccountId, int]]] = None,
         nft_transfers:   Optional[Dict[TokenId, List[Tuple[AccountId, AccountId, int, bool]]]] = None
     ) -> None:
         """
@@ -98,10 +98,10 @@ class TransferTransaction(Transaction):
         return self
 
     def add_nft_transfer(
-        self, 
-        nft_id: NftId, 
-        sender_id: AccountId, 
-        receiver_id: AccountId, 
+        self,
+        nft_id: NftId,
+        sender_id: AccountId,
+        receiver_id: AccountId,
         is_approved: bool = False
     ) -> "TransferTransaction":
         """

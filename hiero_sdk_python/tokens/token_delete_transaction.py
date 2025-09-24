@@ -70,7 +70,7 @@ class TokenDeleteTransaction(Transaction):
         return token_delete_pb2.TokenDeleteTransactionBody(
             token=self.token_id._to_proto()
         )
-        
+
     def build_transaction_body(self) -> transaction_pb2.TransactionBody:
         """
         Builds and returns the protobuf transaction body for token deletion.
@@ -82,7 +82,7 @@ class TokenDeleteTransaction(Transaction):
         transaction_body: transaction_pb2.TransactionBody = self.build_base_transaction_body()
         transaction_body.tokenDeletion.CopyFrom(token_delete_body)
         return transaction_body
-        
+
     def build_scheduled_body(self) -> SchedulableTransactionBody:
         """
         Builds the scheduled transaction body for this token delete transaction.
