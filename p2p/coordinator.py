@@ -520,29 +520,43 @@ class Node:
 
         @app.route("/command", methods=["POST"])
         async def command_post():
+            # try:
+            #     cmd = await request.get_json()
+            #     if isinstance(cmd, list):
+            #         await app.send_channel.send(cmd)
+            #         return jsonify({"status": "ok", "received": cmd})
+            #     else:
+            #         return jsonify({"error": "Invalid command format"}), 400
+            # except Exception as e:
+            #     return jsonify({"error": str(e)}), 500
             try:
-                cmd = await request.get_json()
-                if isinstance(cmd, list):
-                    await app.send_channel.send(cmd)
-                    return jsonify({"status": "ok", "received": cmd})
-                else:
-                    return jsonify({"error": "Invalid command format"}), 400
+                data = await request.get_json()
+                if not isinstance(data, dict) or "cmd" not in data:
+                    return jsonify({"error": "Invalid command format"}), 40
+                cmd = data["cmd"]
+                args = data.get("args", [])
+
+                # forward as list if you want
+                await app.send_channel.send([cmd] + args)
+
+                return jsonify({"status": "ok", "received": data})
             except Exception as e:
                 return jsonify({"error": str(e)}), 500
 
         @app.route("/command", methods=["GET"])
         async def command_get():
             try:
-                # Get the 'cmd' parameter from the query string
-                cmd = request.args.get("cmd")
-                if isinstance(cmd, str):
-                    if cmd == "bootmesh":
-                        bootmesh: dict = self.mesh.get_bootstrap_mesh()
-                        return jsonify({"status": "ok", "bootmesh": bootmesh})
-                    elif cmd == "mesh":
-                        mesh: dict = self.mesh.get_local_mesh()
-                        return jsonify({"status": "ok", "mesh": mesh})
-                return jsonify({"error": "Unknown command"}), 400
+                data = await request.get_json(silent=True) or {}
+                cmd = data.get("cmd")
+
+                if cmd == "bootmesh":
+                    bootmesh: dict = self.mesh.get_bootstrap_mesh()
+                    return jsonify({"status": "ok", "bootmesh": bootmesh})
+                elif cmd == "mesh":
+                    mesh: dict = self.mesh.get_local_mesh()
+                    return jsonify({"status": "ok", "mesh": mesh})
+                else:
+                    return jsonify({"error": "Unknown command"}), 400
             except Exception as e:
                 return jsonify({"error": str(e)}), 500
 

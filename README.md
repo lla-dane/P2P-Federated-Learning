@@ -154,9 +154,11 @@ ssh -i "Desktop/libp2p/P2P-Federated-Learning/aws-keys/p2p-1.pem" ubuntu@ec2-13-
 ```bash
 curl -X POST http://localhost:9000/command \
     -H "Content-Type: application/json" \
-    -d '["publish","fed-learn","hello"]'
+    -d '{"cmd":"publish","args":["fed-learn","hello"]}'
+
+curl -X GET http://localhost:9000/command \
+    -H "Content-Type: application/json" \
+    -d '{"cmd":"bootmesh"}'
 
 curl http://localhost:9000/status
-curl "http://localhost:9000/command?cmd=bootmesh"
-
 ```
