@@ -1,16 +1,46 @@
-from . import duration_pb2 as _duration_pb2
-from . import basic_types_pb2 as _basic_types_pb2
-from . import custom_fees_pb2 as _custom_fees_pb2
-from . import timestamp_pb2 as _timestamp_pb2
-from google.protobuf.internal import containers as _containers
+from typing import ClassVar as _ClassVar
+from typing import Iterable as _Iterable
+from typing import Mapping as _Mapping
+from typing import Optional as _Optional
+from typing import Union as _Union
+
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
-from typing import ClassVar as _ClassVar, Iterable as _Iterable, Mapping as _Mapping, Optional as _Optional, Union as _Union
+from google.protobuf.internal import containers as _containers
+
+from . import basic_types_pb2 as _basic_types_pb2
+from . import custom_fees_pb2 as _custom_fees_pb2
+from . import duration_pb2 as _duration_pb2
+from . import timestamp_pb2 as _timestamp_pb2
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
 class TokenCreateTransactionBody(_message.Message):
-    __slots__ = ("name", "symbol", "decimals", "initialSupply", "treasury", "adminKey", "kycKey", "freezeKey", "wipeKey", "supplyKey", "freezeDefault", "expiry", "autoRenewAccount", "autoRenewPeriod", "memo", "tokenType", "supplyType", "maxSupply", "fee_schedule_key", "custom_fees", "pause_key", "metadata", "metadata_key")
+    __slots__ = (
+        "name",
+        "symbol",
+        "decimals",
+        "initialSupply",
+        "treasury",
+        "adminKey",
+        "kycKey",
+        "freezeKey",
+        "wipeKey",
+        "supplyKey",
+        "freezeDefault",
+        "expiry",
+        "autoRenewAccount",
+        "autoRenewPeriod",
+        "memo",
+        "tokenType",
+        "supplyType",
+        "maxSupply",
+        "fee_schedule_key",
+        "custom_fees",
+        "pause_key",
+        "metadata",
+        "metadata_key",
+    )
     NAME_FIELD_NUMBER: _ClassVar[int]
     SYMBOL_FIELD_NUMBER: _ClassVar[int]
     DECIMALS_FIELD_NUMBER: _ClassVar[int]
@@ -57,4 +87,31 @@ class TokenCreateTransactionBody(_message.Message):
     pause_key: _basic_types_pb2.Key
     metadata: bytes
     metadata_key: _basic_types_pb2.Key
-    def __init__(self, name: _Optional[str] = ..., symbol: _Optional[str] = ..., decimals: _Optional[int] = ..., initialSupply: _Optional[int] = ..., treasury: _Optional[_Union[_basic_types_pb2.AccountID, _Mapping]] = ..., adminKey: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ..., kycKey: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ..., freezeKey: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ..., wipeKey: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ..., supplyKey: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ..., freezeDefault: bool = ..., expiry: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., autoRenewAccount: _Optional[_Union[_basic_types_pb2.AccountID, _Mapping]] = ..., autoRenewPeriod: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ..., memo: _Optional[str] = ..., tokenType: _Optional[_Union[_basic_types_pb2.TokenType, str]] = ..., supplyType: _Optional[_Union[_basic_types_pb2.TokenSupplyType, str]] = ..., maxSupply: _Optional[int] = ..., fee_schedule_key: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ..., custom_fees: _Optional[_Iterable[_Union[_custom_fees_pb2.CustomFee, _Mapping]]] = ..., pause_key: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ..., metadata: _Optional[bytes] = ..., metadata_key: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ...) -> None: ...
+    def __init__(
+        self,
+        name: _Optional[str] = ...,
+        symbol: _Optional[str] = ...,
+        decimals: _Optional[int] = ...,
+        initialSupply: _Optional[int] = ...,
+        treasury: _Optional[_Union[_basic_types_pb2.AccountID, _Mapping]] = ...,
+        adminKey: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ...,
+        kycKey: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ...,
+        freezeKey: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ...,
+        wipeKey: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ...,
+        supplyKey: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ...,
+        freezeDefault: bool = ...,
+        expiry: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...,
+        autoRenewAccount: _Optional[_Union[_basic_types_pb2.AccountID, _Mapping]] = ...,
+        autoRenewPeriod: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ...,
+        memo: _Optional[str] = ...,
+        tokenType: _Optional[_Union[_basic_types_pb2.TokenType, str]] = ...,
+        supplyType: _Optional[_Union[_basic_types_pb2.TokenSupplyType, str]] = ...,
+        maxSupply: _Optional[int] = ...,
+        fee_schedule_key: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ...,
+        custom_fees: _Optional[
+            _Iterable[_Union[_custom_fees_pb2.CustomFee, _Mapping]]
+        ] = ...,
+        pause_key: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ...,
+        metadata: _Optional[bytes] = ...,
+        metadata_key: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ...,
+    ) -> None: ...

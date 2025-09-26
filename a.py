@@ -13,6 +13,8 @@ from hiero_sdk_python.contract.contract_function_parameters import (
 )
 from hiero_sdk_python.contract.contract_id import ContractId
 from hiero_sdk_python.hbar import Hbar
+
+
 def get_contract_count(client, contract_id):
     """Get the message from the contract"""
     # Query the contract function to verify that the message was set
@@ -64,9 +66,7 @@ def main():
         ContractExecuteTransaction()
         .set_contract_id(contract_id)
         .set_gas(2000000)
-        .set_function(
-            "incrementCount"
-        )
+        .set_function("incrementCount")
         .execute(client)
     )
 

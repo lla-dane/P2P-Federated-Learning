@@ -64,7 +64,7 @@ log_cli_level = "INFO"
 line-length = 150
 target-version = "py313"
 fix = true
-exclude = ["hiero_sdk_python", "a.py"]
+exclude = ["hiero_sdk_python", "a.py", "b.py"]
 
 [tool.ruff.lint]
 select = [

@@ -9,27 +9,30 @@ from google.protobuf import descriptor_pool as _descriptor_pool
 from google.protobuf import runtime_version as _runtime_version
 from google.protobuf import symbol_database as _symbol_database
 from google.protobuf.internal import builder as _builder
+
 _runtime_version.ValidateProtobufRuntimeVersion(
-    _runtime_version.Domain.PUBLIC,
-    5,
-    28,
-    1,
-    '',
-    'services/address_book_service.proto'
+    _runtime_version.Domain.PUBLIC, 5, 28, 1, "", "services/address_book_service.proto"
 )
 # @@protoc_insertion_point(imports)
 
 _sym_db = _symbol_database.Default()
-from . import transaction_response_pb2 as services_dot_transaction__response__pb2
 from . import transaction_pb2 as services_dot_transaction__pb2
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n#services/address_book_service.proto\x12\x05proto\x1a#services/transaction_response.proto\x1a\x1aservices/transaction.proto2\xce\x01\n\x12\x41\x64\x64ressBookService\x12<\n\ncreateNode\x12\x12.proto.Transaction\x1a\x1a.proto.TransactionResponse\x12<\n\ndeleteNode\x12\x12.proto.Transaction\x1a\x1a.proto.TransactionResponse\x12<\n\nupdateNode\x12\x12.proto.Transaction\x1a\x1a.proto.TransactionResponseB(\n&com.hederahashgraph.service.proto.javab\x06proto3')
+from . import transaction_response_pb2 as services_dot_transaction__response__pb2
+
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(
+    b"\n#services/address_book_service.proto\x12\x05proto\x1a#services/transaction_response.proto\x1a\x1aservices/transaction.proto2\xce\x01\n\x12\x41\x64\x64ressBookService\x12<\n\ncreateNode\x12\x12.proto.Transaction\x1a\x1a.proto.TransactionResponse\x12<\n\ndeleteNode\x12\x12.proto.Transaction\x1a\x1a.proto.TransactionResponse\x12<\n\nupdateNode\x12\x12.proto.Transaction\x1a\x1a.proto.TransactionResponseB(\n&com.hederahashgraph.service.proto.javab\x06proto3"
+)
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
-_builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'services.address_book_service_pb2', _globals)
+_builder.BuildTopDescriptorsAndMessages(
+    DESCRIPTOR, "services.address_book_service_pb2", _globals
+)
 if not _descriptor._USE_C_DESCRIPTORS:
-  _globals['DESCRIPTOR']._loaded_options = None
-  _globals['DESCRIPTOR']._serialized_options = b'\n&com.hederahashgraph.service.proto.java'
-  _globals['_ADDRESSBOOKSERVICE']._serialized_start=112
-  _globals['_ADDRESSBOOKSERVICE']._serialized_end=318
+    _globals["DESCRIPTOR"]._loaded_options = None
+    _globals["DESCRIPTOR"]._serialized_options = (
+        b"\n&com.hederahashgraph.service.proto.java"
+    )
+    _globals["_ADDRESSBOOKSERVICE"]._serialized_start = 112
+    _globals["_ADDRESSBOOKSERVICE"]._serialized_end = 318
 # @@protoc_insertion_point(module_scope)

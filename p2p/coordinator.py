@@ -10,19 +10,6 @@ import Crypto.PublicKey.RSA as RSA
 import multiaddr
 import trio
 from dotenv import load_dotenv
-from hiero_sdk_python import (
-    Client,
-    AccountId,
-    PrivateKey,
-    Network,
-    ResponseCode
-)
-from hiero_sdk_python.contract.contract_execute_transaction import ContractExecuteTransaction
-from hiero_sdk_python.contract.contract_call_query import ContractCallQuery
-from hiero_sdk_python.contract.contract_function_parameters import ContractFunctionParameters
-from hiero_sdk_python.contract.contract_id import ContractId
-from hiero_sdk_python.hbar import Hbar
-
 from hypercorn.config import Config
 from hypercorn.trio import serve
 from libp2p import new_host
@@ -52,6 +39,14 @@ from mesh_utils import Mesh
 from quart import jsonify, request
 from quart_trio import QuartTrio
 
+from hiero_sdk_python import AccountId, Client, Network, PrivateKey, ResponseCode
+from hiero_sdk_python.contract.contract_execute_transaction import (
+    ContractExecuteTransaction,
+)
+from hiero_sdk_python.contract.contract_function_parameters import (
+    ContractFunctionParameters,
+)
+from hiero_sdk_python.contract.contract_id import ContractId
 from logs import setup_logging
 
 load_dotenv()
@@ -108,10 +103,11 @@ def load_keypair_from_env(env_path):
 
 
 class Node:
-    def __init__(self, role: str, pvt_key: str):
+    def __init__(self, role: str, operator_key: str, operator_id: str):
         self.mesh = Mesh()
         self.ml_trainer = MLTrainer()
-        self.pvt_key = pvt_key
+        self.operator_key = operator_key
+        self.operator_id = operator_id
 
         ## IMP
         # write the code for operator id and key
@@ -167,7 +163,6 @@ class Node:
 
         return client
 
-
     def publish_on_chain(self, task_id, weights):
         receipt = (
             ContractExecuteTransaction()
@@ -175,9 +170,7 @@ class Node:
             .set_gas(2000000)
             .set_function(
                 "submitWeights",
-                ContractFunctionParameters()
-                .add_uint256(task_id)
-                .add_string(weights)
+                ContractFunctionParameters().add_uint256(task_id).add_string(weights),
             )
             .execute(self.client)
         )
@@ -185,9 +178,6 @@ class Node:
         if receipt.status != ResponseCode.SUCCESS:
             status_message = ResponseCode(receipt.status).name
             raise Exception(f"Transaction failed with status: {status_message}")
-    
-
-
 
     async def command_executor(self, nursery):
         logger.warning("Starting command executor loop")
@@ -259,7 +249,9 @@ class Node:
                                         chunk_cid, model_hash
                                     )
                                     if weights:
-                                        await self.publish_on_chain(self.subscribed_topics[0], weights)
+                                        await self.publish_on_chain(
+                                            self.subscribed_topics[0], weights
+                                        )
                                         await self.pubsub.publish(
                                             self.training_topic,
                                             f"weights {node_id} {weights}".encode(),

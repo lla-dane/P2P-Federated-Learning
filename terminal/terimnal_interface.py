@@ -4,7 +4,7 @@ from pathlib import Path
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import trio
-from dotenv import load_dotenv, set_key
+from dotenv import load_dotenv
 
 from akave.mcache import Akave
 from logs import setup_logging

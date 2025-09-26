@@ -1,13 +1,19 @@
+from typing import ClassVar as _ClassVar
+from typing import Iterable as _Iterable
+from typing import Mapping as _Mapping
+from typing import Optional as _Optional
+from typing import Union as _Union
+
+from google.protobuf import descriptor as _descriptor
+from google.protobuf import message as _message
+from google.protobuf.internal import containers as _containers
+
 from . import basic_types_pb2 as _basic_types_pb2
 from . import custom_fees_pb2 as _custom_fees_pb2
+from . import duration_pb2 as _duration_pb2
 from . import query_header_pb2 as _query_header_pb2
 from . import response_header_pb2 as _response_header_pb2
 from . import timestamp_pb2 as _timestamp_pb2
-from . import duration_pb2 as _duration_pb2
-from google.protobuf.internal import containers as _containers
-from google.protobuf import descriptor as _descriptor
-from google.protobuf import message as _message
-from typing import ClassVar as _ClassVar, Iterable as _Iterable, Mapping as _Mapping, Optional as _Optional, Union as _Union
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
@@ -17,10 +23,43 @@ class TokenGetInfoQuery(_message.Message):
     TOKEN_FIELD_NUMBER: _ClassVar[int]
     header: _query_header_pb2.QueryHeader
     token: _basic_types_pb2.TokenID
-    def __init__(self, header: _Optional[_Union[_query_header_pb2.QueryHeader, _Mapping]] = ..., token: _Optional[_Union[_basic_types_pb2.TokenID, _Mapping]] = ...) -> None: ...
+    def __init__(
+        self,
+        header: _Optional[_Union[_query_header_pb2.QueryHeader, _Mapping]] = ...,
+        token: _Optional[_Union[_basic_types_pb2.TokenID, _Mapping]] = ...,
+    ) -> None: ...
 
 class TokenInfo(_message.Message):
-    __slots__ = ("tokenId", "name", "symbol", "decimals", "totalSupply", "treasury", "adminKey", "kycKey", "freezeKey", "wipeKey", "supplyKey", "defaultFreezeStatus", "defaultKycStatus", "deleted", "autoRenewAccount", "autoRenewPeriod", "expiry", "memo", "tokenType", "supplyType", "maxSupply", "fee_schedule_key", "custom_fees", "pause_key", "pause_status", "ledger_id", "metadata", "metadata_key")
+    __slots__ = (
+        "tokenId",
+        "name",
+        "symbol",
+        "decimals",
+        "totalSupply",
+        "treasury",
+        "adminKey",
+        "kycKey",
+        "freezeKey",
+        "wipeKey",
+        "supplyKey",
+        "defaultFreezeStatus",
+        "defaultKycStatus",
+        "deleted",
+        "autoRenewAccount",
+        "autoRenewPeriod",
+        "expiry",
+        "memo",
+        "tokenType",
+        "supplyType",
+        "maxSupply",
+        "fee_schedule_key",
+        "custom_fees",
+        "pause_key",
+        "pause_status",
+        "ledger_id",
+        "metadata",
+        "metadata_key",
+    )
     TOKENID_FIELD_NUMBER: _ClassVar[int]
     NAME_FIELD_NUMBER: _ClassVar[int]
     SYMBOL_FIELD_NUMBER: _ClassVar[int]
@@ -77,7 +116,41 @@ class TokenInfo(_message.Message):
     ledger_id: bytes
     metadata: bytes
     metadata_key: _basic_types_pb2.Key
-    def __init__(self, tokenId: _Optional[_Union[_basic_types_pb2.TokenID, _Mapping]] = ..., name: _Optional[str] = ..., symbol: _Optional[str] = ..., decimals: _Optional[int] = ..., totalSupply: _Optional[int] = ..., treasury: _Optional[_Union[_basic_types_pb2.AccountID, _Mapping]] = ..., adminKey: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ..., kycKey: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ..., freezeKey: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ..., wipeKey: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ..., supplyKey: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ..., defaultFreezeStatus: _Optional[_Union[_basic_types_pb2.TokenFreezeStatus, str]] = ..., defaultKycStatus: _Optional[_Union[_basic_types_pb2.TokenKycStatus, str]] = ..., deleted: bool = ..., autoRenewAccount: _Optional[_Union[_basic_types_pb2.AccountID, _Mapping]] = ..., autoRenewPeriod: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ..., expiry: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., memo: _Optional[str] = ..., tokenType: _Optional[_Union[_basic_types_pb2.TokenType, str]] = ..., supplyType: _Optional[_Union[_basic_types_pb2.TokenSupplyType, str]] = ..., maxSupply: _Optional[int] = ..., fee_schedule_key: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ..., custom_fees: _Optional[_Iterable[_Union[_custom_fees_pb2.CustomFee, _Mapping]]] = ..., pause_key: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ..., pause_status: _Optional[_Union[_basic_types_pb2.TokenPauseStatus, str]] = ..., ledger_id: _Optional[bytes] = ..., metadata: _Optional[bytes] = ..., metadata_key: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ...) -> None: ...
+    def __init__(
+        self,
+        tokenId: _Optional[_Union[_basic_types_pb2.TokenID, _Mapping]] = ...,
+        name: _Optional[str] = ...,
+        symbol: _Optional[str] = ...,
+        decimals: _Optional[int] = ...,
+        totalSupply: _Optional[int] = ...,
+        treasury: _Optional[_Union[_basic_types_pb2.AccountID, _Mapping]] = ...,
+        adminKey: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ...,
+        kycKey: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ...,
+        freezeKey: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ...,
+        wipeKey: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ...,
+        supplyKey: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ...,
+        defaultFreezeStatus: _Optional[
+            _Union[_basic_types_pb2.TokenFreezeStatus, str]
+        ] = ...,
+        defaultKycStatus: _Optional[_Union[_basic_types_pb2.TokenKycStatus, str]] = ...,
+        deleted: bool = ...,
+        autoRenewAccount: _Optional[_Union[_basic_types_pb2.AccountID, _Mapping]] = ...,
+        autoRenewPeriod: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ...,
+        expiry: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...,
+        memo: _Optional[str] = ...,
+        tokenType: _Optional[_Union[_basic_types_pb2.TokenType, str]] = ...,
+        supplyType: _Optional[_Union[_basic_types_pb2.TokenSupplyType, str]] = ...,
+        maxSupply: _Optional[int] = ...,
+        fee_schedule_key: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ...,
+        custom_fees: _Optional[
+            _Iterable[_Union[_custom_fees_pb2.CustomFee, _Mapping]]
+        ] = ...,
+        pause_key: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ...,
+        pause_status: _Optional[_Union[_basic_types_pb2.TokenPauseStatus, str]] = ...,
+        ledger_id: _Optional[bytes] = ...,
+        metadata: _Optional[bytes] = ...,
+        metadata_key: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ...,
+    ) -> None: ...
 
 class TokenGetInfoResponse(_message.Message):
     __slots__ = ("header", "tokenInfo")
@@ -85,4 +158,8 @@ class TokenGetInfoResponse(_message.Message):
     TOKENINFO_FIELD_NUMBER: _ClassVar[int]
     header: _response_header_pb2.ResponseHeader
     tokenInfo: TokenInfo
-    def __init__(self, header: _Optional[_Union[_response_header_pb2.ResponseHeader, _Mapping]] = ..., tokenInfo: _Optional[_Union[TokenInfo, _Mapping]] = ...) -> None: ...
+    def __init__(
+        self,
+        header: _Optional[_Union[_response_header_pb2.ResponseHeader, _Mapping]] = ...,
+        tokenInfo: _Optional[_Union[TokenInfo, _Mapping]] = ...,
+    ) -> None: ...

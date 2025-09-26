@@ -1,11 +1,17 @@
-from . import basic_types_pb2 as _basic_types_pb2
-from . import token_get_nft_info_pb2 as _token_get_nft_info_pb2
-from . import query_header_pb2 as _query_header_pb2
-from . import response_header_pb2 as _response_header_pb2
-from google.protobuf.internal import containers as _containers
+from typing import ClassVar as _ClassVar
+from typing import Iterable as _Iterable
+from typing import Mapping as _Mapping
+from typing import Optional as _Optional
+from typing import Union as _Union
+
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
-from typing import ClassVar as _ClassVar, Iterable as _Iterable, Mapping as _Mapping, Optional as _Optional, Union as _Union
+from google.protobuf.internal import containers as _containers
+
+from . import basic_types_pb2 as _basic_types_pb2
+from . import query_header_pb2 as _query_header_pb2
+from . import response_header_pb2 as _response_header_pb2
+from . import token_get_nft_info_pb2 as _token_get_nft_info_pb2
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
@@ -19,7 +25,13 @@ class TokenGetNftInfosQuery(_message.Message):
     tokenID: _basic_types_pb2.TokenID
     start: int
     end: int
-    def __init__(self, header: _Optional[_Union[_query_header_pb2.QueryHeader, _Mapping]] = ..., tokenID: _Optional[_Union[_basic_types_pb2.TokenID, _Mapping]] = ..., start: _Optional[int] = ..., end: _Optional[int] = ...) -> None: ...
+    def __init__(
+        self,
+        header: _Optional[_Union[_query_header_pb2.QueryHeader, _Mapping]] = ...,
+        tokenID: _Optional[_Union[_basic_types_pb2.TokenID, _Mapping]] = ...,
+        start: _Optional[int] = ...,
+        end: _Optional[int] = ...,
+    ) -> None: ...
 
 class TokenGetNftInfosResponse(_message.Message):
     __slots__ = ("header", "tokenID", "nfts")
@@ -28,5 +40,14 @@ class TokenGetNftInfosResponse(_message.Message):
     NFTS_FIELD_NUMBER: _ClassVar[int]
     header: _response_header_pb2.ResponseHeader
     tokenID: _basic_types_pb2.TokenID
-    nfts: _containers.RepeatedCompositeFieldContainer[_token_get_nft_info_pb2.TokenNftInfo]
-    def __init__(self, header: _Optional[_Union[_response_header_pb2.ResponseHeader, _Mapping]] = ..., tokenID: _Optional[_Union[_basic_types_pb2.TokenID, _Mapping]] = ..., nfts: _Optional[_Iterable[_Union[_token_get_nft_info_pb2.TokenNftInfo, _Mapping]]] = ...) -> None: ...
+    nfts: _containers.RepeatedCompositeFieldContainer[
+        _token_get_nft_info_pb2.TokenNftInfo
+    ]
+    def __init__(
+        self,
+        header: _Optional[_Union[_response_header_pb2.ResponseHeader, _Mapping]] = ...,
+        tokenID: _Optional[_Union[_basic_types_pb2.TokenID, _Mapping]] = ...,
+        nfts: _Optional[
+            _Iterable[_Union[_token_get_nft_info_pb2.TokenNftInfo, _Mapping]]
+        ] = ...,
+    ) -> None: ...

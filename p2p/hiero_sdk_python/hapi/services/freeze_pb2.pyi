@@ -1,14 +1,28 @@
-from . import timestamp_pb2 as _timestamp_pb2
-from . import basic_types_pb2 as _basic_types_pb2
-from . import freeze_type_pb2 as _freeze_type_pb2
+from typing import ClassVar as _ClassVar
+from typing import Mapping as _Mapping
+from typing import Optional as _Optional
+from typing import Union as _Union
+
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
-from typing import ClassVar as _ClassVar, Mapping as _Mapping, Optional as _Optional, Union as _Union
+
+from . import basic_types_pb2 as _basic_types_pb2
+from . import freeze_type_pb2 as _freeze_type_pb2
+from . import timestamp_pb2 as _timestamp_pb2
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
 class FreezeTransactionBody(_message.Message):
-    __slots__ = ("startHour", "startMin", "endHour", "endMin", "update_file", "file_hash", "start_time", "freeze_type")
+    __slots__ = (
+        "startHour",
+        "startMin",
+        "endHour",
+        "endMin",
+        "update_file",
+        "file_hash",
+        "start_time",
+        "freeze_type",
+    )
     STARTHOUR_FIELD_NUMBER: _ClassVar[int]
     STARTMIN_FIELD_NUMBER: _ClassVar[int]
     ENDHOUR_FIELD_NUMBER: _ClassVar[int]
@@ -25,4 +39,14 @@ class FreezeTransactionBody(_message.Message):
     file_hash: bytes
     start_time: _timestamp_pb2.Timestamp
     freeze_type: _freeze_type_pb2.FreezeType
-    def __init__(self, startHour: _Optional[int] = ..., startMin: _Optional[int] = ..., endHour: _Optional[int] = ..., endMin: _Optional[int] = ..., update_file: _Optional[_Union[_basic_types_pb2.FileID, _Mapping]] = ..., file_hash: _Optional[bytes] = ..., start_time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., freeze_type: _Optional[_Union[_freeze_type_pb2.FreezeType, str]] = ...) -> None: ...
+    def __init__(
+        self,
+        startHour: _Optional[int] = ...,
+        startMin: _Optional[int] = ...,
+        endHour: _Optional[int] = ...,
+        endMin: _Optional[int] = ...,
+        update_file: _Optional[_Union[_basic_types_pb2.FileID, _Mapping]] = ...,
+        file_hash: _Optional[bytes] = ...,
+        start_time: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...,
+        freeze_type: _Optional[_Union[_freeze_type_pb2.FreezeType, str]] = ...,
+    ) -> None: ...

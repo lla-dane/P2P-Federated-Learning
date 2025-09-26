@@ -1,6 +1,8 @@
+from typing import ClassVar as _ClassVar
+from typing import Optional as _Optional
+
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
-from typing import ClassVar as _ClassVar, Optional as _Optional
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
@@ -10,4 +12,6 @@ class CrsPublicationTransactionBody(_message.Message):
     PROOF_FIELD_NUMBER: _ClassVar[int]
     new_crs: bytes
     proof: bytes
-    def __init__(self, new_crs: _Optional[bytes] = ..., proof: _Optional[bytes] = ...) -> None: ...
+    def __init__(
+        self, new_crs: _Optional[bytes] = ..., proof: _Optional[bytes] = ...
+    ) -> None: ...

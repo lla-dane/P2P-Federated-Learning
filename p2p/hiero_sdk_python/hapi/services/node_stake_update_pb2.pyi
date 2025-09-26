@@ -1,14 +1,35 @@
-from . import basic_types_pb2 as _basic_types_pb2
-from . import timestamp_pb2 as _timestamp_pb2
-from google.protobuf.internal import containers as _containers
+from typing import ClassVar as _ClassVar
+from typing import Iterable as _Iterable
+from typing import Mapping as _Mapping
+from typing import Optional as _Optional
+from typing import Union as _Union
+
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
-from typing import ClassVar as _ClassVar, Iterable as _Iterable, Mapping as _Mapping, Optional as _Optional, Union as _Union
+from google.protobuf.internal import containers as _containers
+
+from . import basic_types_pb2 as _basic_types_pb2
+from . import timestamp_pb2 as _timestamp_pb2
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
 class NodeStakeUpdateTransactionBody(_message.Message):
-    __slots__ = ("end_of_staking_period", "node_stake", "max_staking_reward_rate_per_hbar", "node_reward_fee_fraction", "staking_periods_stored", "staking_period", "staking_reward_fee_fraction", "staking_start_threshold", "staking_reward_rate", "reserved_staking_rewards", "unreserved_staking_reward_balance", "reward_balance_threshold", "max_stake_rewarded", "max_total_reward")
+    __slots__ = (
+        "end_of_staking_period",
+        "node_stake",
+        "max_staking_reward_rate_per_hbar",
+        "node_reward_fee_fraction",
+        "staking_periods_stored",
+        "staking_period",
+        "staking_reward_fee_fraction",
+        "staking_start_threshold",
+        "staking_reward_rate",
+        "reserved_staking_rewards",
+        "unreserved_staking_reward_balance",
+        "reward_balance_threshold",
+        "max_stake_rewarded",
+        "max_total_reward",
+    )
     END_OF_STAKING_PERIOD_FIELD_NUMBER: _ClassVar[int]
     NODE_STAKE_FIELD_NUMBER: _ClassVar[int]
     MAX_STAKING_REWARD_RATE_PER_HBAR_FIELD_NUMBER: _ClassVar[int]
@@ -37,10 +58,40 @@ class NodeStakeUpdateTransactionBody(_message.Message):
     reward_balance_threshold: int
     max_stake_rewarded: int
     max_total_reward: int
-    def __init__(self, end_of_staking_period: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., node_stake: _Optional[_Iterable[_Union[NodeStake, _Mapping]]] = ..., max_staking_reward_rate_per_hbar: _Optional[int] = ..., node_reward_fee_fraction: _Optional[_Union[_basic_types_pb2.Fraction, _Mapping]] = ..., staking_periods_stored: _Optional[int] = ..., staking_period: _Optional[int] = ..., staking_reward_fee_fraction: _Optional[_Union[_basic_types_pb2.Fraction, _Mapping]] = ..., staking_start_threshold: _Optional[int] = ..., staking_reward_rate: _Optional[int] = ..., reserved_staking_rewards: _Optional[int] = ..., unreserved_staking_reward_balance: _Optional[int] = ..., reward_balance_threshold: _Optional[int] = ..., max_stake_rewarded: _Optional[int] = ..., max_total_reward: _Optional[int] = ...) -> None: ...
+    def __init__(
+        self,
+        end_of_staking_period: _Optional[
+            _Union[_timestamp_pb2.Timestamp, _Mapping]
+        ] = ...,
+        node_stake: _Optional[_Iterable[_Union[NodeStake, _Mapping]]] = ...,
+        max_staking_reward_rate_per_hbar: _Optional[int] = ...,
+        node_reward_fee_fraction: _Optional[
+            _Union[_basic_types_pb2.Fraction, _Mapping]
+        ] = ...,
+        staking_periods_stored: _Optional[int] = ...,
+        staking_period: _Optional[int] = ...,
+        staking_reward_fee_fraction: _Optional[
+            _Union[_basic_types_pb2.Fraction, _Mapping]
+        ] = ...,
+        staking_start_threshold: _Optional[int] = ...,
+        staking_reward_rate: _Optional[int] = ...,
+        reserved_staking_rewards: _Optional[int] = ...,
+        unreserved_staking_reward_balance: _Optional[int] = ...,
+        reward_balance_threshold: _Optional[int] = ...,
+        max_stake_rewarded: _Optional[int] = ...,
+        max_total_reward: _Optional[int] = ...,
+    ) -> None: ...
 
 class NodeStake(_message.Message):
-    __slots__ = ("max_stake", "min_stake", "node_id", "reward_rate", "stake", "stake_not_rewarded", "stake_rewarded")
+    __slots__ = (
+        "max_stake",
+        "min_stake",
+        "node_id",
+        "reward_rate",
+        "stake",
+        "stake_not_rewarded",
+        "stake_rewarded",
+    )
     MAX_STAKE_FIELD_NUMBER: _ClassVar[int]
     MIN_STAKE_FIELD_NUMBER: _ClassVar[int]
     NODE_ID_FIELD_NUMBER: _ClassVar[int]
@@ -55,4 +106,13 @@ class NodeStake(_message.Message):
     stake: int
     stake_not_rewarded: int
     stake_rewarded: int
-    def __init__(self, max_stake: _Optional[int] = ..., min_stake: _Optional[int] = ..., node_id: _Optional[int] = ..., reward_rate: _Optional[int] = ..., stake: _Optional[int] = ..., stake_not_rewarded: _Optional[int] = ..., stake_rewarded: _Optional[int] = ...) -> None: ...
+    def __init__(
+        self,
+        max_stake: _Optional[int] = ...,
+        min_stake: _Optional[int] = ...,
+        node_id: _Optional[int] = ...,
+        reward_rate: _Optional[int] = ...,
+        stake: _Optional[int] = ...,
+        stake_not_rewarded: _Optional[int] = ...,
+        stake_rewarded: _Optional[int] = ...,
+    ) -> None: ...

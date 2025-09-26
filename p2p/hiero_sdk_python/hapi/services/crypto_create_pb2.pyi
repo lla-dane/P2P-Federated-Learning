@@ -1,13 +1,35 @@
-from . import basic_types_pb2 as _basic_types_pb2
-from . import duration_pb2 as _duration_pb2
+from typing import ClassVar as _ClassVar
+from typing import Mapping as _Mapping
+from typing import Optional as _Optional
+from typing import Union as _Union
+
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
-from typing import ClassVar as _ClassVar, Mapping as _Mapping, Optional as _Optional, Union as _Union
+
+from . import basic_types_pb2 as _basic_types_pb2
+from . import duration_pb2 as _duration_pb2
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
 class CryptoCreateTransactionBody(_message.Message):
-    __slots__ = ("key", "initialBalance", "proxyAccountID", "sendRecordThreshold", "receiveRecordThreshold", "receiverSigRequired", "autoRenewPeriod", "shardID", "realmID", "newRealmAdminKey", "memo", "max_automatic_token_associations", "staked_account_id", "staked_node_id", "decline_reward", "alias")
+    __slots__ = (
+        "key",
+        "initialBalance",
+        "proxyAccountID",
+        "sendRecordThreshold",
+        "receiveRecordThreshold",
+        "receiverSigRequired",
+        "autoRenewPeriod",
+        "shardID",
+        "realmID",
+        "newRealmAdminKey",
+        "memo",
+        "max_automatic_token_associations",
+        "staked_account_id",
+        "staked_node_id",
+        "decline_reward",
+        "alias",
+    )
     KEY_FIELD_NUMBER: _ClassVar[int]
     INITIALBALANCE_FIELD_NUMBER: _ClassVar[int]
     PROXYACCOUNTID_FIELD_NUMBER: _ClassVar[int]
@@ -40,4 +62,24 @@ class CryptoCreateTransactionBody(_message.Message):
     staked_node_id: int
     decline_reward: bool
     alias: bytes
-    def __init__(self, key: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ..., initialBalance: _Optional[int] = ..., proxyAccountID: _Optional[_Union[_basic_types_pb2.AccountID, _Mapping]] = ..., sendRecordThreshold: _Optional[int] = ..., receiveRecordThreshold: _Optional[int] = ..., receiverSigRequired: bool = ..., autoRenewPeriod: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ..., shardID: _Optional[_Union[_basic_types_pb2.ShardID, _Mapping]] = ..., realmID: _Optional[_Union[_basic_types_pb2.RealmID, _Mapping]] = ..., newRealmAdminKey: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ..., memo: _Optional[str] = ..., max_automatic_token_associations: _Optional[int] = ..., staked_account_id: _Optional[_Union[_basic_types_pb2.AccountID, _Mapping]] = ..., staked_node_id: _Optional[int] = ..., decline_reward: bool = ..., alias: _Optional[bytes] = ...) -> None: ...
+    def __init__(
+        self,
+        key: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ...,
+        initialBalance: _Optional[int] = ...,
+        proxyAccountID: _Optional[_Union[_basic_types_pb2.AccountID, _Mapping]] = ...,
+        sendRecordThreshold: _Optional[int] = ...,
+        receiveRecordThreshold: _Optional[int] = ...,
+        receiverSigRequired: bool = ...,
+        autoRenewPeriod: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ...,
+        shardID: _Optional[_Union[_basic_types_pb2.ShardID, _Mapping]] = ...,
+        realmID: _Optional[_Union[_basic_types_pb2.RealmID, _Mapping]] = ...,
+        newRealmAdminKey: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ...,
+        memo: _Optional[str] = ...,
+        max_automatic_token_associations: _Optional[int] = ...,
+        staked_account_id: _Optional[
+            _Union[_basic_types_pb2.AccountID, _Mapping]
+        ] = ...,
+        staked_node_id: _Optional[int] = ...,
+        decline_reward: bool = ...,
+        alias: _Optional[bytes] = ...,
+    ) -> None: ...

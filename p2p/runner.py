@@ -28,6 +28,8 @@ env_path = Path("..") / ".env"
 load_dotenv(dotenv_path=env_path)
 
 logger = setup_logging("runner")
+OPERATOR_KEY = os.getenv("OPERATOR_KEY")
+OPERATOR_ID = os.getenv("OPERATOR_ID")
 
 
 async def interactive_shell() -> None:
@@ -37,12 +39,17 @@ async def interactive_shell() -> None:
             "Configure the role of the node client/trainer/bootstrap [default: bootstrap]: "
         )
     )
-    pvt_key = await trio.to_thread.run_sync(
-        lambda: input("Enter the private key [default: private-key]: ")
+    operator_key = await trio.to_thread.run_sync(
+        lambda: input("Enter the operator key [default: operator_key]: ")
+    )
+    operator_id = await trio.to_thread.run_sync(
+        lambda: input("Enter the operator id [default: operator_id]: ")
     )
 
     node = Node(
-        role=role.strip() or "bootstrap", pvt_key=pvt_key.strip() or "private-key"
+        role=role.strip() or "bootstrap",
+        operator_key=operator_key.strip() or OPERATOR_KEY,
+        operator_id=operator_id.strip() or OPERATOR_ID,
     )
     node.mesh.fed_mesh_id = FED_LEARNING_MESH
 

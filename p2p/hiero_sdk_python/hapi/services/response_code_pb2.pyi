@@ -1,6 +1,7 @@
-from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
-from google.protobuf import descriptor as _descriptor
 from typing import ClassVar as _ClassVar
+
+from google.protobuf import descriptor as _descriptor
+from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
@@ -218,7 +219,9 @@ class ResponseCodeEnum(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     ACCOUNT_STILL_OWNS_NFTS: _ClassVar[ResponseCodeEnum]
     TREASURY_MUST_OWN_BURNED_NFT: _ClassVar[ResponseCodeEnum]
     ACCOUNT_DOES_NOT_OWN_WIPED_NFT: _ClassVar[ResponseCodeEnum]
-    ACCOUNT_AMOUNT_TRANSFERS_ONLY_ALLOWED_FOR_FUNGIBLE_COMMON: _ClassVar[ResponseCodeEnum]
+    ACCOUNT_AMOUNT_TRANSFERS_ONLY_ALLOWED_FOR_FUNGIBLE_COMMON: _ClassVar[
+        ResponseCodeEnum
+    ]
     MAX_NFTS_IN_PRICE_REGIME_HAVE_BEEN_MINTED: _ClassVar[ResponseCodeEnum]
     PAYER_ACCOUNT_DELETED: _ClassVar[ResponseCodeEnum]
     CUSTOM_FEE_CHARGING_EXCEEDED_MAX_RECURSION_DEPTH: _ClassVar[ResponseCodeEnum]
@@ -228,7 +231,9 @@ class ResponseCodeEnum(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     CUSTOM_ROYALTY_FEE_ONLY_ALLOWED_FOR_NON_FUNGIBLE_UNIQUE: _ClassVar[ResponseCodeEnum]
     NO_REMAINING_AUTOMATIC_ASSOCIATIONS: _ClassVar[ResponseCodeEnum]
     EXISTING_AUTOMATIC_ASSOCIATIONS_EXCEED_GIVEN_LIMIT: _ClassVar[ResponseCodeEnum]
-    REQUESTED_NUM_AUTOMATIC_ASSOCIATIONS_EXCEEDS_ASSOCIATION_LIMIT: _ClassVar[ResponseCodeEnum]
+    REQUESTED_NUM_AUTOMATIC_ASSOCIATIONS_EXCEEDS_ASSOCIATION_LIMIT: _ClassVar[
+        ResponseCodeEnum
+    ]
     TOKEN_IS_PAUSED: _ClassVar[ResponseCodeEnum]
     TOKEN_HAS_NO_PAUSE_KEY: _ClassVar[ResponseCodeEnum]
     INVALID_PAUSE_KEY: _ClassVar[ResponseCodeEnum]
@@ -271,7 +276,9 @@ class ResponseCodeEnum(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     DELEGATING_SPENDER_CANNOT_GRANT_APPROVE_FOR_ALL: _ClassVar[ResponseCodeEnum]
     DELEGATING_SPENDER_DOES_NOT_HAVE_APPROVE_FOR_ALL: _ClassVar[ResponseCodeEnum]
     SCHEDULE_EXPIRATION_TIME_TOO_FAR_IN_FUTURE: _ClassVar[ResponseCodeEnum]
-    SCHEDULE_EXPIRATION_TIME_MUST_BE_HIGHER_THAN_CONSENSUS_TIME: _ClassVar[ResponseCodeEnum]
+    SCHEDULE_EXPIRATION_TIME_MUST_BE_HIGHER_THAN_CONSENSUS_TIME: _ClassVar[
+        ResponseCodeEnum
+    ]
     SCHEDULE_FUTURE_THROTTLE_EXCEEDED: _ClassVar[ResponseCodeEnum]
     SCHEDULE_FUTURE_GAS_LIMIT_EXCEEDED: _ClassVar[ResponseCodeEnum]
     INVALID_ETHEREUM_TRANSACTION: _ClassVar[ResponseCodeEnum]
@@ -364,6 +371,7 @@ class ResponseCodeEnum(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     THROTTLE_GROUP_LCM_OVERFLOW: _ClassVar[ResponseCodeEnum]
     AIRDROP_CONTAINS_MULTIPLE_SENDERS_FOR_A_TOKEN: _ClassVar[ResponseCodeEnum]
     GRPC_WEB_PROXY_NOT_SUPPORTED: _ClassVar[ResponseCodeEnum]
+
 OK: ResponseCodeEnum
 INVALID_TRANSACTION: ResponseCodeEnum
 PAYER_ACCOUNT_NOT_FOUND: ResponseCodeEnum

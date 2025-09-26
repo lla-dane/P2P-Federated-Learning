@@ -1,7 +1,12 @@
-from . import timestamp_pb2 as _timestamp_pb2
+from typing import ClassVar as _ClassVar
+from typing import Mapping as _Mapping
+from typing import Optional as _Optional
+from typing import Union as _Union
+
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
-from typing import ClassVar as _ClassVar, Mapping as _Mapping, Optional as _Optional, Union as _Union
+
+from . import timestamp_pb2 as _timestamp_pb2
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
@@ -13,7 +18,14 @@ class ExchangeRate(_message.Message):
     hbarEquiv: int
     centEquiv: int
     expirationTime: _timestamp_pb2.TimestampSeconds
-    def __init__(self, hbarEquiv: _Optional[int] = ..., centEquiv: _Optional[int] = ..., expirationTime: _Optional[_Union[_timestamp_pb2.TimestampSeconds, _Mapping]] = ...) -> None: ...
+    def __init__(
+        self,
+        hbarEquiv: _Optional[int] = ...,
+        centEquiv: _Optional[int] = ...,
+        expirationTime: _Optional[
+            _Union[_timestamp_pb2.TimestampSeconds, _Mapping]
+        ] = ...,
+    ) -> None: ...
 
 class ExchangeRateSet(_message.Message):
     __slots__ = ("currentRate", "nextRate")
@@ -21,4 +33,8 @@ class ExchangeRateSet(_message.Message):
     NEXTRATE_FIELD_NUMBER: _ClassVar[int]
     currentRate: ExchangeRate
     nextRate: ExchangeRate
-    def __init__(self, currentRate: _Optional[_Union[ExchangeRate, _Mapping]] = ..., nextRate: _Optional[_Union[ExchangeRate, _Mapping]] = ...) -> None: ...
+    def __init__(
+        self,
+        currentRate: _Optional[_Union[ExchangeRate, _Mapping]] = ...,
+        nextRate: _Optional[_Union[ExchangeRate, _Mapping]] = ...,
+    ) -> None: ...
