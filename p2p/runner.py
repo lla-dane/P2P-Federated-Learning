@@ -2,8 +2,11 @@ import os
 import sys
 from pathlib import Path
 
+from dotenv import load_dotenv
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from prompt_toolkit import PromptSession
+
 session = PromptSession()
 import multiaddr
 import trio
@@ -12,7 +15,6 @@ from coordinator import (
     FED_LEARNING_MESH,
     Node,
 )
-from dotenv import load_dotenv
 from libp2p.peer.peerinfo import (
     info_from_p2p_addr,
 )
@@ -134,7 +136,9 @@ async def interactive_shell() -> None:
                 while not node.termination_event.is_set():
                     try:
                         _ = await trio.to_thread.run_sync(input)
-                        user_input = await trio.to_thread.run_sync(lambda: session.prompt("Command> "))
+                        user_input = await trio.to_thread.run_sync(
+                            lambda: session.prompt("Command> ")
+                        )
                         cmds = user_input.strip().split(" ", 2)
                         await node.send_channel.send(cmds)
 

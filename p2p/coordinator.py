@@ -239,7 +239,7 @@ class Node:
                     if cmd == "assign" and len(parts) == 3:
                         model_hash = parts[1]
                         assignments: dict = ast.literal_eval(parts[2])
-                        logger.info(f"Received assignments")
+                        logger.info("Received assignments")
                         node_id: str = self.host.get_id()
                         for k, v in assignments.items():
                             if k == node_id:
@@ -250,7 +250,8 @@ class Node:
                                     )
                                     if weights:
                                         self.publish_on_chain(
-                                            int(self.subscribed_topics[-1]), str(weights)
+                                            int(self.subscribed_topics[-1]),
+                                            str(weights),
                                         )
                                         await self.pubsub.publish(
                                             self.training_topic,
@@ -263,7 +264,7 @@ class Node:
                                 await self.pubsub.publish(
                                     parts[1], "Left as a TRAINER self".encode()
                                 )
-                                
+
                     if cmd == "join" and len(parts) > 1:
                         if self.role != "trainer":
                             logger.warning(
@@ -574,19 +575,19 @@ class Node:
                 if cmd == "bootmesh":
                     bootmesh: dict = self.mesh.get_bootstrap_mesh()
                     return jsonify({"status": "ok", "bootmesh": bootmesh})
-                
+
                 elif cmd == "mesh":
                     mesh: dict = self.mesh.get_local_mesh()
                     return jsonify({"status": "ok", "mesh": mesh})
-                
+
                 elif cmd == "peers":
                     peers = self.mesh.get_connected_nodes()
-                    return jsonify({"status": "ok", "peers": list(peers)})     
-                
+                    return jsonify({"status": "ok", "peers": list(peers)})
+
                 elif cmd == "local":
                     public_maddr = f"/ip4/{PUBLIC_IP}/tcp/{self.host.get_addrs()[0].value_for_protocol("tcp")}/p2p/{self.host.get_id()}"
                     return jsonify({"status": "ok", "addr": public_maddr})
-                                
+
                 else:
                     # forward as list if you want
                     await app.send_channel.send([cmd] + args)

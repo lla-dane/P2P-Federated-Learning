@@ -1,12 +1,15 @@
 import os
 import sys
+
 import requests
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from akave.mcache import Akave
 from logs import setup_logging
 
 logger = setup_logging("ml")
+
 
 class MLTrainer:
     def __init__(self):
@@ -16,7 +19,7 @@ class MLTrainer:
         """
         Assigns dataset chunks to different trainer nodes.
         """
-        logger.debug(f"Fetching dataset manifest from the provided URL")
+        logger.debug("Fetching dataset manifest from the provided URL")
         manifest_content = requests.get(dataset_url, stream=True)
         if not manifest_content:
             raise Exception("Failed to fetch dataset manifest from dataset_url.")

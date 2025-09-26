@@ -133,6 +133,17 @@ python3 runner.py
 
 git fetch origin
 git rebase origin/master
+
+sudo apt install unzip
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install
+
+
+sudo lsof -i:8000
+kill -9 28197
+
+curl ifconfig.me
 ```
 
 # EC2 connection

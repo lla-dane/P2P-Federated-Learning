@@ -1,13 +1,16 @@
 import os
 import sys
-import trio
+
 import requests
+import trio
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from pathlib import Path
-from prompt_toolkit import PromptSession
+
 from dotenv import load_dotenv
+from prompt_toolkit import PromptSession
+
 from akave.mcache import Akave
 from logs import setup_logging
 
@@ -93,7 +96,7 @@ def upload_dataset_to_akave(file_path: str) -> str:
     )
 
 
-def send_command(cmd, args = None):
+def send_command(cmd, args=None):
     url = f"{BASE_URL}/command"
     payload = {"cmd": cmd}
     if args:
@@ -104,7 +107,8 @@ def send_command(cmd, args = None):
         return resp.json()
     except requests.exceptions.RequestException as e:
         return {"error": str(e)}
-    
+
+
 def get_status():
     url = f"{BASE_URL}/status"
     try:
@@ -114,6 +118,7 @@ def get_status():
     except requests.exceptions.RequestException as e:
         return {"error": str(e)}
 
+
 async def interactive_shell() -> None:
 
     logger.info("Entering interactive mode. Type commands below.")
@@ -121,7 +126,9 @@ async def interactive_shell() -> None:
 
     while 1:
         try:
-            user_input = await trio.to_thread.run_sync(lambda: session.prompt("Command> "))
+            user_input = await trio.to_thread.run_sync(
+                lambda: session.prompt("Command> ")
+            )
             parts = user_input.strip().split(" ", 2)
 
             if not parts:
@@ -155,32 +162,32 @@ async def interactive_shell() -> None:
                 if not dataset or not code:
                     logger.error("Usage: train <dataset> <code>")
                     continue
-                
+
             if cmd == "publish" and len(parts) == 3:
                 logger.info(send_command("publish", [parts[1], parts[2]]))
-            
+
             if cmd == "topics":
                 logger.info(send_command("topics"))
-                
+
             if cmd == "mesh":
                 logger.info(send_command("mesh"))
-                
+
             if cmd == "bootmesh":
                 logger.info(send_command("bootmesh"))
-                
+
             if cmd == "peers":
                 logger.info(send_command("peers"))
-                
+
             if cmd == "local":
                 logger.info(send_command("local"))
-                
+
             if cmd == "help":
                 logger.debug(COMMANDS)
 
             if cmd == "exit":
                 logger.warning("Exiting...")
                 break
-                
+
         except Exception as e:
             logger.error(f"Error in the interactive shell: {e}")
             await trio.sleep(1)
