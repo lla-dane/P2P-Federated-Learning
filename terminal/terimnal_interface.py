@@ -1,11 +1,13 @@
 import os
 import sys
 from pathlib import Path
+from prompt_toolkit import PromptSession
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import trio
 from dotenv import load_dotenv
 
+session = PromptSession()
 from akave.mcache import Akave
 from logs import setup_logging
 
@@ -89,7 +91,7 @@ async def interactive_shell() -> None:
 
     while 1:
         try:
-            user_input = await trio.to_thread.run_sync(lambda: input("Command> "))
+            user_input = await trio.to_thread.run_sync(lambda: session.prompt("Command> "))
             parts = user_input.strip().split(" ", 2)
 
             if not parts:

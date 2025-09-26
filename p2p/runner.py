@@ -3,7 +3,8 @@ import sys
 from pathlib import Path
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
+from prompt_toolkit import PromptSession
+session = PromptSession()
 import multiaddr
 import trio
 from coordinator import (
@@ -133,9 +134,7 @@ async def interactive_shell() -> None:
                 while not node.termination_event.is_set():
                     try:
                         _ = await trio.to_thread.run_sync(input)
-                        user_input = await trio.to_thread.run_sync(
-                            lambda: input("Command> ")
-                        )
+                        user_input = await trio.to_thread.run_sync(lambda: session.prompt("Command> "))
                         cmds = user_input.strip().split(" ", 2)
                         await node.send_channel.send(cmds)
 
