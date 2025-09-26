@@ -250,7 +250,7 @@ class Node:
                                     )
                                     if weights:
                                         await self.publish_on_chain(
-                                            int(self.subscribed_topics[-1]), weights
+                                            int(self.subscribed_topics[-1]), str(weights)
                                         )
                                         await self.pubsub.publish(
                                             self.training_topic,
