@@ -10,6 +10,19 @@ import Crypto.PublicKey.RSA as RSA
 import multiaddr
 import trio
 from dotenv import load_dotenv
+from hiero_sdk_python import (
+    Client,
+    AccountId,
+    PrivateKey,
+    Network,
+    ResponseCode
+)
+from hiero_sdk_python.contract.contract_execute_transaction import ContractExecuteTransaction
+from hiero_sdk_python.contract.contract_call_query import ContractCallQuery
+from hiero_sdk_python.contract.contract_function_parameters import ContractFunctionParameters
+from hiero_sdk_python.contract.contract_id import ContractId
+from hiero_sdk_python.hbar import Hbar
+
 from hypercorn.config import Config
 from hypercorn.trio import serve
 from libp2p import new_host
@@ -99,6 +112,9 @@ class Node:
         self.mesh = Mesh()
         self.ml_trainer = MLTrainer()
         self.pvt_key = pvt_key
+
+        ## IMP
+        # write the code for operator id and key
         # Set up the general host configs
 
         if role == "bootstrap":
@@ -137,6 +153,41 @@ class Node:
 
         # Send/Receive channels
         self.send_channel, self.receive_channel = trio.open_memory_channel(100)
+        self.client = self.setup_client()
+        self.contract_id = ContractId.from_string(os.getenv("CONTRACT_ID"))
+
+    def setup_client(self):
+        """Initialize and set up the client with operator account"""
+        network = Network(network="testnet")
+        client = Client(network)
+
+        operator_id = AccountId.from_string(self.operator_id)
+        operator_key = PrivateKey.from_string(self.operator_key)
+        client.set_operator(operator_id, operator_key)
+
+        return client
+
+
+    def publish_on_chain(self, task_id, weights):
+        receipt = (
+            ContractExecuteTransaction()
+            .set_contract_id(self.contract_id)
+            .set_gas(2000000)
+            .set_function(
+                "submitWeights",
+                ContractFunctionParameters()
+                .add_uint256(task_id)
+                .add_string(weights)
+            )
+            .execute(self.client)
+        )
+
+        if receipt.status != ResponseCode.SUCCESS:
+            status_message = ResponseCode(receipt.status).name
+            raise Exception(f"Transaction failed with status: {status_message}")
+    
+
+
 
     async def command_executor(self, nursery):
         logger.warning("Starting command executor loop")
@@ -205,6 +256,7 @@ class Node:
                                         chunk_cid, model_hash
                                     )
                                     if weights:
+                                        await self.publish_on_chain(self.subscribed_topics[0], weights)
                                         await self.pubsub.publish(
                                             self.training_topic,
                                             f"weights {node_id} {weights}".encode(),

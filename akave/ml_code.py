@@ -1,9 +1,9 @@
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder, StandardScaler
-
+import pandas as pd
 # dataset is already provided by exec_globals in train_on_chunk
-df = dataset.copy()  # noqa: F821
+df = pd.read_csv("./dataset.csv")  # noqa: F821
 
 # Drop id column (not useful for training)
 df = df.drop(columns=["id"])
@@ -42,3 +42,5 @@ model_weights = {
     "scaler_mean": scaler.mean_.tolist(),
     "scaler_scale": scaler.scale_.tolist(),
 }
+
+print(f"model_weights: {model_weights}")

@@ -18,7 +18,6 @@ logger = setup_logging("runner")
 COMMANDS = """
 Available commands:
 - upload <dataset|model> <file_path>        - Upload a dataset or model to Akave
-- change <API_KEY|API_SECRET|JWT_TOKEN> <value> - Change Akave credentials
 - train <dataset_akave_hash> <model_akave_hash> - Start a training round
 - help                      - List the existing commands
 - exit                      - Shut down
@@ -38,7 +37,7 @@ def upload_dataset_to_akave(file_path: str) -> str:
         i = 0
         current_chunk = []
         current_size = 0
-        CHUNK_SIZE = 5 * 1024  # 5KB
+        CHUNK_SIZE = 50 * 1024  # 50KB
 
         # read the first line separately (header)
         header = f.readline()
@@ -85,20 +84,6 @@ def upload_dataset_to_akave(file_path: str) -> str:
 
 async def interactive_shell() -> None:
 
-    if not os.getenv("API_KEY"):
-        API_key = await trio.to_thread.run_sync(lambda: input("API key of IPFS: "))
-        set_key(env_path, "API_KEY", API_key)
-
-    if not os.getenv("API_SECRET"):
-        API_secret = await trio.to_thread.run_sync(
-            lambda: input("API secret of IPFS: ")
-        )
-        set_key(env_path, "API_SECRET", API_secret)
-
-    if not os.getenv("JWT_TOKEN"):
-        JWT_token = await trio.to_thread.run_sync(lambda: input("JWT token of IPFS: "))
-        set_key(env_path, "JWT_TOKEN", JWT_token)
-
     logger.info("Entering interactive mode. Type commands below.")
     logger.debug(COMMANDS)
 
@@ -111,35 +96,6 @@ async def interactive_shell() -> None:
                 continue
 
             cmd = parts[0].lower()
-
-            if cmd == "change" and len(parts) > 1:
-                if parts[1] == "API_KEY":
-                    logger.info("Changing API_KEY:")
-                    logger.info(f"Current API_KEY: {os.getenv('API_KEY')}")
-                    API_KEY = await trio.to_thread.run_sync(
-                        lambda: input("New API key of IPFS: ")
-                    )
-                    set_key(env_path, "API_KEY", API_KEY)
-                    logger.info(f"New API_KEY set: {os.getenv('API_KEY')}")
-
-                if parts[1] == "API_SECRET":
-                    logger.info("Changing API_SECRET:")
-                    logger.info(f"Current API_SECRET: {os.getenv('API_SECRET')}")
-                    API_SECRET = await trio.to_thread.run_sync(
-                        lambda: input("New API secret of IPFS: ")
-                    )
-                    set_key(env_path, "API_SECRET", API_SECRET)
-                    logger.info(f"New API_SECRET set: {os.getenv('API_SECRET')}")
-
-                if parts[1] == "JWT_TOKEN":
-                    logger.info("Changing JWT_TOKEN:")
-                    logger.info(f"Current JWT_TOKEN: {os.getenv('JWT_TOKEN')}")
-                    JWT_TOKEN = await trio.to_thread.run_sync(
-                        lambda: input("New JWT token of IPFS: ")
-                    )
-                    set_key(env_path, "JWT_TOKEN", JWT_TOKEN)
-                    logger.info(f"New JWT_TOKEN set: {os.getenv('JWT_TOKEN')}")
-
             if cmd == "upload" and len(parts) > 1:
                 if parts[1] == "dataset":
                     file_path = parts[2]
