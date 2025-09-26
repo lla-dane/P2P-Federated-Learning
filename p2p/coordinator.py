@@ -249,7 +249,7 @@ class Node:
                                         chunk_cid, model_hash
                                     )
                                     if weights:
-                                        await self.publish_on_chain(
+                                        self.publish_on_chain(
                                             int(self.subscribed_topics[-1]), str(weights)
                                         )
                                         await self.pubsub.publish(
