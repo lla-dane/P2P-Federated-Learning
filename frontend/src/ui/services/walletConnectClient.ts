@@ -1,16 +1,24 @@
 import { useContext, useEffect, useCallback } from 'react';
 import { WalletConnectContext } from '../contexts/WalletConnectContext';
-import { LedgerId } from '@hashgraph/sdk';
+import {
+  ContractExecuteTransaction,
+  ContractCallQuery,
+  ContractId,
+  Hbar,
+  LedgerId,
+  Client,
+} from '@hashgraph/sdk';
 import {
   DAppConnector,
   HederaChainId,
   HederaJsonRpcMethod,
   HederaSessionEvent,
+  transactionToBase64String,
+  type SignAndExecuteTransactionParams,
 } from '@hashgraph/hedera-wallet-connect';
 import type { SignClientTypes } from '@walletconnect/types';
 import EventEmitter from 'events';
-
-// --- Configuration & Initialization ---
+import type { ContractFunctionParameterBuilder } from './contractFunctionParameterBuilder';
 
 const projectId = import.meta.env.VITE_WALLETCONNECT_PROJECT_ID;
 if (!projectId) {
@@ -36,7 +44,6 @@ export const dappConnector = new DAppConnector(
   [HederaChainId.Testnet]
 );
 
-// Guard to ensure walletconnect is initialized only once
 let walletConnectInitPromise: Promise<void> | undefined = undefined;
 const initializeWalletConnect = async () => {
   if (walletConnectInitPromise === undefined) {
@@ -44,8 +51,6 @@ const initializeWalletConnect = async () => {
   }
   await walletConnectInitPromise;
 };
-
-// --- Exported Functions for UI to Call ---
 
 export const openWalletConnectModal = async () => {
   await initializeWalletConnect();
@@ -55,8 +60,6 @@ export const openWalletConnectModal = async () => {
   });
 };
 
-// --- Wallet Class Implementation ---
-
 class WalletConnectWallet {
   // This is where transaction methods like transferHBAR will go.
   // For now, it only needs the disconnect method.
@@ -64,6 +67,37 @@ class WalletConnectWallet {
     dappConnector.disconnectAll().then(() => {
       refreshEvent.emit('sync');
     });
+  }
+
+  async executeContractFunction(
+    contractId: ContractId,
+    functionName: string,
+    functionParameters: ContractFunctionParameterBuilder,
+    gasLimit: number,
+    payableAmount: Hbar
+  ): Promise<string | null> {
+    const signerAccountId = dappConnector.signers[0]?.getAccountId();
+    if (!signerAccountId)
+      throw new Error('Wallet not connected or account not found.');
+
+    const tx = new ContractExecuteTransaction()
+      .setContractId(contractId)
+      .setGas(gasLimit)
+      .setFunction(functionName, functionParameters.buildHAPIParams())
+      .setPayableAmount(payableAmount)
+      .freezeWithSigner(dappConnector.signers[0]);
+
+    const params: SignAndExecuteTransactionParams = {
+      signerAccountId: signerAccountId.toString(),
+      transactionList: transactionToBase64String(await tx),
+    };
+
+    const result = await dappConnector.signAndExecuteTransaction(params);
+    console.log(result);
+    const transactionId = (result as any)?.transactionId;
+
+    console.log(transactionId);
+    return transactionId || null;
   }
 }
 

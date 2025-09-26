@@ -132,7 +132,7 @@ const Homepage = () => {
                   </button>
 
                   <a
-                    href='https://docs.hedera.com/' // Replace with your actual docs link
+                    href='https://github.com/lla-dane/P2P-Federated-Learning'
                     target='_blank'
                     rel='noopener noreferrer'
                     className='group px-8 py-4 bg-transparent text-text-secondary font-semibold text-lg rounded-full

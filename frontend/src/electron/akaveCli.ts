@@ -105,7 +105,7 @@ export class AkaveCliService {
   public async uploadDatasetInChunks(
     filePath: string,
     onProgress: (message: string) => void
-  ): Promise<string> {
+  ): Promise<{ datasetHash: string; chunkCount: number }> {
     try {
       await this.runCommand(
         `aws s3api create-bucket --bucket ${this.bucketName} --endpoint-url ${this.endpointUrl} --profile ${this.profile}`
@@ -123,7 +123,7 @@ export class AkaveCliService {
     }
 
     const CHUNK_SIZE = 50 * 1024;
-    const chunkKeys: string[] = [];
+    const chunkUrls: string[] = [];
     const rl = readline.createInterface({
       input: fs.createReadStream(filePath),
       crlfDelay: Infinity,
@@ -139,7 +139,8 @@ export class AkaveCliService {
         chunkIndex++;
         onProgress(`Uploading chunk ${chunkIndex}...`);
         const chunkKey = await this.uploadString(currentChunk.join(''));
-        chunkKeys.push(chunkKey);
+        const chunkUrl = await this.getPresignedUrl(this.bucketName, chunkKey);
+        chunkUrls.push(chunkUrl);
         currentChunk = [lineWithNewline];
         currentSize = lineSize;
       } else {
@@ -151,14 +152,20 @@ export class AkaveCliService {
       chunkIndex++;
       onProgress(`Uploading final chunk ${chunkIndex}...`);
       const chunkKey = await this.uploadString(currentChunk.join(''));
-      chunkKeys.push(chunkKey);
+      const chunkUrl = await this.getPresignedUrl(this.bucketName, chunkKey);
+      chunkUrls.push(chunkUrl);
     }
 
     onProgress('Uploading manifest file...');
-    const manifestKey = await this.uploadString(chunkKeys.join(','));
+    const manifestKey = await this.uploadString(chunkUrls.join(','));
     onProgress(`Dataset uploaded successfully!`);
 
-    return this.getPresignedUrl(this.bucketName, manifestKey);
+    const datasetHash = await this.getPresignedUrl(
+      this.bucketName,
+      manifestKey
+    );
+
+    return { datasetHash, chunkCount: chunkUrls.length };
   }
 
   public async listFiles(): Promise<any[]> {

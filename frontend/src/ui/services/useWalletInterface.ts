@@ -11,6 +11,7 @@ export const useWalletInterface = (): WalletInterface => {
   const actions = {
     connect: openWalletConnectModal,
     disconnect: walletConnectWallet.disconnect,
+    executeContractFunction: walletConnectWallet.executeContractFunction,
   };
 
   return {

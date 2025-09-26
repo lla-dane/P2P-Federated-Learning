@@ -22,7 +22,9 @@ export const uploadFileToAkave = (filePath: string): Promise<string> => {
  * Uploads a large dataset to Akave using the chunking and manifest strategy.
  * @returns The SHA256 object key of the final manifest file.
  */
-export const uploadDatasetToAkave = (filePath: string): Promise<string> => {
+export const uploadDatasetToAkave = (
+  filePath: string
+): Promise<{ datasetHash: string; chunkCount: number }> => {
   return window.electronAPI.uploadDatasetToAkave(filePath);
 };
 

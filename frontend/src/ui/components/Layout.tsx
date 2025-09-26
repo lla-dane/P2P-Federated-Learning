@@ -10,7 +10,7 @@ const Layout = () => {
       {/* <MenuBar /> */}
       <div className='flex flex-1 overflow-hidden'>
         <Sidebar />
-        <main className='flex-1 p-8 overflow-y-auto'>
+        <main className='flex-1 p-8 overflow-y-auto no-scrollbar'>
           <Outlet />
           <Toaster
             richColors

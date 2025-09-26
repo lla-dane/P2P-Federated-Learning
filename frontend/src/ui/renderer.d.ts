@@ -15,6 +15,11 @@ export interface IElectronAPI {
   loadCredentials: () => Promise<ISettings | null>;
   getHistory: () => Promise<any[]>;
   addHistory: (projectData: object) => Promise<void>;
+  updateHistoryItem: (data: {
+    projectId: string;
+    newStatus?: string;
+    newWeightsHash?: string;
+  }) => Promise<void>;
   minimizeWindow: () => void;
   maximizeWindow: () => void;
   closeWindow: () => void;
@@ -25,7 +30,9 @@ export interface IElectronAPI {
     awsSecretAccessKey: string;
   }) => Promise<boolean>;
   uploadFileToAkave: (filePath: string) => Promise<string>;
-  uploadDatasetToAkave: (filePath: string) => Promise<string>;
+  uploadDatasetToAkave: (
+    filePath: string
+  ) => Promise<{ datasetHash: string; chunkCount: number }>;
   listFilesFromAkave: () => Promise<any[]>;
   fetchFileFromAkave: (objectKey: string) => Promise<string>;
   onAkaveProgress: (callback: (message: string) => void) => void;

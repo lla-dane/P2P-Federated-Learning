@@ -26,6 +26,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getHistory: () => ipcRenderer.invoke('history:get'),
   addHistory: (projectData: object) =>
     ipcRenderer.invoke('history:add', projectData),
+  updateHistoryItem: (data: {
+    projectId: string;
+    newStatus?: string;
+    newWeightsHash?: string;
+  }) => ipcRenderer.invoke('history:update', data),
 
   // Window control APIs
   minimizeWindow: () => ipcRenderer.send('window:minimize'),

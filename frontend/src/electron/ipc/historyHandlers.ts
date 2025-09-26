@@ -13,4 +13,27 @@ export function registerHistoryHandlers() {
     history.unshift(projectData);
     store.set('trainingHistory', history);
   });
+
+  ipcMain.handle(
+    'history:update',
+    (_event, { projectId, newStatus, newWeightsHash }) => {
+      const history = store.get('trainingHistory', []) as any[];
+
+      const projectIndex = history.findIndex((p) => p.id === projectId);
+
+      if (projectIndex !== -1) {
+        if (newStatus) {
+          history[projectIndex].status = newStatus;
+        }
+
+        if (newWeightsHash) {
+          history[projectIndex].weightsHash = newWeightsHash;
+        }
+
+        store.set('trainingHistory', history);
+        return true;
+      }
+      return false;
+    }
+  );
 }
