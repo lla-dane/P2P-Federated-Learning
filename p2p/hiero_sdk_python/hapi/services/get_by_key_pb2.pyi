@@ -1,11 +1,17 @@
-from . import basic_types_pb2 as _basic_types_pb2
-from . import query_header_pb2 as _query_header_pb2
-from . import response_header_pb2 as _response_header_pb2
-from . import crypto_add_live_hash_pb2 as _crypto_add_live_hash_pb2
-from google.protobuf.internal import containers as _containers
+from typing import ClassVar as _ClassVar
+from typing import Iterable as _Iterable
+from typing import Mapping as _Mapping
+from typing import Optional as _Optional
+from typing import Union as _Union
+
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
-from typing import ClassVar as _ClassVar, Iterable as _Iterable, Mapping as _Mapping, Optional as _Optional, Union as _Union
+from google.protobuf.internal import containers as _containers
+
+from . import basic_types_pb2 as _basic_types_pb2
+from . import crypto_add_live_hash_pb2 as _crypto_add_live_hash_pb2
+from . import query_header_pb2 as _query_header_pb2
+from . import response_header_pb2 as _response_header_pb2
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
@@ -15,7 +21,11 @@ class GetByKeyQuery(_message.Message):
     KEY_FIELD_NUMBER: _ClassVar[int]
     header: _query_header_pb2.QueryHeader
     key: _basic_types_pb2.Key
-    def __init__(self, header: _Optional[_Union[_query_header_pb2.QueryHeader, _Mapping]] = ..., key: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ...) -> None: ...
+    def __init__(
+        self,
+        header: _Optional[_Union[_query_header_pb2.QueryHeader, _Mapping]] = ...,
+        key: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ...,
+    ) -> None: ...
 
 class EntityID(_message.Message):
     __slots__ = ("accountID", "liveHash", "fileID", "contractID")
@@ -27,7 +37,13 @@ class EntityID(_message.Message):
     liveHash: _crypto_add_live_hash_pb2.LiveHash
     fileID: _basic_types_pb2.FileID
     contractID: _basic_types_pb2.ContractID
-    def __init__(self, accountID: _Optional[_Union[_basic_types_pb2.AccountID, _Mapping]] = ..., liveHash: _Optional[_Union[_crypto_add_live_hash_pb2.LiveHash, _Mapping]] = ..., fileID: _Optional[_Union[_basic_types_pb2.FileID, _Mapping]] = ..., contractID: _Optional[_Union[_basic_types_pb2.ContractID, _Mapping]] = ...) -> None: ...
+    def __init__(
+        self,
+        accountID: _Optional[_Union[_basic_types_pb2.AccountID, _Mapping]] = ...,
+        liveHash: _Optional[_Union[_crypto_add_live_hash_pb2.LiveHash, _Mapping]] = ...,
+        fileID: _Optional[_Union[_basic_types_pb2.FileID, _Mapping]] = ...,
+        contractID: _Optional[_Union[_basic_types_pb2.ContractID, _Mapping]] = ...,
+    ) -> None: ...
 
 class GetByKeyResponse(_message.Message):
     __slots__ = ("header", "entities")
@@ -35,4 +51,8 @@ class GetByKeyResponse(_message.Message):
     ENTITIES_FIELD_NUMBER: _ClassVar[int]
     header: _response_header_pb2.ResponseHeader
     entities: _containers.RepeatedCompositeFieldContainer[EntityID]
-    def __init__(self, header: _Optional[_Union[_response_header_pb2.ResponseHeader, _Mapping]] = ..., entities: _Optional[_Iterable[_Union[EntityID, _Mapping]]] = ...) -> None: ...
+    def __init__(
+        self,
+        header: _Optional[_Union[_response_header_pb2.ResponseHeader, _Mapping]] = ...,
+        entities: _Optional[_Iterable[_Union[EntityID, _Mapping]]] = ...,
+    ) -> None: ...

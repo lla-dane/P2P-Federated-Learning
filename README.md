@@ -127,13 +127,23 @@ cd P2P-Federated-Learning/
 
 python3 -m venv .venv
 . .venv/bin/activate
-uv sync --all-extras
 
 cd p2p/
 python3 runner.py
 
 git fetch origin
 git rebase origin/master
+
+sudo apt install unzip
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install
+
+
+sudo lsof -i:8000
+kill -9 28197
+
+curl ifconfig.me
 ```
 
 # EC2 connection
@@ -147,6 +157,10 @@ ssh -i "Desktop/libp2p/P2P-Federated-Learning/aws-keys/p2p-1.pem" ubuntu@ec2-65-
 
 # TRAINER
 ssh -i "Desktop/libp2p/P2P-Federated-Learning/aws-keys/p2p-1.pem" ubuntu@ec2-13-201-70-151.ap-south-1.compute.amazonaws.com
+
+# TRAINER
+ssh -i "Desktop/libp2p/P2P-Federated-Learning/aws-keys/p2p-1.pem" ubuntu@ec2-35-154-158-101.ap-south-1.compute.amazonaws.com
+
 ```
 
 # CLOUD API
@@ -156,9 +170,13 @@ curl -X POST http://localhost:9000/command \
     -H "Content-Type: application/json" \
     -d '{"cmd":"publish","args":["fed-learn","hello"]}'
 
-curl -X GET http://localhost:9000/command \
+curl -X POST http://localhost:9000/command \
     -H "Content-Type: application/json" \
     -d '{"cmd":"bootmesh"}'
+
+curl -X POST http://localhost:9000/command \
+    -H "Content-Type: application/json" \
+    -d '{"cmd":"mesh"}'
 
 curl http://localhost:9000/status
 ```

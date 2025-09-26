@@ -2,7 +2,7 @@ import pandas as pd
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder, StandardScaler
-import pandas as pd
+
 # dataset is already provided by exec_globals in train_on_chunk
 df = pd.read_csv("./dataset.csv")  # noqa: F821
 

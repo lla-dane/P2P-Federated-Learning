@@ -1,15 +1,39 @@
+from typing import ClassVar as _ClassVar
+from typing import Mapping as _Mapping
+from typing import Optional as _Optional
+from typing import Union as _Union
+
+from google.protobuf import descriptor as _descriptor
+from google.protobuf import message as _message
+from google.protobuf import wrappers_pb2 as _wrappers_pb2
+
 from . import basic_types_pb2 as _basic_types_pb2
 from . import duration_pb2 as _duration_pb2
 from . import timestamp_pb2 as _timestamp_pb2
-from google.protobuf import wrappers_pb2 as _wrappers_pb2
-from google.protobuf import descriptor as _descriptor
-from google.protobuf import message as _message
-from typing import ClassVar as _ClassVar, Mapping as _Mapping, Optional as _Optional, Union as _Union
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
 class TokenUpdateTransactionBody(_message.Message):
-    __slots__ = ("token", "symbol", "name", "treasury", "adminKey", "kycKey", "freezeKey", "wipeKey", "supplyKey", "autoRenewAccount", "autoRenewPeriod", "expiry", "memo", "fee_schedule_key", "pause_key", "metadata", "metadata_key", "key_verification_mode")
+    __slots__ = (
+        "token",
+        "symbol",
+        "name",
+        "treasury",
+        "adminKey",
+        "kycKey",
+        "freezeKey",
+        "wipeKey",
+        "supplyKey",
+        "autoRenewAccount",
+        "autoRenewPeriod",
+        "expiry",
+        "memo",
+        "fee_schedule_key",
+        "pause_key",
+        "metadata",
+        "metadata_key",
+        "key_verification_mode",
+    )
     TOKEN_FIELD_NUMBER: _ClassVar[int]
     SYMBOL_FIELD_NUMBER: _ClassVar[int]
     NAME_FIELD_NUMBER: _ClassVar[int]
@@ -46,4 +70,26 @@ class TokenUpdateTransactionBody(_message.Message):
     metadata: _wrappers_pb2.BytesValue
     metadata_key: _basic_types_pb2.Key
     key_verification_mode: _basic_types_pb2.TokenKeyValidation
-    def __init__(self, token: _Optional[_Union[_basic_types_pb2.TokenID, _Mapping]] = ..., symbol: _Optional[str] = ..., name: _Optional[str] = ..., treasury: _Optional[_Union[_basic_types_pb2.AccountID, _Mapping]] = ..., adminKey: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ..., kycKey: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ..., freezeKey: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ..., wipeKey: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ..., supplyKey: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ..., autoRenewAccount: _Optional[_Union[_basic_types_pb2.AccountID, _Mapping]] = ..., autoRenewPeriod: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ..., expiry: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., memo: _Optional[_Union[_wrappers_pb2.StringValue, _Mapping]] = ..., fee_schedule_key: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ..., pause_key: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ..., metadata: _Optional[_Union[_wrappers_pb2.BytesValue, _Mapping]] = ..., metadata_key: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ..., key_verification_mode: _Optional[_Union[_basic_types_pb2.TokenKeyValidation, str]] = ...) -> None: ...
+    def __init__(
+        self,
+        token: _Optional[_Union[_basic_types_pb2.TokenID, _Mapping]] = ...,
+        symbol: _Optional[str] = ...,
+        name: _Optional[str] = ...,
+        treasury: _Optional[_Union[_basic_types_pb2.AccountID, _Mapping]] = ...,
+        adminKey: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ...,
+        kycKey: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ...,
+        freezeKey: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ...,
+        wipeKey: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ...,
+        supplyKey: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ...,
+        autoRenewAccount: _Optional[_Union[_basic_types_pb2.AccountID, _Mapping]] = ...,
+        autoRenewPeriod: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ...,
+        expiry: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...,
+        memo: _Optional[_Union[_wrappers_pb2.StringValue, _Mapping]] = ...,
+        fee_schedule_key: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ...,
+        pause_key: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ...,
+        metadata: _Optional[_Union[_wrappers_pb2.BytesValue, _Mapping]] = ...,
+        metadata_key: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ...,
+        key_verification_mode: _Optional[
+            _Union[_basic_types_pb2.TokenKeyValidation, str]
+        ] = ...,
+    ) -> None: ...

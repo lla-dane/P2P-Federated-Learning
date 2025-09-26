@@ -1,15 +1,37 @@
-from . import basic_types_pb2 as _basic_types_pb2
-from . import response_code_pb2 as _response_code_pb2
-from . import exchange_rate_pb2 as _exchange_rate_pb2
-from google.protobuf.internal import containers as _containers
+from typing import ClassVar as _ClassVar
+from typing import Iterable as _Iterable
+from typing import Mapping as _Mapping
+from typing import Optional as _Optional
+from typing import Union as _Union
+
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
-from typing import ClassVar as _ClassVar, Iterable as _Iterable, Mapping as _Mapping, Optional as _Optional, Union as _Union
+from google.protobuf.internal import containers as _containers
+
+from . import basic_types_pb2 as _basic_types_pb2
+from . import exchange_rate_pb2 as _exchange_rate_pb2
+from . import response_code_pb2 as _response_code_pb2
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
 class TransactionReceipt(_message.Message):
-    __slots__ = ("status", "accountID", "fileID", "contractID", "exchangeRate", "topicID", "topicSequenceNumber", "topicRunningHash", "topicRunningHashVersion", "tokenID", "newTotalSupply", "scheduleID", "scheduledTransactionID", "serialNumbers", "node_id")
+    __slots__ = (
+        "status",
+        "accountID",
+        "fileID",
+        "contractID",
+        "exchangeRate",
+        "topicID",
+        "topicSequenceNumber",
+        "topicRunningHash",
+        "topicRunningHashVersion",
+        "tokenID",
+        "newTotalSupply",
+        "scheduleID",
+        "scheduledTransactionID",
+        "serialNumbers",
+        "node_id",
+    )
     STATUS_FIELD_NUMBER: _ClassVar[int]
     ACCOUNTID_FIELD_NUMBER: _ClassVar[int]
     FILEID_FIELD_NUMBER: _ClassVar[int]
@@ -40,4 +62,25 @@ class TransactionReceipt(_message.Message):
     scheduledTransactionID: _basic_types_pb2.TransactionID
     serialNumbers: _containers.RepeatedScalarFieldContainer[int]
     node_id: int
-    def __init__(self, status: _Optional[_Union[_response_code_pb2.ResponseCodeEnum, str]] = ..., accountID: _Optional[_Union[_basic_types_pb2.AccountID, _Mapping]] = ..., fileID: _Optional[_Union[_basic_types_pb2.FileID, _Mapping]] = ..., contractID: _Optional[_Union[_basic_types_pb2.ContractID, _Mapping]] = ..., exchangeRate: _Optional[_Union[_exchange_rate_pb2.ExchangeRateSet, _Mapping]] = ..., topicID: _Optional[_Union[_basic_types_pb2.TopicID, _Mapping]] = ..., topicSequenceNumber: _Optional[int] = ..., topicRunningHash: _Optional[bytes] = ..., topicRunningHashVersion: _Optional[int] = ..., tokenID: _Optional[_Union[_basic_types_pb2.TokenID, _Mapping]] = ..., newTotalSupply: _Optional[int] = ..., scheduleID: _Optional[_Union[_basic_types_pb2.ScheduleID, _Mapping]] = ..., scheduledTransactionID: _Optional[_Union[_basic_types_pb2.TransactionID, _Mapping]] = ..., serialNumbers: _Optional[_Iterable[int]] = ..., node_id: _Optional[int] = ...) -> None: ...
+    def __init__(
+        self,
+        status: _Optional[_Union[_response_code_pb2.ResponseCodeEnum, str]] = ...,
+        accountID: _Optional[_Union[_basic_types_pb2.AccountID, _Mapping]] = ...,
+        fileID: _Optional[_Union[_basic_types_pb2.FileID, _Mapping]] = ...,
+        contractID: _Optional[_Union[_basic_types_pb2.ContractID, _Mapping]] = ...,
+        exchangeRate: _Optional[
+            _Union[_exchange_rate_pb2.ExchangeRateSet, _Mapping]
+        ] = ...,
+        topicID: _Optional[_Union[_basic_types_pb2.TopicID, _Mapping]] = ...,
+        topicSequenceNumber: _Optional[int] = ...,
+        topicRunningHash: _Optional[bytes] = ...,
+        topicRunningHashVersion: _Optional[int] = ...,
+        tokenID: _Optional[_Union[_basic_types_pb2.TokenID, _Mapping]] = ...,
+        newTotalSupply: _Optional[int] = ...,
+        scheduleID: _Optional[_Union[_basic_types_pb2.ScheduleID, _Mapping]] = ...,
+        scheduledTransactionID: _Optional[
+            _Union[_basic_types_pb2.TransactionID, _Mapping]
+        ] = ...,
+        serialNumbers: _Optional[_Iterable[int]] = ...,
+        node_id: _Optional[int] = ...,
+    ) -> None: ...

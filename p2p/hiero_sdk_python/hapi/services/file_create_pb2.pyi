@@ -1,13 +1,26 @@
-from . import basic_types_pb2 as _basic_types_pb2
-from . import timestamp_pb2 as _timestamp_pb2
+from typing import ClassVar as _ClassVar
+from typing import Mapping as _Mapping
+from typing import Optional as _Optional
+from typing import Union as _Union
+
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
-from typing import ClassVar as _ClassVar, Mapping as _Mapping, Optional as _Optional, Union as _Union
+
+from . import basic_types_pb2 as _basic_types_pb2
+from . import timestamp_pb2 as _timestamp_pb2
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
 class FileCreateTransactionBody(_message.Message):
-    __slots__ = ("expirationTime", "keys", "contents", "shardID", "realmID", "newRealmAdminKey", "memo")
+    __slots__ = (
+        "expirationTime",
+        "keys",
+        "contents",
+        "shardID",
+        "realmID",
+        "newRealmAdminKey",
+        "memo",
+    )
     EXPIRATIONTIME_FIELD_NUMBER: _ClassVar[int]
     KEYS_FIELD_NUMBER: _ClassVar[int]
     CONTENTS_FIELD_NUMBER: _ClassVar[int]
@@ -22,4 +35,13 @@ class FileCreateTransactionBody(_message.Message):
     realmID: _basic_types_pb2.RealmID
     newRealmAdminKey: _basic_types_pb2.Key
     memo: str
-    def __init__(self, expirationTime: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., keys: _Optional[_Union[_basic_types_pb2.KeyList, _Mapping]] = ..., contents: _Optional[bytes] = ..., shardID: _Optional[_Union[_basic_types_pb2.ShardID, _Mapping]] = ..., realmID: _Optional[_Union[_basic_types_pb2.RealmID, _Mapping]] = ..., newRealmAdminKey: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ..., memo: _Optional[str] = ...) -> None: ...
+    def __init__(
+        self,
+        expirationTime: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...,
+        keys: _Optional[_Union[_basic_types_pb2.KeyList, _Mapping]] = ...,
+        contents: _Optional[bytes] = ...,
+        shardID: _Optional[_Union[_basic_types_pb2.ShardID, _Mapping]] = ...,
+        realmID: _Optional[_Union[_basic_types_pb2.RealmID, _Mapping]] = ...,
+        newRealmAdminKey: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ...,
+        memo: _Optional[str] = ...,
+    ) -> None: ...

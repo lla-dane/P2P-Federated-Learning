@@ -10,19 +10,6 @@ import Crypto.PublicKey.RSA as RSA
 import multiaddr
 import trio
 from dotenv import load_dotenv
-from hiero_sdk_python import (
-    Client,
-    AccountId,
-    PrivateKey,
-    Network,
-    ResponseCode
-)
-from hiero_sdk_python.contract.contract_execute_transaction import ContractExecuteTransaction
-from hiero_sdk_python.contract.contract_call_query import ContractCallQuery
-from hiero_sdk_python.contract.contract_function_parameters import ContractFunctionParameters
-from hiero_sdk_python.contract.contract_id import ContractId
-from hiero_sdk_python.hbar import Hbar
-
 from hypercorn.config import Config
 from hypercorn.trio import serve
 from libp2p import new_host
@@ -52,6 +39,14 @@ from mesh_utils import Mesh
 from quart import jsonify, request
 from quart_trio import QuartTrio
 
+from hiero_sdk_python import AccountId, Client, Network, PrivateKey, ResponseCode
+from hiero_sdk_python.contract.contract_execute_transaction import (
+    ContractExecuteTransaction,
+)
+from hiero_sdk_python.contract.contract_function_parameters import (
+    ContractFunctionParameters,
+)
+from hiero_sdk_python.contract.contract_id import ContractId
 from logs import setup_logging
 
 load_dotenv()
@@ -67,7 +62,7 @@ IS_CLOUD = os.getenv("IS_CLOUD")
 COMMANDS = """
 Available commands:
 - connect <multiaddr>               - Connect to another peer
-- advertize <topic>                 - Start a training round in the fed-learn mesh
+- advertize <topic>                 - Start a training round
 - train <topic> <dataset> <model>   - Starts the training procedure
 - join <topic>                      - Subscribe to a topic
 - leave <topic>                     - Unsubscribe to a topic
@@ -108,10 +103,11 @@ def load_keypair_from_env(env_path):
 
 
 class Node:
-    def __init__(self, role: str, pvt_key: str):
+    def __init__(self, role: str, operator_key: str, operator_id: str):
         self.mesh = Mesh()
         self.ml_trainer = MLTrainer()
-        self.pvt_key = pvt_key
+        self.operator_key = operator_key
+        self.operator_id = operator_id
 
         ## IMP
         # write the code for operator id and key
@@ -167,7 +163,6 @@ class Node:
 
         return client
 
-
     def publish_on_chain(self, task_id, weights):
         receipt = (
             ContractExecuteTransaction()
@@ -175,9 +170,7 @@ class Node:
             .set_gas(2000000)
             .set_function(
                 "submitWeights",
-                ContractFunctionParameters()
-                .add_uint256(task_id)
-                .add_string(weights)
+                ContractFunctionParameters().add_uint256(task_id).add_string(weights),
             )
             .execute(self.client)
         )
@@ -185,9 +178,6 @@ class Node:
         if receipt.status != ResponseCode.SUCCESS:
             status_message = ResponseCode(receipt.status).name
             raise Exception(f"Transaction failed with status: {status_message}")
-    
-
-
 
     async def command_executor(self, nursery):
         logger.warning("Starting command executor loop")
@@ -249,7 +239,7 @@ class Node:
                     if cmd == "assign" and len(parts) == 3:
                         model_hash = parts[1]
                         assignments: dict = ast.literal_eval(parts[2])
-                        logger.info(f"Received assignments: {assignments}")
+                        logger.info("Received assignments")
                         node_id: str = self.host.get_id()
                         for k, v in assignments.items():
                             if k == node_id:
@@ -259,7 +249,10 @@ class Node:
                                         chunk_cid, model_hash
                                     )
                                     if weights:
-                                        await self.publish_on_chain(self.subscribed_topics[0], weights)
+                                        self.publish_on_chain(
+                                            int(self.subscribed_topics[-1]),
+                                            str(weights),
+                                        )
                                         await self.pubsub.publish(
                                             self.training_topic,
                                             f"weights {node_id} {weights}".encode(),
@@ -271,8 +264,6 @@ class Node:
                                 await self.pubsub.publish(
                                     parts[1], "Left as a TRAINER self".encode()
                                 )
-
-                                logger.info(f"Unsubscribed from [{parts[1]}] mesh")
 
                     if cmd == "join" and len(parts) > 1:
                         if self.role != "trainer":
@@ -584,30 +575,23 @@ class Node:
                 if cmd == "bootmesh":
                     bootmesh: dict = self.mesh.get_bootstrap_mesh()
                     return jsonify({"status": "ok", "bootmesh": bootmesh})
+
                 elif cmd == "mesh":
                     mesh: dict = self.mesh.get_local_mesh()
                     return jsonify({"status": "ok", "mesh": mesh})
+
+                elif cmd == "peers":
+                    peers = self.mesh.get_connected_nodes()
+                    return jsonify({"status": "ok", "peers": list(peers)})
+
+                elif cmd == "local":
+                    public_maddr = f"/ip4/{PUBLIC_IP}/tcp/{self.host.get_addrs()[0].value_for_protocol("tcp")}/p2p/{self.host.get_id()}"
+                    return jsonify({"status": "ok", "addr": public_maddr})
+
                 else:
                     # forward as list if you want
                     await app.send_channel.send([cmd] + args)
                     return jsonify({"status": "ok", "received": data})
-            except Exception as e:
-                return jsonify({"error": str(e)}), 500
-
-        @app.route("/command", methods=["GET"])
-        async def command_get():
-            try:
-                data = await request.get_json(silent=True) or {}
-                cmd = data.get("cmd")
-
-                if cmd == "bootmesh":
-                    bootmesh: dict = self.mesh.get_bootstrap_mesh()
-                    return jsonify({"status": "ok", "bootmesh": bootmesh})
-                elif cmd == "mesh":
-                    mesh: dict = self.mesh.get_local_mesh()
-                    return jsonify({"status": "ok", "mesh": mesh})
-                else:
-                    return jsonify({"error": "Unknown command"}), 400
             except Exception as e:
                 return jsonify({"error": str(e)}), 500
 

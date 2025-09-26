@@ -1,10 +1,16 @@
-from ...services import basic_types_pb2 as _basic_types_pb2
-from . import event_descriptor_pb2 as _event_descriptor_pb2
-from ...services import timestamp_pb2 as _timestamp_pb2
-from google.protobuf.internal import containers as _containers
+from typing import ClassVar as _ClassVar
+from typing import Iterable as _Iterable
+from typing import Mapping as _Mapping
+from typing import Optional as _Optional
+from typing import Union as _Union
+
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
-from typing import ClassVar as _ClassVar, Iterable as _Iterable, Mapping as _Mapping, Optional as _Optional, Union as _Union
+from google.protobuf.internal import containers as _containers
+
+from ...services import basic_types_pb2 as _basic_types_pb2
+from ...services import timestamp_pb2 as _timestamp_pb2
+from . import event_descriptor_pb2 as _event_descriptor_pb2
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
@@ -18,6 +24,17 @@ class EventCore(_message.Message):
     creator_node_id: int
     birth_round: int
     time_created: _timestamp_pb2.Timestamp
-    parents: _containers.RepeatedCompositeFieldContainer[_event_descriptor_pb2.EventDescriptor]
+    parents: _containers.RepeatedCompositeFieldContainer[
+        _event_descriptor_pb2.EventDescriptor
+    ]
     version: _basic_types_pb2.SemanticVersion
-    def __init__(self, creator_node_id: _Optional[int] = ..., birth_round: _Optional[int] = ..., time_created: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., parents: _Optional[_Iterable[_Union[_event_descriptor_pb2.EventDescriptor, _Mapping]]] = ..., version: _Optional[_Union[_basic_types_pb2.SemanticVersion, _Mapping]] = ...) -> None: ...
+    def __init__(
+        self,
+        creator_node_id: _Optional[int] = ...,
+        birth_round: _Optional[int] = ...,
+        time_created: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...,
+        parents: _Optional[
+            _Iterable[_Union[_event_descriptor_pb2.EventDescriptor, _Mapping]]
+        ] = ...,
+        version: _Optional[_Union[_basic_types_pb2.SemanticVersion, _Mapping]] = ...,
+    ) -> None: ...

@@ -1,17 +1,45 @@
-from . import timestamp_pb2 as _timestamp_pb2
-from . import basic_types_pb2 as _basic_types_pb2
-from . import custom_fees_pb2 as _custom_fees_pb2
-from . import transaction_receipt_pb2 as _transaction_receipt_pb2
-from . import contract_types_pb2 as _contract_types_pb2
-from google.protobuf.internal import containers as _containers
+from typing import ClassVar as _ClassVar
+from typing import Iterable as _Iterable
+from typing import Mapping as _Mapping
+from typing import Optional as _Optional
+from typing import Union as _Union
+
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
-from typing import ClassVar as _ClassVar, Iterable as _Iterable, Mapping as _Mapping, Optional as _Optional, Union as _Union
+from google.protobuf.internal import containers as _containers
+
+from . import basic_types_pb2 as _basic_types_pb2
+from . import contract_types_pb2 as _contract_types_pb2
+from . import custom_fees_pb2 as _custom_fees_pb2
+from . import timestamp_pb2 as _timestamp_pb2
+from . import transaction_receipt_pb2 as _transaction_receipt_pb2
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
 class TransactionRecord(_message.Message):
-    __slots__ = ("receipt", "transactionHash", "consensusTimestamp", "transactionID", "memo", "transactionFee", "contractCallResult", "contractCreateResult", "transferList", "tokenTransferLists", "scheduleRef", "assessed_custom_fees", "automatic_token_associations", "parent_consensus_timestamp", "alias", "ethereum_hash", "paid_staking_rewards", "prng_bytes", "prng_number", "evm_address", "new_pending_airdrops")
+    __slots__ = (
+        "receipt",
+        "transactionHash",
+        "consensusTimestamp",
+        "transactionID",
+        "memo",
+        "transactionFee",
+        "contractCallResult",
+        "contractCreateResult",
+        "transferList",
+        "tokenTransferLists",
+        "scheduleRef",
+        "assessed_custom_fees",
+        "automatic_token_associations",
+        "parent_consensus_timestamp",
+        "alias",
+        "ethereum_hash",
+        "paid_staking_rewards",
+        "prng_bytes",
+        "prng_number",
+        "evm_address",
+        "new_pending_airdrops",
+    )
     RECEIPT_FIELD_NUMBER: _ClassVar[int]
     TRANSACTIONHASH_FIELD_NUMBER: _ClassVar[int]
     CONSENSUSTIMESTAMP_FIELD_NUMBER: _ClassVar[int]
@@ -42,19 +70,72 @@ class TransactionRecord(_message.Message):
     contractCallResult: _contract_types_pb2.ContractFunctionResult
     contractCreateResult: _contract_types_pb2.ContractFunctionResult
     transferList: _basic_types_pb2.TransferList
-    tokenTransferLists: _containers.RepeatedCompositeFieldContainer[_basic_types_pb2.TokenTransferList]
+    tokenTransferLists: _containers.RepeatedCompositeFieldContainer[
+        _basic_types_pb2.TokenTransferList
+    ]
     scheduleRef: _basic_types_pb2.ScheduleID
-    assessed_custom_fees: _containers.RepeatedCompositeFieldContainer[_custom_fees_pb2.AssessedCustomFee]
-    automatic_token_associations: _containers.RepeatedCompositeFieldContainer[_basic_types_pb2.TokenAssociation]
+    assessed_custom_fees: _containers.RepeatedCompositeFieldContainer[
+        _custom_fees_pb2.AssessedCustomFee
+    ]
+    automatic_token_associations: _containers.RepeatedCompositeFieldContainer[
+        _basic_types_pb2.TokenAssociation
+    ]
     parent_consensus_timestamp: _timestamp_pb2.Timestamp
     alias: bytes
     ethereum_hash: bytes
-    paid_staking_rewards: _containers.RepeatedCompositeFieldContainer[_basic_types_pb2.AccountAmount]
+    paid_staking_rewards: _containers.RepeatedCompositeFieldContainer[
+        _basic_types_pb2.AccountAmount
+    ]
     prng_bytes: bytes
     prng_number: int
     evm_address: bytes
-    new_pending_airdrops: _containers.RepeatedCompositeFieldContainer[PendingAirdropRecord]
-    def __init__(self, receipt: _Optional[_Union[_transaction_receipt_pb2.TransactionReceipt, _Mapping]] = ..., transactionHash: _Optional[bytes] = ..., consensusTimestamp: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., transactionID: _Optional[_Union[_basic_types_pb2.TransactionID, _Mapping]] = ..., memo: _Optional[str] = ..., transactionFee: _Optional[int] = ..., contractCallResult: _Optional[_Union[_contract_types_pb2.ContractFunctionResult, _Mapping]] = ..., contractCreateResult: _Optional[_Union[_contract_types_pb2.ContractFunctionResult, _Mapping]] = ..., transferList: _Optional[_Union[_basic_types_pb2.TransferList, _Mapping]] = ..., tokenTransferLists: _Optional[_Iterable[_Union[_basic_types_pb2.TokenTransferList, _Mapping]]] = ..., scheduleRef: _Optional[_Union[_basic_types_pb2.ScheduleID, _Mapping]] = ..., assessed_custom_fees: _Optional[_Iterable[_Union[_custom_fees_pb2.AssessedCustomFee, _Mapping]]] = ..., automatic_token_associations: _Optional[_Iterable[_Union[_basic_types_pb2.TokenAssociation, _Mapping]]] = ..., parent_consensus_timestamp: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., alias: _Optional[bytes] = ..., ethereum_hash: _Optional[bytes] = ..., paid_staking_rewards: _Optional[_Iterable[_Union[_basic_types_pb2.AccountAmount, _Mapping]]] = ..., prng_bytes: _Optional[bytes] = ..., prng_number: _Optional[int] = ..., evm_address: _Optional[bytes] = ..., new_pending_airdrops: _Optional[_Iterable[_Union[PendingAirdropRecord, _Mapping]]] = ...) -> None: ...
+    new_pending_airdrops: _containers.RepeatedCompositeFieldContainer[
+        PendingAirdropRecord
+    ]
+    def __init__(
+        self,
+        receipt: _Optional[
+            _Union[_transaction_receipt_pb2.TransactionReceipt, _Mapping]
+        ] = ...,
+        transactionHash: _Optional[bytes] = ...,
+        consensusTimestamp: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...,
+        transactionID: _Optional[
+            _Union[_basic_types_pb2.TransactionID, _Mapping]
+        ] = ...,
+        memo: _Optional[str] = ...,
+        transactionFee: _Optional[int] = ...,
+        contractCallResult: _Optional[
+            _Union[_contract_types_pb2.ContractFunctionResult, _Mapping]
+        ] = ...,
+        contractCreateResult: _Optional[
+            _Union[_contract_types_pb2.ContractFunctionResult, _Mapping]
+        ] = ...,
+        transferList: _Optional[_Union[_basic_types_pb2.TransferList, _Mapping]] = ...,
+        tokenTransferLists: _Optional[
+            _Iterable[_Union[_basic_types_pb2.TokenTransferList, _Mapping]]
+        ] = ...,
+        scheduleRef: _Optional[_Union[_basic_types_pb2.ScheduleID, _Mapping]] = ...,
+        assessed_custom_fees: _Optional[
+            _Iterable[_Union[_custom_fees_pb2.AssessedCustomFee, _Mapping]]
+        ] = ...,
+        automatic_token_associations: _Optional[
+            _Iterable[_Union[_basic_types_pb2.TokenAssociation, _Mapping]]
+        ] = ...,
+        parent_consensus_timestamp: _Optional[
+            _Union[_timestamp_pb2.Timestamp, _Mapping]
+        ] = ...,
+        alias: _Optional[bytes] = ...,
+        ethereum_hash: _Optional[bytes] = ...,
+        paid_staking_rewards: _Optional[
+            _Iterable[_Union[_basic_types_pb2.AccountAmount, _Mapping]]
+        ] = ...,
+        prng_bytes: _Optional[bytes] = ...,
+        prng_number: _Optional[int] = ...,
+        evm_address: _Optional[bytes] = ...,
+        new_pending_airdrops: _Optional[
+            _Iterable[_Union[PendingAirdropRecord, _Mapping]]
+        ] = ...,
+    ) -> None: ...
 
 class PendingAirdropRecord(_message.Message):
     __slots__ = ("pending_airdrop_id", "pending_airdrop_value")
@@ -62,4 +143,12 @@ class PendingAirdropRecord(_message.Message):
     PENDING_AIRDROP_VALUE_FIELD_NUMBER: _ClassVar[int]
     pending_airdrop_id: _basic_types_pb2.PendingAirdropId
     pending_airdrop_value: _basic_types_pb2.PendingAirdropValue
-    def __init__(self, pending_airdrop_id: _Optional[_Union[_basic_types_pb2.PendingAirdropId, _Mapping]] = ..., pending_airdrop_value: _Optional[_Union[_basic_types_pb2.PendingAirdropValue, _Mapping]] = ...) -> None: ...
+    def __init__(
+        self,
+        pending_airdrop_id: _Optional[
+            _Union[_basic_types_pb2.PendingAirdropId, _Mapping]
+        ] = ...,
+        pending_airdrop_value: _Optional[
+            _Union[_basic_types_pb2.PendingAirdropValue, _Mapping]
+        ] = ...,
+    ) -> None: ...

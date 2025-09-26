@@ -1,10 +1,15 @@
-from . import basic_types_pb2 as _basic_types_pb2
-from . import query_header_pb2 as _query_header_pb2
-from . import response_header_pb2 as _response_header_pb2
-from . import crypto_add_live_hash_pb2 as _crypto_add_live_hash_pb2
+from typing import ClassVar as _ClassVar
+from typing import Mapping as _Mapping
+from typing import Optional as _Optional
+from typing import Union as _Union
+
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
-from typing import ClassVar as _ClassVar, Mapping as _Mapping, Optional as _Optional, Union as _Union
+
+from . import basic_types_pb2 as _basic_types_pb2
+from . import crypto_add_live_hash_pb2 as _crypto_add_live_hash_pb2
+from . import query_header_pb2 as _query_header_pb2
+from . import response_header_pb2 as _response_header_pb2
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
@@ -16,7 +21,12 @@ class CryptoGetLiveHashQuery(_message.Message):
     header: _query_header_pb2.QueryHeader
     accountID: _basic_types_pb2.AccountID
     hash: bytes
-    def __init__(self, header: _Optional[_Union[_query_header_pb2.QueryHeader, _Mapping]] = ..., accountID: _Optional[_Union[_basic_types_pb2.AccountID, _Mapping]] = ..., hash: _Optional[bytes] = ...) -> None: ...
+    def __init__(
+        self,
+        header: _Optional[_Union[_query_header_pb2.QueryHeader, _Mapping]] = ...,
+        accountID: _Optional[_Union[_basic_types_pb2.AccountID, _Mapping]] = ...,
+        hash: _Optional[bytes] = ...,
+    ) -> None: ...
 
 class CryptoGetLiveHashResponse(_message.Message):
     __slots__ = ("header", "liveHash")
@@ -24,4 +34,8 @@ class CryptoGetLiveHashResponse(_message.Message):
     LIVEHASH_FIELD_NUMBER: _ClassVar[int]
     header: _response_header_pb2.ResponseHeader
     liveHash: _crypto_add_live_hash_pb2.LiveHash
-    def __init__(self, header: _Optional[_Union[_response_header_pb2.ResponseHeader, _Mapping]] = ..., liveHash: _Optional[_Union[_crypto_add_live_hash_pb2.LiveHash, _Mapping]] = ...) -> None: ...
+    def __init__(
+        self,
+        header: _Optional[_Union[_response_header_pb2.ResponseHeader, _Mapping]] = ...,
+        liveHash: _Optional[_Union[_crypto_add_live_hash_pb2.LiveHash, _Mapping]] = ...,
+    ) -> None: ...

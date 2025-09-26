@@ -32,6 +32,7 @@ dependencies = [
     "eth-keys==0.5.1",
     "quart-trio",
     "hypercorn[trio]",
+    "prompt_toolkit"
 ]
 
 # Extras let you group optional deps
@@ -64,7 +65,7 @@ log_cli_level = "INFO"
 line-length = 150
 target-version = "py313"
 fix = true
-exclude = ["hiero_sdk_python", "a.py"]
+exclude = ["hiero_sdk_python", "a.py", "b.py", "runner.py"]
 
 [tool.ruff.lint]
 select = [

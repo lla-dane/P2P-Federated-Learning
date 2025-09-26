@@ -1,15 +1,38 @@
+from typing import ClassVar as _ClassVar
+from typing import Mapping as _Mapping
+from typing import Optional as _Optional
+from typing import Union as _Union
+
+from google.protobuf import descriptor as _descriptor
+from google.protobuf import message as _message
+from google.protobuf import wrappers_pb2 as _wrappers_pb2
+
 from . import basic_types_pb2 as _basic_types_pb2
 from . import duration_pb2 as _duration_pb2
 from . import timestamp_pb2 as _timestamp_pb2
-from google.protobuf import wrappers_pb2 as _wrappers_pb2
-from google.protobuf import descriptor as _descriptor
-from google.protobuf import message as _message
-from typing import ClassVar as _ClassVar, Mapping as _Mapping, Optional as _Optional, Union as _Union
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
 class CryptoUpdateTransactionBody(_message.Message):
-    __slots__ = ("accountIDToUpdate", "key", "proxyAccountID", "proxyFraction", "sendRecordThreshold", "sendRecordThresholdWrapper", "receiveRecordThreshold", "receiveRecordThresholdWrapper", "autoRenewPeriod", "expirationTime", "receiverSigRequired", "receiverSigRequiredWrapper", "memo", "max_automatic_token_associations", "staked_account_id", "staked_node_id", "decline_reward")
+    __slots__ = (
+        "accountIDToUpdate",
+        "key",
+        "proxyAccountID",
+        "proxyFraction",
+        "sendRecordThreshold",
+        "sendRecordThresholdWrapper",
+        "receiveRecordThreshold",
+        "receiveRecordThresholdWrapper",
+        "autoRenewPeriod",
+        "expirationTime",
+        "receiverSigRequired",
+        "receiverSigRequiredWrapper",
+        "memo",
+        "max_automatic_token_associations",
+        "staked_account_id",
+        "staked_node_id",
+        "decline_reward",
+    )
     ACCOUNTIDTOUPDATE_FIELD_NUMBER: _ClassVar[int]
     KEY_FIELD_NUMBER: _ClassVar[int]
     PROXYACCOUNTID_FIELD_NUMBER: _ClassVar[int]
@@ -44,4 +67,35 @@ class CryptoUpdateTransactionBody(_message.Message):
     staked_account_id: _basic_types_pb2.AccountID
     staked_node_id: int
     decline_reward: _wrappers_pb2.BoolValue
-    def __init__(self, accountIDToUpdate: _Optional[_Union[_basic_types_pb2.AccountID, _Mapping]] = ..., key: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ..., proxyAccountID: _Optional[_Union[_basic_types_pb2.AccountID, _Mapping]] = ..., proxyFraction: _Optional[int] = ..., sendRecordThreshold: _Optional[int] = ..., sendRecordThresholdWrapper: _Optional[_Union[_wrappers_pb2.UInt64Value, _Mapping]] = ..., receiveRecordThreshold: _Optional[int] = ..., receiveRecordThresholdWrapper: _Optional[_Union[_wrappers_pb2.UInt64Value, _Mapping]] = ..., autoRenewPeriod: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ..., expirationTime: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., receiverSigRequired: bool = ..., receiverSigRequiredWrapper: _Optional[_Union[_wrappers_pb2.BoolValue, _Mapping]] = ..., memo: _Optional[_Union[_wrappers_pb2.StringValue, _Mapping]] = ..., max_automatic_token_associations: _Optional[_Union[_wrappers_pb2.Int32Value, _Mapping]] = ..., staked_account_id: _Optional[_Union[_basic_types_pb2.AccountID, _Mapping]] = ..., staked_node_id: _Optional[int] = ..., decline_reward: _Optional[_Union[_wrappers_pb2.BoolValue, _Mapping]] = ...) -> None: ...
+    def __init__(
+        self,
+        accountIDToUpdate: _Optional[
+            _Union[_basic_types_pb2.AccountID, _Mapping]
+        ] = ...,
+        key: _Optional[_Union[_basic_types_pb2.Key, _Mapping]] = ...,
+        proxyAccountID: _Optional[_Union[_basic_types_pb2.AccountID, _Mapping]] = ...,
+        proxyFraction: _Optional[int] = ...,
+        sendRecordThreshold: _Optional[int] = ...,
+        sendRecordThresholdWrapper: _Optional[
+            _Union[_wrappers_pb2.UInt64Value, _Mapping]
+        ] = ...,
+        receiveRecordThreshold: _Optional[int] = ...,
+        receiveRecordThresholdWrapper: _Optional[
+            _Union[_wrappers_pb2.UInt64Value, _Mapping]
+        ] = ...,
+        autoRenewPeriod: _Optional[_Union[_duration_pb2.Duration, _Mapping]] = ...,
+        expirationTime: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ...,
+        receiverSigRequired: bool = ...,
+        receiverSigRequiredWrapper: _Optional[
+            _Union[_wrappers_pb2.BoolValue, _Mapping]
+        ] = ...,
+        memo: _Optional[_Union[_wrappers_pb2.StringValue, _Mapping]] = ...,
+        max_automatic_token_associations: _Optional[
+            _Union[_wrappers_pb2.Int32Value, _Mapping]
+        ] = ...,
+        staked_account_id: _Optional[
+            _Union[_basic_types_pb2.AccountID, _Mapping]
+        ] = ...,
+        staked_node_id: _Optional[int] = ...,
+        decline_reward: _Optional[_Union[_wrappers_pb2.BoolValue, _Mapping]] = ...,
+    ) -> None: ...
