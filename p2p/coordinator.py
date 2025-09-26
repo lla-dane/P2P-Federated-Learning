@@ -62,7 +62,7 @@ IS_CLOUD = os.getenv("IS_CLOUD")
 COMMANDS = """
 Available commands:
 - connect <multiaddr>               - Connect to another peer
-- advertize <topic>                 - Start a training round in the fed-learn mesh
+- advertize <topic>                 - Start a training round
 - train <topic> <dataset> <model>   - Starts the training procedure
 - join <topic>                      - Subscribe to a topic
 - leave <topic>                     - Unsubscribe to a topic
@@ -574,30 +574,23 @@ class Node:
                 if cmd == "bootmesh":
                     bootmesh: dict = self.mesh.get_bootstrap_mesh()
                     return jsonify({"status": "ok", "bootmesh": bootmesh})
+                
                 elif cmd == "mesh":
                     mesh: dict = self.mesh.get_local_mesh()
                     return jsonify({"status": "ok", "mesh": mesh})
+                
+                elif cmd == "peers":
+                    peers = self.mesh.get_connected_nodes()
+                    return jsonify({"status": "ok", "peers": list(peers)})     
+                
+                elif cmd == "local":
+                    public_maddr = f"/ip4/{PUBLIC_IP}/tcp/{self.host.get_addrs()[0].value_for_protocol("tcp")}/p2p/{self.host.get_id()}"
+                    return jsonify({"status": "ok", "addr": public_maddr})
+                                
                 else:
                     # forward as list if you want
                     await app.send_channel.send([cmd] + args)
                     return jsonify({"status": "ok", "received": data})
-            except Exception as e:
-                return jsonify({"error": str(e)}), 500
-
-        @app.route("/command", methods=["GET"])
-        async def command_get():
-            try:
-                data = await request.get_json(silent=True) or {}
-                cmd = data.get("cmd")
-
-                if cmd == "bootmesh":
-                    bootmesh: dict = self.mesh.get_bootstrap_mesh()
-                    return jsonify({"status": "ok", "bootmesh": bootmesh})
-                elif cmd == "mesh":
-                    mesh: dict = self.mesh.get_local_mesh()
-                    return jsonify({"status": "ok", "mesh": mesh})
-                else:
-                    return jsonify({"error": "Unknown command"}), 400
             except Exception as e:
                 return jsonify({"error": str(e)}), 500
 

@@ -1,28 +1,38 @@
 import os
 import sys
-from pathlib import Path
-from prompt_toolkit import PromptSession
+import trio
+import requests
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-import trio
-from dotenv import load_dotenv
 
-session = PromptSession()
+from pathlib import Path
+from prompt_toolkit import PromptSession
+from dotenv import load_dotenv
 from akave.mcache import Akave
 from logs import setup_logging
 
 env_path = Path("..") / ".env"
 load_dotenv(dotenv_path=env_path)
 
+session = PromptSession()
 logger = setup_logging("runner")
+BASE_URL = "http://localhost:9000"
 
 
 COMMANDS = """
 Available commands:
-- upload <dataset|model> <file_path>        - Upload a dataset or model to Akave
-- train <dataset_akave_hash> <model_akave_hash> - Start a training round
-- help                      - List the existing commands
-- exit                      - Shut down
+- upload <dataset|model> <file_path>            - Upload a dataset or model to Akave
+- train <dataset> <model>                       - Start a training round
+- advertize <topic>                             - Start a training round
+- leave <topic>                                 - Unsubscribe to a topic
+- publish <topic> <message>                     - Publish a message
+- topics                                        - List of subscribed topics
+- mesh                                          - Get the client local mesh summary
+- bootmesh                                      - Get the bootstrap mesh summary
+- peers                                         - List connected peers
+- local                                         - List local multiaddr
+- help                                          - List the existing commands
+- exit                                          - Shut down
 """
 
 
@@ -43,7 +53,6 @@ def upload_dataset_to_akave(file_path: str) -> str:
 
         # read the first line separately (header)
         header = f.readline()
-        header_size = len(header.encode("utf-8"))  # noqa: F841
 
         for line in f:
             line_size = len(line.encode("utf-8"))
@@ -83,6 +92,27 @@ def upload_dataset_to_akave(file_path: str) -> str:
         f"Dataset uploaded to Akave in {i} chunks, dataset hash: {manifest_urls}"
     )
 
+
+def send_command(cmd, args = None):
+    url = f"{BASE_URL}/command"
+    payload = {"cmd": cmd}
+    if args:
+        payload["args"] = args
+    try:
+        resp = requests.post(url, json=payload)
+        resp.raise_for_status()
+        return resp.json()
+    except requests.exceptions.RequestException as e:
+        return {"error": str(e)}
+    
+def get_status():
+    url = f"{BASE_URL}/status"
+    try:
+        resp = requests.get(url)
+        resp.raise_for_status()
+        return resp.json()
+    except requests.exceptions.RequestException as e:
+        return {"error": str(e)}
 
 async def interactive_shell() -> None:
 
@@ -125,14 +155,32 @@ async def interactive_shell() -> None:
                 if not dataset or not code:
                     logger.error("Usage: train <dataset> <code>")
                     continue
-
+                
+            if cmd == "publish" and len(parts) == 3:
+                logger.info(send_command("publish", [parts[1], parts[2]]))
+            
+            if cmd == "topics":
+                logger.info(send_command("topics"))
+                
+            if cmd == "mesh":
+                logger.info(send_command("mesh"))
+                
+            if cmd == "bootmesh":
+                logger.info(send_command("bootmesh"))
+                
+            if cmd == "peers":
+                logger.info(send_command("peers"))
+                
+            if cmd == "local":
+                logger.info(send_command("local"))
+                
             if cmd == "help":
                 logger.debug(COMMANDS)
 
             if cmd == "exit":
                 logger.warning("Exiting...")
                 break
-
+                
         except Exception as e:
             logger.error(f"Error in the interactive shell: {e}")
             await trio.sleep(1)
