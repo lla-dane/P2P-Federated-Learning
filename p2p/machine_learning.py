@@ -1,13 +1,12 @@
 import os
 import sys
-
+import requests
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-
-import requests
-
 from akave.mcache import Akave
+from logs import setup_logging
 
+logger = setup_logging("ml")
 
 class MLTrainer:
     def __init__(self):
@@ -17,19 +16,18 @@ class MLTrainer:
         """
         Assigns dataset chunks to different trainer nodes.
         """
-        print(f"Fetching dataset manifest from URL: {dataset_url}")
+        logger.debug(f"Fetching dataset manifest from the provided URL")
         manifest_content = requests.get(dataset_url, stream=True)
         if not manifest_content:
             raise Exception("Failed to fetch dataset manifest from dataset_url.")
 
         chunk_urls = manifest_content.text.strip().split(",")
-        print(f"Found {len(chunk_urls)} dataset chunks.")
+        logger.debug(f"Found {len(chunk_urls)} dataset chunks.")
 
         assignments = {node: [] for node in nodes}
         for i, chunk_url in enumerate(chunk_urls):
             node = nodes[i % len(nodes)]
             assignments[node].append(chunk_url)
-        print(f"assignments : {assignments}")
         return assignments
 
     def train_on_chunk(self, chunk_url: str, model_url: str) -> any:
@@ -50,9 +48,9 @@ class MLTrainer:
 
         try:
             # Download dataset chunk and model
-            print("Downloading dataset chunk...")
+            logger.debug("Downloading dataset chunk...")
             self.akave_client.download_file_from_url(chunk_url, dataset_file)
-            print("Downloading model...")
+            logger.debug("Downloading model...")
             self.akave_client.download_file_from_url(model_url, model_file)
 
             # Read model file and exec it
@@ -60,8 +58,7 @@ class MLTrainer:
                 model_code = f.read()
 
             local_vars = {}
-            print("Training model...")
-            print(model_code)
+            logger.info("Training model...")
             exec(model_code, {}, local_vars)
 
             # Expect the model to define 'weights' variable
@@ -70,15 +67,14 @@ class MLTrainer:
                     "Model script must define 'weights' variable after execution"
                 )
 
-            print("Training completed. Returning weights.")
+            logger.info("Training completed. Returning weights.")
             return local_vars["model_weights"]
 
         except Exception as e:
-            print(f"exception : {e} ")
+            logger.error(f"exception : {e} ")
 
         finally:
             # Clean up
-            print("Cleaning up temporary files...")
             if os.path.exists(model_file):
                 os.remove(model_file)
             if os.path.exists(dataset_file):

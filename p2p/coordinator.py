@@ -239,7 +239,7 @@ class Node:
                     if cmd == "assign" and len(parts) == 3:
                         model_hash = parts[1]
                         assignments: dict = ast.literal_eval(parts[2])
-                        logger.info(f"Received assignments: {assignments}")
+                        logger.info(f"Received assignments")
                         node_id: str = self.host.get_id()
                         for k, v in assignments.items():
                             if k == node_id:
@@ -263,9 +263,7 @@ class Node:
                                 await self.pubsub.publish(
                                     parts[1], "Left as a TRAINER self".encode()
                                 )
-
-                                logger.info(f"Unsubscribed from [{parts[1]}] mesh")
-
+                                
                     if cmd == "join" and len(parts) > 1:
                         if self.role != "trainer":
                             logger.warning(
