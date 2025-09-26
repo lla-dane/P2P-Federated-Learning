@@ -22,14 +22,14 @@ class MLTrainer:
         if not manifest_content:
             raise Exception("Failed to fetch dataset manifest from dataset_url.")
 
-        chunk_urls = manifest_content.strip().split(",")
+        chunk_urls = manifest_content.text.strip().split(",")
         print(f"Found {len(chunk_urls)} dataset chunks.")
 
         assignments = {node: [] for node in nodes}
         for i, chunk_url in enumerate(chunk_urls):
             node = nodes[i % len(nodes)]
             assignments[node].append(chunk_url)
-
+        print(f"assignments : {assignments}")
         return assignments
 
     def train_on_chunk(self, chunk_url: str, model_url: str) -> any:
@@ -61,16 +61,20 @@ class MLTrainer:
 
             local_vars = {}
             print("Training model...")
+            print(model_code)
             exec(model_code, {}, local_vars)
 
             # Expect the model to define 'weights' variable
-            if "weights" not in local_vars:
+            if "model_weights" not in local_vars:
                 raise ValueError(
                     "Model script must define 'weights' variable after execution"
                 )
 
             print("Training completed. Returning weights.")
-            return local_vars["weights"]
+            return local_vars["model_weights"]
+
+        except Exception as e:
+            print(f"exception : {e} ")
 
         finally:
             # Clean up

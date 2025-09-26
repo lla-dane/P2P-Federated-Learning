@@ -232,13 +232,16 @@ class Node:
                         dataset_hash, model_hash = parts[2].split(" ")
                         channel = parts[1]
                         nodes = self.mesh.get_channel_nodes(channel)
+                        logger.warning(f"current nodes are: {nodes}")
+                        logger.warning(f"current dataset_hash is: {dataset_hash}")
+                        logger.warning(f"current model_hash is: {model_hash}")
                         if not nodes:
                             logger.warning(f"No nodes found for channel: {channel}")
                             continue
                         assignments = self.ml_trainer.assign_chunks_to_nodes(
                             dataset_hash, nodes
                         )
-
+                        await self.pubsub.publish(parts[1], "hello".encode())
                         await self.pubsub.publish(
                             parts[1], f"assign {model_hash} {assignments}".encode()
                         )
@@ -269,7 +272,6 @@ class Node:
                                     parts[1], "Left as a TRAINER self".encode()
                                 )
 
-                                await self.pubsub.unsubscribe(parts[1])
                                 logger.info(f"Unsubscribed from [{parts[1]}] mesh")
 
                     if cmd == "join" and len(parts) > 1:
@@ -572,15 +574,6 @@ class Node:
 
         @app.route("/command", methods=["POST"])
         async def command_post():
-            # try:
-            #     cmd = await request.get_json()
-            #     if isinstance(cmd, list):
-            #         await app.send_channel.send(cmd)
-            #         return jsonify({"status": "ok", "received": cmd})
-            #     else:
-            #         return jsonify({"error": "Invalid command format"}), 400
-            # except Exception as e:
-            #     return jsonify({"error": str(e)}), 500
             try:
                 data = await request.get_json()
                 if not isinstance(data, dict) or "cmd" not in data:
@@ -588,10 +581,16 @@ class Node:
                 cmd = data["cmd"]
                 args = data.get("args", [])
 
-                # forward as list if you want
-                await app.send_channel.send([cmd] + args)
-
-                return jsonify({"status": "ok", "received": data})
+                if cmd == "bootmesh":
+                    bootmesh: dict = self.mesh.get_bootstrap_mesh()
+                    return jsonify({"status": "ok", "bootmesh": bootmesh})
+                elif cmd == "mesh":
+                    mesh: dict = self.mesh.get_local_mesh()
+                    return jsonify({"status": "ok", "mesh": mesh})
+                else:
+                    # forward as list if you want
+                    await app.send_channel.send([cmd] + args)
+                    return jsonify({"status": "ok", "received": data})
             except Exception as e:
                 return jsonify({"error": str(e)}), 500
 

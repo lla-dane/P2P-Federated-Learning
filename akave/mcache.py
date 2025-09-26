@@ -171,7 +171,7 @@ class Akave:
             return False
         print(f"Generating presigned URL for {file_name}...")
         self.cids.append(key)
-        self.urls.append(self.get_presigned_url(file_name))
+        self.urls.append(self.get_presigned_url(key))
         return True
 
     def download_file_from_url(self, url, save_path):

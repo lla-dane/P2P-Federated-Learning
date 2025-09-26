@@ -1,17 +1,16 @@
 import os
 import time
-from dotenv import load_dotenv
-from hiero_sdk_python import (
-    Client,
-    AccountId,
-    PrivateKey,
-    Network,
-    ResponseCode
-)
 
-from hiero_sdk_python.contract.contract_execute_transaction import ContractExecuteTransaction
+from dotenv import load_dotenv
+
+from hiero_sdk_python import AccountId, Client, Network, PrivateKey, ResponseCode
 from hiero_sdk_python.contract.contract_call_query import ContractCallQuery
-from hiero_sdk_python.contract.contract_function_parameters import ContractFunctionParameters
+from hiero_sdk_python.contract.contract_execute_transaction import (
+    ContractExecuteTransaction,
+)
+from hiero_sdk_python.contract.contract_function_parameters import (
+    ContractFunctionParameters,
+)
 from hiero_sdk_python.contract.contract_id import ContractId
 from hiero_sdk_python.hbar import Hbar
 def get_contract_count(client, contract_id):
@@ -29,6 +28,7 @@ def get_contract_count(client, contract_id):
     # This removes any padding and converts to readable text
     return result
 
+
 def setup_client():
     """Initialize and set up the client with operator account"""
     network = Network(network="testnet")
@@ -39,6 +39,7 @@ def setup_client():
     client.set_operator(operator_id, operator_key)
 
     return client
+
 
 def main():
     """

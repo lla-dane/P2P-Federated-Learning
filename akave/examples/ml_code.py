@@ -1,12 +1,14 @@
+import pandas as pd
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 
-# dataset is already provided by exec_globals in train_on_chunk
-df = dataset.copy()  # noqa: F821
+# Load dataset
+df = pd.read_csv("./dataset.csv")
 
 # Drop id column (not useful for training)
-df = df.drop(columns=["id"])
+if "id" in df.columns:
+    df = df.drop(columns=["id"])
 
 # Encode diagnosis (M = 1, B = 0)
 label_encoder = LabelEncoder()
@@ -29,6 +31,7 @@ X_test = scaler.transform(X_test)
 # Train model
 model = LogisticRegression(max_iter=500)
 model.fit(X_train, y_train)
+
 
 # Evaluate
 acc = model.score(X_test, y_test)

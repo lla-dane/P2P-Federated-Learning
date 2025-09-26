@@ -24,6 +24,7 @@ Features:
 Run: python generate_proto.py -vv or with trace logs: python generate_proto.py -vvv
 """
 from __future__ import annotations
+
 import argparse
 import logging
 import re
@@ -32,8 +33,8 @@ import sys
 import tarfile
 import tempfile
 import urllib.request
-from importlib.resources import files as pkg_files
 from dataclasses import dataclass
+from importlib.resources import files as pkg_files
 from pathlib import Path
 from typing import Iterable, List, Set, Tuple
 from urllib.error import URLError
@@ -51,10 +52,13 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 TRACE_LEVEL = 5
 logging.addLevelName(TRACE_LEVEL, "TRACE")
 
+
 def trace(msg, *args, **kwargs):
     logging.log(TRACE_LEVEL, msg, *args, **kwargs)
 
+
 logging.trace = trace
+
 
 @dataclass(frozen=True)
 class Config:
@@ -63,6 +67,7 @@ class Config:
     services_out: Path
     mirror_out: Path
     pyi_out: bool = True
+
 
 def setup_logging(verbosity: int) -> None:
     level = logging.WARNING
@@ -74,9 +79,11 @@ def setup_logging(verbosity: int) -> None:
         level = TRACE_LEVEL
     logging.basicConfig(level=level, format="%(levelname)s: %(message)s")
 
+
 def resolve_path(p: str) -> Path:
     q = Path(p)
     return q if q.is_absolute() else (SCRIPT_DIR / q)
+
 
 # -------------------- CLI --------------------
 def parse_args() -> argparse.Namespace:
@@ -109,12 +116,14 @@ def parse_args() -> argparse.Namespace:
         help="Do not emit .pyi stubs from protoc.",
     )
     parser.add_argument(
-        "-v", "--verbose",
+        "-v",
+        "--verbose",
         action="count",
         default=0,
         help="Increase verbosity (-v, -vv).",
     )
     return parser.parse_args()
+
 
 # -------------------- Dependency check --------------------
 def ensure_grpc_tools() -> None:
@@ -129,7 +138,9 @@ def ensure_grpc_tools() -> None:
         logging.error(msg)
         raise SystemExit(1) from exc
 
+
 # -------------------- Download & extract --------------------
+
 
 def is_safe_tar_member(member: tarfile.TarInfo, base: Path) -> bool:
     name = member.name
@@ -145,6 +156,7 @@ def is_safe_tar_member(member: tarfile.TarInfo, base: Path) -> bool:
         return False
     return True
 
+
 def safe_extract_tar_stream(response, dest: Path) -> None:
     """Stream-extract a GitHub tgz, stripping the top-level folder safely."""
     with tarfile.open(fileobj=response, mode="r|gz") as tar:
@@ -155,12 +167,17 @@ def safe_extract_tar_stream(response, dest: Path) -> None:
                 continue
             if not is_safe_tar_member(member, dest):
                 raise RuntimeError(f"Unsafe path in archive: {member.name}")
-            tar.extract(member, path=dest)  # nosec B202 - path validated by is_safe_tar_member
+            tar.extract(
+                member, path=dest
+            )  # nosec B202 - path validated by is_safe_tar_member
+
 
 def validate_url_and_version(url: str, hapi_version: str) -> None:
     parsed = urlparse(url)
     if parsed.scheme != "https" or parsed.netloc != "github.com":
-        raise RuntimeError(f"Refusing to fetch from non-https or unexpected host: {url}")
+        raise RuntimeError(
+            f"Refusing to fetch from non-https or unexpected host: {url}"
+        )
 
     if not re.fullmatch(r"v\d+\.\d+\.\d+", hapi_version):
         raise RuntimeError(f"Unexpected HAPI tag format: {hapi_version}")
@@ -179,7 +196,7 @@ def download_and_setup_protos(hapi_version: str, protos_dir: Path) -> None:
     validate_url_and_version(url, hapi_version)
 
     try:
-        with urllib.request.urlopen(url, timeout=30) as resp: # nosec B310
+        with urllib.request.urlopen(url, timeout=30) as resp:  # nosec B310
             safe_extract_tar_stream(resp, protos_dir)
     except URLError as e:
         raise RuntimeError(f"Failed to download protobuf files: {e}") from e
@@ -193,7 +210,9 @@ def download_and_setup_protos(hapi_version: str, protos_dir: Path) -> None:
 
     logging.info("Protobufs ready at %s", protos_dir)
 
+
 # -------------------- Filesystem helpers --------------------
+
 
 def clean_and_prepare_output_dirs(*dirs: Path) -> None:
     seen: set[Path] = set()
@@ -207,9 +226,11 @@ def clean_and_prepare_output_dirs(*dirs: Path) -> None:
         logging.info("Creating output dir: %s", d)
         d.mkdir(parents=True, exist_ok=True)
 
+
 def ensure_subpackages(base: Path, subdirs: Iterable[Path]) -> None:
     for p in subdirs:
         (base / p).mkdir(parents=True, exist_ok=True)
+
 
 def create_init_files(*roots: Path) -> None:
     for root in roots:
@@ -217,8 +238,9 @@ def create_init_files(*roots: Path) -> None:
             if p.is_dir():
                 (p / "__init__.py").touch(exist_ok=True)
 
+
 def log_generated_files(output_dir: Path) -> None:
-    py_files  = sorted(output_dir.rglob("*.py"))
+    py_files = sorted(output_dir.rglob("*.py"))
     pyi_files = sorted(output_dir.rglob("*.pyi"))
 
     print(f"\n📂 Generated compiled proto files in {output_dir}:")
@@ -243,6 +265,7 @@ def log_generated_files(output_dir: Path) -> None:
                 rel = f
             logging.trace("  - %s", rel)
 
+
 # -------------------- Protoc invocation --------------------
 def run_protoc(
     proto_paths: List[Path],
@@ -265,16 +288,19 @@ def run_protoc(
     args += ["--python_out", str(out_py), "--grpc_python_out", str(out_grpc)]
     if pyi_out:
         args += ["--pyi_out", str(out_py)]
-    # as_posix forces a return of the paths as / as required for protoc    
+    # as_posix forces a return of the paths as / as required for protoc
     args += [f.as_posix() for f in files]
 
     logging.trace("protoc args: %s", " ".join(args))
     from grpc_tools import protoc
+
     code = protoc.main(args)
     if code != 0:
         raise RuntimeError(f"protoc failed with exit code {code}")
 
+
 # -------------------- Import normalization for .proto --------------------
+
 
 def rewrite_import_line(line: str, src_root: Path) -> str:
     """
@@ -302,6 +328,7 @@ def rewrite_import_line(line: str, src_root: Path) -> str:
             return line.replace(target, f"platform/{target}")
 
     return line
+
 
 def parse_import_line(line: str, src_root: Path) -> tuple[str, Path | None]:
     """Return (possibly rewritten) line and a dependency Path (or None)."""
@@ -369,6 +396,7 @@ def normalize_tree(src_root: Path, files: List[Path]) -> Tuple[Path, List[Path]]
 
 # -------------------- File list builders --------------------
 
+
 def service_and_platform_files(protos_root: Path) -> List[Path]:
     services = protos_root / "services"
     platform = protos_root / "platform"
@@ -396,11 +424,15 @@ def service_and_platform_files(protos_root: Path) -> List[Path]:
 
 def mirror_files(protos_root: Path) -> List[Path]:
     mirror = protos_root / "mirror"
-    return [Path("mirror") / f.relative_to(mirror) for f in sorted(mirror.glob("*.proto"))]
+    return [
+        Path("mirror") / f.relative_to(mirror) for f in sorted(mirror.glob("*.proto"))
+    ]
 
 
 # -------------------- Compile groups --------------------
-def compile_services_and_platform(protos_root: Path, services_out: Path, pyi_out: bool) -> None:
+def compile_services_and_platform(
+    protos_root: Path, services_out: Path, pyi_out: bool
+) -> None:
     logging.info("Compiling service and platform protos into %s", services_out)
     rel_files = service_and_platform_files(protos_root)
     logging.trace("Service/platform proto files: %s", rel_files)
@@ -434,32 +466,62 @@ def compile_mirror(protos_root: Path, mirror_out: Path) -> None:
     finally:
         shutil.rmtree(temp_root, ignore_errors=True)
 
+
 # -------------------- Post-generation Python import fixups --------------------
 def _iter_py_like(root: Path):
     for pat in ("*.py", "*.pyi"):
         yield from root.rglob(pat)
 
+
 # -------------------- Import-rewrite helpers (precompiled regexes) --------------------
 # Keep these at module scope so they don't count against function complexity and are compiled once.
-_RX_IMPORT_AS                = re.compile(r"^\s*import (\w+_pb2) as", re.MULTILINE)
-_RX_FROM_SERVICES_AS         = re.compile(r"^\s*from\s+services\s+import\s+(\w+_pb2)\s+as", re.MULTILINE)
-_RX_FROM_SERVICES            = re.compile(r"^\s*from\s+services\s+import\s+(\w+_pb2)\b", re.MULTILINE)
-_RX_FROM_SERVICES_SUBPKG     = re.compile(r"^\s*from\s+services\.((?:\w+\.)*\w+)\s+import\s+(\w+_pb2)(\s+as\b)?", re.MULTILINE)
-_RX_IMPORT_SERVICES_AS       = re.compile(r"^\s*import\s+services\.((?:\w+\.)*)(\w+_pb2)\s+as", re.MULTILINE)
-_RX_IMPORT_SERVICES          = re.compile(r"^\s*import\s+services\.((?:\w+\.)*)(\w+_pb2)\b", re.MULTILINE)
-_RX_FROM_AUX_TSS             = re.compile(r"^\s*from\s+auxiliary\.tss", re.MULTILINE)
-_RX_FROM_AUX_HINTS           = re.compile(r"^\s*from\s+auxiliary\.hints", re.MULTILINE)
-_RX_FROM_AUX_HISTORY         = re.compile(r"^\s*from\s+auxiliary\.history", re.MULTILINE)
-_RX_FROM_EVENT               = re.compile(r"^\s*from\s+event\s+import\s+(\w+_pb2)(\s+as\b)?", re.MULTILINE)
-_RX_FROM_PLATFORM_EVENT      = re.compile(r"^\s*from\s+platform\.event\s+import\s+(\w+_pb2)(\s+as\b)?", re.MULTILINE)
-_RX_FROM_DOT_STATE           = re.compile(r"^\s*from\s+\.\s*state(\.[\w\.]+)?\s+import\s+(\w+_pb2)(\s+as\b)?", re.MULTILINE)
-_RX_FROM_ABS_STATE           = re.compile(r"^\s*from\s+services\.state(\.[\w\.]+)?\s+import\s+(\w+_pb2)(\s+as\b)?", re.MULTILINE)
-_RX_FROM_DOT_IMPORT_LOCAL    = re.compile(r"^\s*from\s+\.\s+import\s+(\w+_pb2)(\s+as\s+\w+)?\s*$", re.MULTILINE)
+_RX_IMPORT_AS = re.compile(r"^\s*import (\w+_pb2) as", re.MULTILINE)
+_RX_FROM_SERVICES_AS = re.compile(
+    r"^\s*from\s+services\s+import\s+(\w+_pb2)\s+as", re.MULTILINE
+)
+_RX_FROM_SERVICES = re.compile(
+    r"^\s*from\s+services\s+import\s+(\w+_pb2)\b", re.MULTILINE
+)
+_RX_FROM_SERVICES_SUBPKG = re.compile(
+    r"^\s*from\s+services\.((?:\w+\.)*\w+)\s+import\s+(\w+_pb2)(\s+as\b)?", re.MULTILINE
+)
+_RX_IMPORT_SERVICES_AS = re.compile(
+    r"^\s*import\s+services\.((?:\w+\.)*)(\w+_pb2)\s+as", re.MULTILINE
+)
+_RX_IMPORT_SERVICES = re.compile(
+    r"^\s*import\s+services\.((?:\w+\.)*)(\w+_pb2)\b", re.MULTILINE
+)
+_RX_FROM_AUX_TSS = re.compile(r"^\s*from\s+auxiliary\.tss", re.MULTILINE)
+_RX_FROM_AUX_HINTS = re.compile(r"^\s*from\s+auxiliary\.hints", re.MULTILINE)
+_RX_FROM_AUX_HISTORY = re.compile(r"^\s*from\s+auxiliary\.history", re.MULTILINE)
+_RX_FROM_EVENT = re.compile(
+    r"^\s*from\s+event\s+import\s+(\w+_pb2)(\s+as\b)?", re.MULTILINE
+)
+_RX_FROM_PLATFORM_EVENT = re.compile(
+    r"^\s*from\s+platform\.event\s+import\s+(\w+_pb2)(\s+as\b)?", re.MULTILINE
+)
+_RX_FROM_DOT_STATE = re.compile(
+    r"^\s*from\s+\.\s*state(\.[\w\.]+)?\s+import\s+(\w+_pb2)(\s+as\b)?", re.MULTILINE
+)
+_RX_FROM_ABS_STATE = re.compile(
+    r"^\s*from\s+services\.state(\.[\w\.]+)?\s+import\s+(\w+_pb2)(\s+as\b)?",
+    re.MULTILINE,
+)
+_RX_FROM_DOT_IMPORT_LOCAL = re.compile(
+    r"^\s*from\s+\.\s+import\s+(\w+_pb2)(\s+as\s+\w+)?\s*$", re.MULTILINE
+)
 
-_RX_MIRROR_IMPORT_AS         = re.compile(r"^\s*import (\w+_pb2) as", re.MULTILINE)
-_RX_FROM_MIRROR_AS           = re.compile(r"^\s*from\s+mirror\s+import\s+(\w+_pb2)\s+as", re.MULTILINE)
-_RX_FROM_SERVICES_AS_MIR     = re.compile(r"^\s*from\s+services\s+import\s+(\w+_pb2)\s+as", re.MULTILINE)
-_RX_FROM_DOT_AS_MIR          = re.compile(r"^\s*from\s+\.\s+import\s+(\w+_pb2)\s+as", re.MULTILINE)
+_RX_MIRROR_IMPORT_AS = re.compile(r"^\s*import (\w+_pb2) as", re.MULTILINE)
+_RX_FROM_MIRROR_AS = re.compile(
+    r"^\s*from\s+mirror\s+import\s+(\w+_pb2)\s+as", re.MULTILINE
+)
+_RX_FROM_SERVICES_AS_MIR = re.compile(
+    r"^\s*from\s+services\s+import\s+(\w+_pb2)\s+as", re.MULTILINE
+)
+_RX_FROM_DOT_AS_MIR = re.compile(
+    r"^\s*from\s+\.\s+import\s+(\w+_pb2)\s+as", re.MULTILINE
+)
+
 
 def _walk_and_rewrite(root: Path, rewriter) -> tuple[int, int]:
     """Walk .py and .pyi under root, rewrite with `rewriter(text, path) -> new_text|None`."""
@@ -483,6 +545,7 @@ def _walk_and_rewrite(root: Path, rewriter) -> tuple[int, int]:
 
 def _rewrite_services_factory(services_dir: Path, service_root_modules: set[str]):
     """Returns a rewriter function closed over path depth and service module set."""
+
     def rewriter(text: str, path: Path) -> str | None:
         rel = path.relative_to(services_dir)
         dots = "." * (len(rel.parent.parts) + 1)
@@ -507,20 +570,28 @@ def _rewrite_services_factory(services_dir: Path, service_root_modules: set[str]
         def repl_dot_state(m: re.Match) -> str:
             tail, mod, alias = m.group(1) or "", m.group(2), m.group(3) or ""
             return f"from {dots}state{tail} import {mod}{alias}"
+
         s = _RX_FROM_DOT_STATE.sub(repl_dot_state, s)
 
         def repl_abs_state(m: re.Match) -> str:
             tail, mod, alias = m.group(1) or "", m.group(2), m.group(3) or ""
             return f"from {dots}state{tail} import {mod}{alias}"
+
         s = _RX_FROM_ABS_STATE.sub(repl_abs_state, s)
 
         # from . import foo_pb2 -> from {dots} import foo_pb2 (only for root-level modules)
         def repl_from_dot_local(m: re.Match) -> str:
             mod, alias = m.group(1), m.group(2) or ""
-            return f"from {dots} import {mod}{alias}" if mod in service_root_modules else m.group(0)
+            return (
+                f"from {dots} import {mod}{alias}"
+                if mod in service_root_modules
+                else m.group(0)
+            )
+
         s = _RX_FROM_DOT_IMPORT_LOCAL.sub(repl_from_dot_local, s)
 
         return None if s == text else s
+
     return rewriter
 
 
@@ -541,37 +612,63 @@ def _rewrite_mirror_factory(mirror_modules: set[str], service_modules: set[str])
         def repl_from_mirror(m: re.Match) -> str:
             mod = m.group(1)
             return f"from . import {mod} as" if mod in mirror_modules else m.group(0)
+
         s = _RX_FROM_MIRROR_AS.sub(repl_from_mirror, s)
 
         def repl_from_services(m: re.Match) -> str:
             mod = m.group(1)
-            return f"from ..services import {mod} as" if mod in service_modules else m.group(0)
+            return (
+                f"from ..services import {mod} as"
+                if mod in service_modules
+                else m.group(0)
+            )
+
         s = _RX_FROM_SERVICES_AS_MIR.sub(repl_from_services, s)
 
         def repl_from_dot(m: re.Match) -> str:
             mod = m.group(1)
-            return f"from ..services import {mod} as" if (mod in service_modules and mod not in mirror_modules) else m.group(0)
+            return (
+                f"from ..services import {mod} as"
+                if (mod in service_modules and mod not in mirror_modules)
+                else m.group(0)
+            )
+
         s = _RX_FROM_DOT_AS_MIR.sub(repl_from_dot, s)
 
         return None if s == text else s
+
     return rewriter
+
 
 def _rewrite_platform_event(text: str, _path: Path) -> str | None:
     s = text
     s2 = s
     # from services import X_pb2 [as Y] -> from ...services import X_pb2 [as Y]
-    s2 = re.sub(r'(?m)^\s*from\s+services\s+import\s+(\w+_pb2)(\s+as\s+\w+)?',
-                r'from ...services import \1\2', s2)
+    s2 = re.sub(
+        r"(?m)^\s*from\s+services\s+import\s+(\w+_pb2)(\s+as\s+\w+)?",
+        r"from ...services import \1\2",
+        s2,
+    )
     # from services.foo.bar import X_pb2 [as Y] -> from ...services.foo.bar import X_pb2 [as Y]
-    s2 = re.sub(r'(?m)^\s*from\s+services\.((?:\w+\.)*\w+)\s+import\s+(\w+_pb2)(\s+as\s+\w+)?',
-                r'from ...services.\1 import \2\3', s2)
+    s2 = re.sub(
+        r"(?m)^\s*from\s+services\.((?:\w+\.)*\w+)\s+import\s+(\w+_pb2)(\s+as\s+\w+)?",
+        r"from ...services.\1 import \2\3",
+        s2,
+    )
     # from platform.event import X_pb2 [as Y] -> from . import X_pb2 [as Y]
-    s2 = re.sub(r'(?m)^\s*from\s+platform\.event\s+import\s+(\w+_pb2)(\s+as\s+\w+)?',
-                r'from . import \1\2', s2)
+    s2 = re.sub(
+        r"(?m)^\s*from\s+platform\.event\s+import\s+(\w+_pb2)(\s+as\s+\w+)?",
+        r"from . import \1\2",
+        s2,
+    )
     # (rare) from event import X_pb2 [as Y] -> from . import X_pb2 [as Y]
-    s2 = re.sub(r'(?m)^\s*from\s+event\s+import\s+(\w+_pb2)(\s+as\s+\w+)?',
-                r'from . import \1\2', s2)
+    s2 = re.sub(
+        r"(?m)^\s*from\s+event\s+import\s+(\w+_pb2)(\s+as\s+\w+)?",
+        r"from . import \1\2",
+        s2,
+    )
     return None if s2 == s else s2
+
 
 def adjust_python_imports(services_dir: Path, mirror_dir: Path) -> None:
     logging.info("Adjusting imports in services under %s", services_dir)
@@ -582,7 +679,7 @@ def adjust_python_imports(services_dir: Path, mirror_dir: Path) -> None:
     logging.info("Services: rewrote %d/%d files", svc_changed, svc_total)
 
     logging.info("Adjusting imports in mirror under %s", mirror_dir)
-    mirror_modules  = {f.stem for f in mirror_dir.rglob("*_pb2.py")}
+    mirror_modules = {f.stem for f in mirror_dir.rglob("*_pb2.py")}
     service_modules = {f.stem for f in services_dir.rglob("*_pb2.py")}
     mir_changed, mir_total = _walk_and_rewrite(
         mirror_dir, _rewrite_mirror_factory(mirror_modules, service_modules)
@@ -595,6 +692,8 @@ def adjust_python_imports(services_dir: Path, mirror_dir: Path) -> None:
         logging.info("Adjusting imports in platform/event under %s", pe_dir)
         pe_changed, pe_total = _walk_and_rewrite(pe_dir, _rewrite_platform_event)
         logging.info("Platform/event: rewrote %d/%d files", pe_changed, pe_total)
+
+
 # -------------------- Main --------------------
 def main() -> None:
     args = parse_args()
@@ -636,8 +735,9 @@ def main() -> None:
     log_generated_files(cfg.mirror_out)
 
     # Fix imports and make packages importable
-    adjust_python_imports(cfg.services_out / Path("services"),
-                      cfg.mirror_out / Path("mirror"))
+    adjust_python_imports(
+        cfg.services_out / Path("services"), cfg.mirror_out / Path("mirror")
+    )
     create_init_files(cfg.services_out, cfg.mirror_out)
 
     print("✅ All protobuf files have been generated and adjusted successfully!")
