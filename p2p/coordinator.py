@@ -190,8 +190,23 @@ class Node:
             self.client_public_key_pem.encode("utf-8"), backend=default_backend()
         )
 
+        # cipher = self.client_public_key.encrypt(
+        #     "FUck you jinesh".encode("utf-8"),
+        #     padding.OAEP(
+        #         mgf=padding.MGF1(algorithm=hashes.SHA256()),
+        #         algorithm=hashes.SHA256(),
+        #         label=None
+        #     )
+        # )
+        # cipher_b64_1 = base64.b64encode(cipher).decode("utf-8")
+
+        # print(cipher_b64_1)
+
         # url = "https://o3-rc2.akave.xyz/akave-bucket/f402e7f71a64441ec8c4ff2567d1dae9451b98c8bf34f625aa11f8e018ecc3f7?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=O3_X84UVYSPJINK5KI6L%2F20250926%2Fakave-network%2Fs3%2Faws4_request&X-Amz-Date=20250926T095000Z&X-Amz-Expires=36000000&X-Amz-SignedHeaders=host&X-Amz-Signature=84ed4a65601fb990f653809101c88c30ebfb8163a482f5bf8b62734317ab5ba8"
+        # print(url)
         # url_bytes = url.encode("utf-8")
+        # print("\n\n")
+        # print(url_bytes)
 
         # # Split in two halves
         # part_size = len(url_bytes) // 3
@@ -418,10 +433,13 @@ class Node:
                                     logger.debug(msg)
                                     self.submit_hcs_message(msg)
 
-                                    weights_url = self.ml_trainer.train_on_chunk(
+                                    weights_url = await self.ml_trainer.train_on_chunk(
                                         chunk_cid, model_hash, self.send_channel
                                     )
+                                    print(weights_url)
                                     weights_url = str(weights_url).encode("utf-8")
+                                    print("\n\n\n\n\n")
+                                    print(weights_url)
 
                                     if weights_url:
                                         # Split weights url in 3 parts and encrypt them
@@ -462,6 +480,13 @@ class Node:
                                                 label=None,
                                             ),
                                         )
+
+                                        print("==============")
+                                        print(base64.b64encode(cipher1).decode("utf-8"))
+                                        print("\n\n")
+                                        print(base64.b64encode(cipher2).decode("utf-8"))
+                                        print("\n\n")
+                                        print(base64.b64encode(cipher3).decode("utf-8"))
 
                                         self.publish_on_chain(
                                             int(self.subscribed_topics[-1]),
