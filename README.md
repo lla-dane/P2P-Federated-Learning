@@ -15,9 +15,11 @@ A **peer-to-peer federated learning platform** where **ML users** can train mode
     - [Interfaces](#interfaces)
   - [Implementation Details](#implementation-details)
     - [Technologies Used](#technologies-used)
+    - [Architecture](#architecture)
   - [Presentation Link](#presentation-link)
   - [Demo Video Link](#demo-video-link)
   - [Frequently Asked Questions](#frequently-asked-questions)
+
 
 ## Getting Started
 These instructions will help you get a copy of the project up and running on your local machine.
@@ -83,17 +85,22 @@ These instructions will help you get a copy of the project up and running on you
 
 
 ## Implementation Details
+- ### Architecture
+ ![App Architecture](./images/app_arch.png)
 - ### Technologies Used
-**1. Akave O3**
-- Provides terminal-level **access to decentralized storage**.
-- **Uses presigned URLs** → allows downloading without AWS CLI or extra dependencies.
-**2. Hedera Blockchain**
-- **Payments**: Trainers rewarded directly in HBAR.
-- **State Management**: Training tasks emit Hedera events (start/end), fetched by frontend.
-- **Consensus Logging**: Trainer node logs are stored in a Hedera topic → resilient and cheap for debugging.
-**3. py-libp2p**
-- Provides reliable **peer-to-peer communication** between nodes.
-- Ensures decentralized **orchestration** of federated learning tasks.
+  **1. Akave O3**
+  - Provides terminal-level **access to decentralized storage**.
+  - **Uses presigned URLs** → allows downloading without AWS CLI or extra dependencies.
+    
+  **2. Hedera Blockchain**
+  - **Payments**: Trainers rewarded directly in HBAR.
+  - **State Management**: Training tasks emit Hedera events (start/end), fetched by frontend.
+  - **Consensus Logging**: Trainer node logs are stored in a Hedera topic → resilient and cheap for debugging.
+    
+  **3. py-libp2p**
+  - Provides reliable **peer-to-peer communication** between nodes.
+  - Ensures decentralized **orchestration** of federated learning tasks.
+    
 
 
 ## Presentation Link
@@ -220,17 +227,6 @@ Available commands:
 - help                      - List the existing commands
 - exit                      - Shut down
 ```
-## ✅ Current Progress
-
-- [x] IPFS integration via Pinata (upload & fetch files/strings)
-- [x] Basic P2P networking with py-libp2p
-- [x] Pubsub messaging and mesh management
-- [x] Rich logging for runtime insights
-- [x] Unit tests for IPFS client
-- [ ] Federated learning model training logic (planned)
-- [ ] Model parameter aggregation and distribution (planned)
-- [ ] Advanced mesh monitoring and peer coordination (in progress)
-
 
 ### AWS
 
