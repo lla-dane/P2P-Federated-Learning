@@ -393,9 +393,9 @@ class Node:
                         )
 
                     if cmd == "assign" and len(parts) == 4:
-                        self.client_pub_key = serialization.load_pem_public_key(
-                            parts[3].encode("utf-8"), backend=default_backend()
-                        )
+                        # self.client_pub_key = serialization.load_pem_public_key(
+                        #     parts[3].encode("utf-8"), backend=default_backend()
+                        # )
 
                         model_hash = parts[1]
                         assignments: dict = ast.literal_eval(parts[2])
