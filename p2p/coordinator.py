@@ -78,6 +78,9 @@ Available commands:
 - join <topic>                      - Subscribe to a topic
 - leave <topic>                     - Unsubscribe to a topic
 - publish <topic> <message>         - Publish a message
+- create-hcs                        - Start a HCS topic
+- send-hcs                          - Publish message to HCS topic
+- query                             - Query the HCS topic
 - topics                            - List of subscribed topics
 - mesh                              - Get the local mesh summary
 - bootmesh                          - Get the bootstrap mesh summary
@@ -177,14 +180,15 @@ class Node:
 
     def create_hcs_topic(self):
         logger.debug("Creating HCS topic")
+        operator_key = PrivateKey.from_string(self.operator_key)
         try:
             topic_tx = (
                 TopicCreateTransaction(
                     memo=f"{self.host.get_id()}: Logs",
-                    admin_key=self.operator_key.public_key(),
+                    admin_key=operator_key.public_key(),
                 )
                 .freeze_with(self.client)
-                .sign(self.operator_key)
+                .sign(operator_key)
             )
             topic_receipt = topic_tx.execute(self.client)
             self.hcs_topic_id = topic_receipt.topic_id
@@ -194,10 +198,11 @@ class Node:
             logger.error(f"Error: Creating topic: {e}")
 
     def submit_hcs_message(self, message):
+        operator_key = PrivateKey.from_string(self.operator_key)
         transaction = (
             TopicMessageSubmitTransaction(topic_id=self.hcs_topic_id, message=message)
             .freeze_with(self.client)
-            .sign(self.operator_key)
+            .sign(operator_key)
         )
 
         try:
