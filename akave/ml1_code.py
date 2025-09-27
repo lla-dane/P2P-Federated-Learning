@@ -44,5 +44,3 @@ model_weights = {
     "scaler_mean": scaler.mean_.tolist(),
     "scaler_scale": scaler.scale_.tolist(),
 }
-
-print(f"model_weights: {model_weights}")
