@@ -309,12 +309,11 @@ class Node:
                     if cmd == "assign" and len(parts) == 3:
                         model_hash = parts[1]
                         assignments: dict = ast.literal_eval(parts[2])
-                        logger.debug("Started training the model...")
                         node_id: str = self.host.get_id()
                         for k, v in assignments.items():
                             if k == node_id:
                                 for chunk_cid in v:
-                                    logger.debug("Training for chunk_cid started")
+                                    logger.debug(f"Training of chunk {chunk_cid} started....")
                                     weights = self.ml_trainer.train_on_chunk(
                                         chunk_cid, model_hash
                                     )
@@ -538,14 +537,14 @@ class Node:
                         logger.info(f"{sender_id}: {message.data.decode('utf-8')}")
 
                 except trio.EndOfChannel:
-                    logger.debug("Channel closed. Stopping receive loop.")
+                    logger.info("Channel closed. Stopping receive loop.")
                     break
                 except Exception as e:
                     logger.error(f"Error in the receive loop: {e}")
                     await trio.sleep(0.5)
 
         finally:
-            logger.debug("Receive loop terminated")
+            logger.info("Receive loop terminated")
 
     async def status_greet(self):
         await trio.sleep(2)
