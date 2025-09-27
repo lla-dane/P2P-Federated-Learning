@@ -373,9 +373,9 @@ class Node:
                         self.is_subscribed = True
 
                     if cmd == "train" and len(parts) == 3:
-
-                        dataset_hash, model_hash, public_key = parts[2].split(" ")
+                        dataset_hash, model_hash, pub_key = parts[2].split(" ")
                         channel = parts[1]
+
                         nodes = self.mesh.get_channel_nodes(channel)
                         logger.debug(f"Participating nodes are: {nodes}")
                         logger.debug(f"The dataset_url is: {dataset_hash}")
@@ -389,14 +389,23 @@ class Node:
 
                         await self.pubsub.publish(
                             parts[1],
-                            f"assign {model_hash} {public_key} {assignments}".encode(),
+                            f"assign {model_hash} {pub_key} {assignments}".encode(),
                         )
 
                     if cmd == "assign" and len(parts) == 4:
                         # self.client_pub_key = serialization.load_pem_public_key(
                         #     parts[3].encode("utf-8"), backend=default_backend()
                         # )
+                        pub_key = parts[2]
 
+                        # Restore the PEM encoded public key
+                        pub_key = pub_key.replace("#", " ")
+                        pub_key = pub_key.replace("?", "\n")
+
+                        self.client_pub_key = serialization.load_pem_public_key(
+                            pub_key.encode("utf-8"), backend=default_backend()
+                        )
+                        logger.debug("Client public key restored and added")
                         model_hash = parts[1]
                         assignments: dict = ast.literal_eval(parts[3])
                         node_id: str = self.host.get_id()
@@ -412,6 +421,8 @@ class Node:
                                     weights_url = self.ml_trainer.train_on_chunk(
                                         chunk_cid, model_hash, self.send_channel
                                     )
+                                    weights_url = str(weights_url).encode("utf-8")
+
                                     if weights_url:
                                         # Split weights url in 3 parts and encrypt them
                                         url_size = len(weights_url) // 3
@@ -465,7 +476,7 @@ class Node:
                                         logger.error(msg)
                                         self.submit_hcs_message(msg)
 
-                                msg = "Training on all assigned chunks: Completed"
+                                msg = "Training on all assigned chunks and blockchain upload: Completed"
                                 logger.info(msg)
                                 self.submit_hcs_message(msg)
 
