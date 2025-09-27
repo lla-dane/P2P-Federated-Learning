@@ -389,7 +389,7 @@ class Node:
 
                         await self.pubsub.publish(
                             parts[1],
-                            f"assign {model_hash} {assignments} {public_key}".encode(),
+                            f"assign {model_hash} {public_key} {assignments}".encode(),
                         )
 
                     if cmd == "assign" and len(parts) == 4:
@@ -398,7 +398,7 @@ class Node:
                         # )
 
                         model_hash = parts[1]
-                        assignments: dict = ast.literal_eval(parts[2])
+                        assignments: dict = ast.literal_eval(parts[3])
                         node_id: str = self.host.get_id()
 
                         for k, v in assignments.items():
