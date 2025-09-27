@@ -70,8 +70,11 @@ class MLTrainer:
                     "Model script must define 'weights' variable after execution"
                 )
 
-            logger.info("Training completed. Returning weights.")
-            return local_vars["model_weights"]
+            logger.info("Training completed. Uploading weights.")
+            weights = local_vars["model_weights"]
+
+            self.akave_client.upload_string(str(weights))
+            return self.akave_client.urls[-1]
 
         except Exception as e:
             logger.error(f"exception : {e} ")

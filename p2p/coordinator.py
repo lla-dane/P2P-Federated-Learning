@@ -3,6 +3,8 @@ import base64
 import json
 import os
 import random
+import time
+from datetime import datetime, timezone
 from pathlib import Path
 
 import base58
@@ -39,7 +41,16 @@ from mesh_utils import Mesh
 from quart import jsonify, request
 from quart_trio import QuartTrio
 
-from hiero_sdk_python import AccountId, Client, Network, PrivateKey, ResponseCode
+from hiero_sdk_python import (
+    AccountId,
+    Client,
+    Network,
+    PrivateKey,
+    ResponseCode,
+    TopicCreateTransaction,
+    TopicMessageQuery,
+    TopicMessageSubmitTransaction,
+)
 from hiero_sdk_python.contract.contract_execute_transaction import (
     ContractExecuteTransaction,
 )
@@ -150,6 +161,7 @@ class Node:
         # Send/Receive channels
         self.send_channel, self.receive_channel = trio.open_memory_channel(100)
         self.client = self.setup_client()
+        self.hcs_topic_id = None
         self.contract_id = ContractId.from_string(os.getenv("CONTRACT_ID"))
 
     def setup_client(self):
@@ -162,6 +174,65 @@ class Node:
         client.set_operator(operator_id, operator_key)
 
         return client
+
+    def create_hcs_topic(self):
+        logger.debug("Creating HCS topic")
+        try:
+            topic_tx = (
+                TopicCreateTransaction(
+                    memo=f"{self.host.get_id()}: Logs",
+                    admin_key=self.operator_key.public_key(),
+                )
+                .freeze_with(self.client)
+                .sign(self.operator_key)
+            )
+            topic_receipt = topic_tx.execute(self.client)
+            self.hcs_topic_id = topic_receipt.topic_id
+            logger.info("Created HCS topic for logs")
+
+        except Exception as e:
+            logger.error(f"Error: Creating topic: {e}")
+
+    def submit_hcs_message(self, message):
+        transaction = (
+            TopicMessageSubmitTransaction(topic_id=self.hcs_topic_id, message=message)
+            .freeze_with(self.client)
+            .sign(self.operator_key)
+        )
+
+        try:
+            _ = transaction.execute(self.client)
+        except Exception as e:
+            print(f"Log submission failed: {e}")
+
+    def query_hcs_topic_messages(self, topic_id):
+
+        def on_message_handler(topic_message):
+            print(f"TOPIC MESSAGE: {topic_message}")
+
+        def on_err_handler(e):
+            print(f"Subsription error: {e}")
+
+        query = TopicMessageQuery(
+            topic_id=topic_id,
+            start_time=datetime.now(timezone.utc),
+            limit=0,
+            chunking_enabled=True,
+        )
+
+        handle = query.subscribe(
+            self.client, on_message=on_message_handler, on_error=on_err_handler
+        )
+
+        print("Subscription started. Press Ctrl + C to cancel")
+        try:
+            while True:
+                time.sleep(10)
+        except KeyboardInterrupt:
+            print("Cancelling subscription")
+            handle.cancel()
+            handle.join()
+            print("Subscription cancelled. Exiting")
 
     def publish_on_chain(self, task_id, weights):
         receipt = (
@@ -359,6 +430,15 @@ class Node:
                         await self.pubsub.publish(parts[1], parts[2].encode())
                         logger.debug(f"Published: {parts[2]}")
 
+                    if cmd == "create-hcs":
+                        self.create_hcs_topic()
+
+                    if cmd == "send-hcs" and len(parts) > 1:
+                        self.submit_hcs_message(parts[1])
+
+                    if cmd == "query":
+                        await self.query_hcs_topic_messages(self.hcs_topic_id)
+
                     if cmd == "greet":
                         public_maddr = f"/ip4/{PUBLIC_IP}/tcp/{self.host.get_addrs()[0].value_for_protocol("tcp")}/p2p/{self.host.get_id()}"
 
@@ -450,7 +530,9 @@ class Node:
                     elif decoded_message.startswith("assign"):
                         logger.debug(f"Decoded message: {decoded_message}")
                         cmds = decoded_message.strip().split(" ", 2)
-                        logger.debug(f"Recevind training chunks from client, {cmds}")
+                        logger.debug(
+                            f"Recevind training chunks from query_hcs_topic_messages(self.hcs_topic_id), {cmds}"
+                        )
                         await self.send_channel.send(cmds)
 
                     # General message
