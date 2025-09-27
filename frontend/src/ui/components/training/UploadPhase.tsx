@@ -3,9 +3,7 @@ import FileUpload from '../FileUpload';
 import { useTraining } from '../../contexts/TrainingContext';
 import { Database, Shield, Upload } from 'lucide-react';
 import { toast } from 'sonner';
-import { getEventsFromMirror } from '../../contexts/ssss';
 import { checkTaskStatus } from '../../utils/hederaHelper';
-import { fetchWeightsSubmittedEvent } from '../../contexts/nnnn';
 // import { subscription } from '../../utils/logsHelper';
 
 export const UploadPhase = () => {
@@ -84,7 +82,7 @@ export const UploadPhase = () => {
         </div>
         <button
           type='submit'
-          disabled={false}
+          disabled={isLoading || !datasetFile || !modelFile || !projectName}
           className='w-full flex items-center justify-center bg-primary text-background font-semibold py-3 px-4 rounded-lg hover:bg-primary/90 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed'
         >
           <Upload className='mr-2 h-5 w-5' />

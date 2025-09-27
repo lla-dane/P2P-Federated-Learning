@@ -2,6 +2,8 @@ import { contextBridge, ipcRenderer } from 'electron';
 
 contextBridge.exposeInMainWorld('electronAPI', {
   openFileDialog: () => ipcRenderer.invoke('dialog:openFile'),
+  downloadFile: (data: { url: string; fileName: string }) =>
+    ipcRenderer.invoke('download:file', data),
   // Credential related APIs
   saveCredentials: (settings: object) =>
     ipcRenderer.invoke('credentials:save', settings),

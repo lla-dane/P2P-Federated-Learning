@@ -253,8 +253,8 @@ export const TrainingProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  function arrayBufferToBase64(buffer) {
-    let binary = "";
+  function arrayBufferToBase64(buffer: any) {
+    let binary = '';
     const bytes = new Uint8Array(buffer);
     const chunkSize = 0x8000; // avoid stack overflow for big buffers
 
@@ -267,8 +267,8 @@ export const TrainingProvider = ({ children }: { children: ReactNode }) => {
   }
 
   // Wrap Base64 with PEM headers
-  function toPem(base64, label) {
-    const lines = base64.match(/.{1,64}/g).join("\n");
+  function toPem(base64: any, label: any) {
+    const lines = base64.match(/.{1,64}/g).join('\n');
     return `-----BEGIN ${label} KEY-----\n${lines}\n-----END ${label} KEY-----`;
   }
 
@@ -283,32 +283,31 @@ export const TrainingProvider = ({ children }: { children: ReactNode }) => {
     try {
       const { publicKey, privateKey } = await crypto.subtle.generateKey(
         {
-          name: "RSA-OAEP",
+          name: 'RSA-OAEP',
           modulusLength: 2048,
-          publicExponent: new Uint8Array([1,0,1]),
-          hash: "SHA-256"
+          publicExponent: new Uint8Array([1, 0, 1]),
+          hash: 'SHA-256',
         },
         true,
-        ["encrypt", "decrypt"]
+        ['encrypt', 'decrypt']
       );
-      const spki = await crypto.subtle.exportKey("spki", publicKey);
-      const publicPem: string = toPem(arrayBufferToBase64(spki), "PUBLIC");
+      const spki = await crypto.subtle.exportKey('spki', publicKey);
+      const publicPem: string = toPem(arrayBufferToBase64(spki), 'PUBLIC');
 
-      let transformed=publicPem.replace("BEGIN PUBLIC KEY", "BEGIN#PUBLIC#KEY").replace("END PUBLIC KEY", "END#PUBLIC#KEY");
-      transformed = transformed.replace(/\n/g, "?");
-
-
-
+      let transformed = publicPem
+        .replace('BEGIN PUBLIC KEY', 'BEGIN#PUBLIC#KEY')
+        .replace('END PUBLIC KEY', 'END#PUBLIC#KEY');
+      transformed = transformed.replace(/\n/g, '?');
 
       // Export private key (PKCS#8)
-      const pkcs8 = await crypto.subtle.exportKey("pkcs8", privateKey);
-      const privatePem = toPem(arrayBufferToBase64(pkcs8), "PRIVATE");
+      const pkcs8 = await crypto.subtle.exportKey('pkcs8', privateKey);
+      const privatePem = toPem(arrayBufferToBase64(pkcs8), 'PRIVATE');
       // TODO: Store the private key
       const success = await startFinalTraining({
         projectId,
         datasetAndModelHashAndPublicKey: `${result.datasetHash} ${result.modelHash} ${transformed}`,
       });
-      console.log("public key: ", transformed)
+      console.log('public key: ', transformed);
 
       if (!success) {
         throw new Error('Backend did not confirm the training start command.');

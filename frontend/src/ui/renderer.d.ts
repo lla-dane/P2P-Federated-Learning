@@ -36,6 +36,10 @@ export interface IElectronAPI {
   stopLogSubscription: () => void;
   getLogs: (projectId: string) => Promise<any[]>;
   onNewLog: (callback: (log: any) => void) => () => void;
+  downloadFile: (data: {
+    url: string;
+    fileName: string;
+  }) => Promise<{ success: boolean; path?: string; reason?: string }>;
 }
 
 declare global {

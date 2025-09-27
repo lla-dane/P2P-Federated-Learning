@@ -22,11 +22,34 @@ const DetailRow = ({
     }
   };
 
-  const download = () => {
-    if (value) {
-      // Mock download functionality - replace with actual download logic
-      toast.success(`Downloading ${label}...`);
-      console.log(`Downloading: ${value}`);
+  const handleDownload = async (downloadUrl: string, label: string) => {
+    if (!downloadUrl) {
+      toast.error('No download URL available.');
+      return;
+    }
+
+    console.log('Downloading file from URL:', downloadUrl);
+
+    const toastId = toast.loading('Opening save dialog...');
+
+    try {
+      const downloadResult = await window.electronAPI.downloadFile({
+        url: downloadUrl,
+        fileName: `${label.replace(/\s/g, '_')}.txt`,
+      });
+
+      if (downloadResult.success) {
+        toast.success('Download started!', { id: toastId });
+      } else if (downloadResult.reason !== 'Dialog canceled') {
+        throw new Error(downloadResult.reason || 'Download failed.');
+      } else {
+        toast.dismiss(toastId);
+      }
+    } catch (error) {
+      toast.error('Download Failed', {
+        id: toastId,
+        description: (error as Error).message,
+      });
     }
   };
 
@@ -37,7 +60,7 @@ const DetailRow = ({
         <div className='flex items-center gap-2'>
           {downloadable && value && value !== 'N/A' && (
             <button
-              onClick={download}
+              onClick={() => handleDownload(value, label)}
               className='text-green-400 hover:text-green-300 flex items-center gap-1 px-2 py-1 bg-green-500/10 hover:bg-green-500/20 rounded transition-colors text-xs'
             >
               <Download size={12} /> Download
@@ -87,6 +110,35 @@ const WeightsHashRow = ({ weightsHash }: { weightsHash: string | null }) => {
     );
   }
 
+  const handleDownload = async (downloadUrl: string, label: string) => {
+    if (!downloadUrl) {
+      toast.error('No download URL available.');
+      return;
+    }
+
+    const toastId = toast.loading('Opening save dialog...');
+
+    try {
+      const downloadResult = await window.electronAPI.downloadFile({
+        url: downloadUrl,
+        fileName: `${label.replace(/\s/g, '_')}.txt`,
+      });
+
+      if (downloadResult.success) {
+        toast.success('Download started!', { id: toastId });
+      } else if (downloadResult.reason !== 'Dialog canceled') {
+        throw new Error(downloadResult.reason || 'Download failed.');
+      } else {
+        toast.dismiss(toastId);
+      }
+    } catch (error) {
+      toast.error('Download Failed', {
+        id: toastId,
+        description: (error as Error).message,
+      });
+    }
+  };
+
   return (
     <div className='bg-background p-4 rounded-lg border border-border'>
       <div className='flex justify-between items-center mb-3'>
@@ -109,10 +161,9 @@ const WeightsHashRow = ({ weightsHash }: { weightsHash: string | null }) => {
               </span>
               <div className='flex items-center gap-2'>
                 <button
-                  onClick={() => {
-                    toast.success(`Downloading weight file ${index + 1}...`);
-                    console.log(`Downloading: ${hash}`);
-                  }}
+                  onClick={() =>
+                    handleDownload(hash, `Weight File #${index + 1}`)
+                  }
                   className='text-green-400 hover:text-green-300 flex items-center gap-1 px-2 py-1 bg-green-500/10 hover:bg-green-500/20 rounded transition-colors text-xs'
                 >
                   <Download size={12} /> Download
