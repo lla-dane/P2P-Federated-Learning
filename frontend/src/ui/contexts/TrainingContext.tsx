@@ -8,7 +8,10 @@ import {
 } from 'react';
 import { toast } from 'sonner';
 import { useSettings } from './SettingsContext';
-import { addTrainingHistory } from '../utils/historyHelper';
+import {
+  addTrainingHistory,
+  updateTrainingHistoryItem,
+} from '../utils/historyHelper';
 import {
   configureAkave,
   onAkaveProgress,
@@ -24,6 +27,7 @@ import { ContractId, Hbar } from '@hashgraph/sdk';
 import { ContractFunctionParameterBuilder } from '../services/contractFunctionParameterBuilder';
 import { useWalletInterface } from '../services/useWalletInterface';
 import { getTaskId } from '../utils/hederaHelper';
+import { CONTRACT_ID } from '../App';
 
 export type TrainingPhase =
   | 'upload'
@@ -79,10 +83,8 @@ export const TrainingProvider = ({ children }: { children: ReactNode }) => {
   const [projectName, setProjectName] = useState<string | null>(null);
   const [trainerNodes, setTrainerNodes] = useState<TrainerNodeInfo[]>([]);
   const activeToastId = useRef<string | number | null>(null);
-  const [projectId, setProjectId] = useState<string | null>(null);
+  const [projectId, setProjectId] = useState<string>('');
   const { actions } = useWalletInterface();
-
-  const CONTRACT_ID = '0.0.6913422';
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -103,50 +105,6 @@ export const TrainingProvider = ({ children }: { children: ReactNode }) => {
                 role: t.role,
               }))
             );
-
-            // const trainerNodes = {
-            //   bootmesh: {
-            //     '2': [
-            //       {
-            //         maddr:
-            //           '/ip4/0.0.0.0/tcp/60817/p2p/QmPoApWnNsPrHmFJ1wGe7kxuKTroJPY9kaM5ZBKLjR8N3S',
-            //         peer_id: 'QmPoApWnNsPrHmFJ1wGe7kxuKTroJPY9kaM5ZBKLjR8N3S',
-            //         pub_maddr:
-            //           '/ip4/13.201.70.151/tcp/60817/p2p/QmPoApWnNsPrHmFJ1wGe7kxuKTroJPY9kaM5ZBKLjR8N3S',
-            //         role: 'TRAINER',
-            //       },
-            //       {
-            //         maddr:
-            //           '/ip4/0.0.0.0/tcp/44847/p2p/QmWkdSoBJe1AjhmNZKpq5bKNqxWNsp9aMk4pQsVaGW2jkr',
-            //         peer_id: 'QmWkdSoBJe1AjhmNZKpq5bKNqxWNsp9aMk4pQsVaGW2jkr',
-            //         pub_maddr:
-            //           '/ip4/65.0.74.7/tcp/44847/p2p/QmWkdSoBJe1AjhmNZKpq5bKNqxWNsp9aMk4pQsVaGW2jkr',
-            //         role: 'CLIENT',
-            //       },
-            //     ],
-            //     'fed-learn': [
-            //       {
-            //         maddr:
-            //           '/ip4/0.0.0.0/tcp/60817/p2p/QmPoApWnNsPrHmFJ1wGe7kxuKTroJPY9kaM5ZBKLjR8N3S',
-            //         peer_id: 'QmPoApWnNsPrHmFJ1wGe7kxuKTroJPY9kaM5ZBKLjR8N3S',
-            //         pub_maddr:
-            //           '/ip4/13.201.70.151/tcp/60817/p2p/QmPoApWnNsPrHmFJ1wGe7kxuKTroJPY9kaM5ZBKLjR8N3S',
-            //         role: 'TRAINER',
-            //       },
-            //       {
-            //         maddr:
-            //           '/ip4/0.0.0.0/tcp/44847/p2p/QmWkdSoBJe1AjhmNZKpq5bKNqxWNsp9aMk4pQsVaGW2jkr',
-            //         peer_id: 'QmWkdSoBJe1AjhmNZKpq5bKNqxWNsp9aMk4pQsVaGW2jkr',
-            //         pub_maddr:
-            //           '/ip4/65.0.74.7/tcp/44847/p2p/QmWkdSoBJe1AjhmNZKpq5bKNqxWNsp9aMk4pQsVaGW2jkr',
-            //         role: 'CLIENT',
-            //       },
-            //     ],
-            //   },
-            //   status: 'ok',
-            // };
-            // setTrainerNodes(trainerNodes);
-            console.log(trainerNodes);
           }
         } catch (error) {
           console.error('Polling for trainers failed:', error);
@@ -156,7 +114,7 @@ export const TrainingProvider = ({ children }: { children: ReactNode }) => {
       };
 
       poll();
-      interval = setInterval(poll, 5000); // Poll every 5 seconds
+      interval = setInterval(poll, 5000);
     }
     return () => clearInterval(interval);
   }, [currentPhase, projectId]);
@@ -205,21 +163,11 @@ export const TrainingProvider = ({ children }: { children: ReactNode }) => {
         id: activeToastId.current,
       });
       const modelHash = await uploadFileToAkave(modelPath);
-
+      console.log(datasetHash, modelHash);
       toast.success('Upload to Akave successful!', {
         id: activeToastId.current,
       });
       setResult({ datasetHash, chunkCount, modelHash });
-
-      await addTrainingHistory({
-        id: jobId,
-        projectName,
-        datasetHash,
-        modelHash,
-        date: new Date().toISOString(),
-        status: 'Initialized',
-        weightsHash: null,
-      });
       setCurrentPhase('payment');
     } catch (error) {
       console.error(error);
@@ -260,20 +208,32 @@ export const TrainingProvider = ({ children }: { children: ReactNode }) => {
         throw new Error('Transaction was not confirmed by the wallet.');
       }
 
-      const taskId = await getTaskId();
-      setProjectId(taskId);
-      console.log('Received project ID from contract:', taskId);
+      const projId = await getTaskId();
+      setProjectId(projId);
+
+      console.log('Received project ID from contract:', projId);
 
       toast.loading('Initializing training round on the network...', {
         id: toastId,
       });
 
-      console.log('Initializing training round for task ID:', taskId);
+      console.log('Initializing training round for project ID:', projId);
 
-      const success = await initializeTrainingRound(taskId);
+      const success = await initializeTrainingRound(projId);
       if (!success) {
         throw new Error('Failed to initialize training round on the network.');
       }
+
+      await addTrainingHistory({
+        id: projId,
+        projectName,
+        datasetHash: result.datasetHash,
+        modelHash: result.datasetHash,
+        date: new Date().toISOString(),
+        status: 'Initialized',
+        weightsHash: null,
+        isTrained: false,
+      });
 
       toast.success('Training round initialized successfully!', {
         id: toastId,
@@ -286,14 +246,14 @@ export const TrainingProvider = ({ children }: { children: ReactNode }) => {
         id: toastId,
         description: (error as Error).message,
       });
-      setCurrentPhase('assembling');
+      setCurrentPhase('payment');
     } finally {
       setIsLoading(false);
     }
   };
 
   const beginFinalTraining = async () => {
-    if (!result?.datasetHash || !result?.modelHash || !activeJobId) {
+    if (!result?.datasetHash || !result?.modelHash || !projectId) {
       return toast.error('Missing asset hashes. Cannot start training.');
     }
 
@@ -302,13 +262,15 @@ export const TrainingProvider = ({ children }: { children: ReactNode }) => {
 
     try {
       const success = await startFinalTraining({
-        datasetHash: result.datasetHash,
-        modelHash: result.modelHash,
+        projectId,
+        datasetAndModelHash: `${result.datasetHash} ${result.modelHash}`,
       });
 
       if (!success) {
         throw new Error('Backend did not confirm the training start command.');
       }
+
+      await updateTrainingHistoryItem({ projectId, newStatus: 'Running' });
 
       toast.success('Training is now in progress on the network!', {
         id: toastId,
@@ -320,7 +282,6 @@ export const TrainingProvider = ({ children }: { children: ReactNode }) => {
         id: toastId,
         description: (error as Error).message,
       });
-      // Don't revert the phase, allow the user to try again
     } finally {
       setIsLoading(false);
     }

@@ -4,6 +4,8 @@ import { useTraining } from '../../contexts/TrainingContext';
 import { Database, Shield, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { getEventsFromMirror } from '../../contexts/ssss';
+import { checkTaskStatus } from '../../utils/hederaHelper';
+import { fetchWeightsSubmittedEvent } from '../../contexts/nnnn';
 
 export const UploadPhase = () => {
   const { uploadAssets, isLoading } = useTraining();
@@ -14,12 +16,14 @@ export const UploadPhase = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // if (!projectName || !datasetFile || !modelFile) {
-    //   toast.warning('All fields are required');
-    //   return;
-    // }
-    getEventsFromMirror(contractId);
-    // uploadAssets(projectName, datasetFile, modelFile);
+    if (!projectName || !datasetFile || !modelFile) {
+      toast.warning('All fields are required');
+      return;
+    }
+    // checkTaskStatus('52');
+    // getEventsFromMirror(contractId);
+    // fetchWeightsSubmittedEvent(contractId, '4');
+    uploadAssets(projectName, datasetFile, modelFile);
   };
 
   return (

@@ -1,55 +1,14 @@
-import {
-  ContractCallQuery,
-  Client,
-  ContractFunctionParameters,
-  AccountId,
-} from '@hashgraph/sdk';
+import { AccountId } from '@hashgraph/sdk';
 import axios from 'axios';
-import Web3 from 'web3';
-import { abi } from './abi';
-import { CONTRACT_ID } from '../App';
+import { Web3 } from 'web3';
+import { abi } from '../utils/abi'; // Your contract's ABI
 
-export const getTaskId = async () => {
-  const delay = (ms: number) =>
-    new Promise((resolve) => setTimeout(resolve, ms));
-  await delay(2000); // Wait for 2 seconds
-  const client = Client.forTestnet();
-
-  client.setOperator(OPERATOR_ID, OPERATOR_KEY);
-
-  const tx_get = new ContractCallQuery()
-    .setContractId(CONTRACT_ID)
-    .setGas(1_000_000)
-    .setFunction('getTaskId');
-
-  const contractCallResult = await tx_get.execute(client);
-  const message = contractCallResult.getUint256(0);
-  return message.toString();
-};
-
-export const checkTaskStatus = async (taskId: string): Promise<boolean> => {
-  try {
-    const client = Client.forTestnet();
-    client.setOperator(OPERATOR_ID, OPERATOR_KEY);
-    const query = new ContractCallQuery()
-      .setContractId(CONTRACT_ID)
-      .setGas(1_000_000)
-      .setFunction(
-        'taskExists',
-        new ContractFunctionParameters().addUint256(parseInt(taskId))
-      );
-
-    const result = await query.execute(client);
-    const message = result.getBool(0);
-    console.log('result', message);
-    return message;
-  } catch (error) {
-    console.error(`Failed to check status for task ${taskId}:`, error);
-    // Return false on error to prevent the polling from crashing
-    return false;
-  }
-};
-
+/**
+ * Decodes a raw event log from the mirror node.
+ * @param eventName The name of the event to decode (e.g., "WeightsSubmitted").
+ * @param log The raw log object from the mirror node.
+ * @returns The decoded event parameters.
+ */
 function decodeEvent(eventName: string, log: any) {
   const eventAbi = abi.find(
     (event) => event.name === eventName && event.type === 'event'
@@ -68,6 +27,12 @@ function decodeEvent(eventName: string, log: any) {
   return decodedLog;
 }
 
+/**
+ * Fetches logs from the mirror node and finds the 'WeightsSubmitted' event for a specific task.
+ * @param contractId The ID of the smart contract.
+ * @param taskId The ID of the task we are looking for the result of.
+ * @returns An object containing the weights hash, or null if not found.
+ */
 export async function fetchWeightsSubmittedEvent(
   contractId: string,
   taskId: string

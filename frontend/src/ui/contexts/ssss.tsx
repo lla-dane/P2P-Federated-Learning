@@ -12,7 +12,6 @@ function decodeEvent(eventName: string, log: any) {
     throw new Error(`Event ABI for '${eventName}' not found or missing inputs`);
   }
 
-  // Pass full topics (do not slice)
   const decodedLog = web3.eth.abi.decodeLog(
     eventAbi.inputs,
     log.data || '0x',

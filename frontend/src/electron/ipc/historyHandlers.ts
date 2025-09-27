@@ -36,4 +36,13 @@ export function registerHistoryHandlers() {
       return false;
     }
   );
+
+  ipcMain.handle('history:delete', (_event, projectId: string) => {
+    const history = store.get('trainingHistory', []) as any[];
+
+    const newHistory = history.filter((p) => p.id !== projectId);
+
+    store.set('trainingHistory', newHistory);
+    return true;
+  });
 }

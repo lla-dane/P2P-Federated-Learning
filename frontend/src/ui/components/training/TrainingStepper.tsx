@@ -11,10 +11,9 @@ export const TrainingStepper = () => {
   const getPhaseStep = (phase: TrainingPhase): number => {
     const phases: TrainingPhase[] = [
       'upload',
-      'assembling',
       'payment',
+      'assembling',
       'training',
-      'completed',
     ];
     return phases.indexOf(phase) + 1;
   };
@@ -24,7 +23,7 @@ export const TrainingStepper = () => {
     { icon: Coins, label: 'Payment', phase: 'payment' },
     { icon: Users, label: 'Assemble', phase: 'assembling' },
     { icon: Play, label: 'Training', phase: 'training' },
-    { icon: CheckCircle2, label: 'Completed', phase: 'completed' },
+    // { icon: CheckCircle2, label: 'Completed', phase: 'completed' },
   ];
 
   return (

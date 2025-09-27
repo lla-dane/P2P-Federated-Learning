@@ -31,6 +31,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     newStatus?: string;
     newWeightsHash?: string;
   }) => ipcRenderer.invoke('history:update', data),
+  deleteHistoryItem: (projectId: string) =>
+    ipcRenderer.invoke('history:delete', projectId),
 
   // Window control APIs
   minimizeWindow: () => ipcRenderer.send('window:minimize'),

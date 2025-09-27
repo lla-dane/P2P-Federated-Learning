@@ -10,38 +10,37 @@ export class AkaveCliService {
   private readonly endpointUrl = 'https://o3-rc2.akave.xyz';
   private readonly bucketName = 'akave-bucket';
 
-  public configureAws(accessKey: string, secretKey: string): Promise<boolean> {
-    return new Promise((resolve, reject) => {
-      const process = spawn('aws', ['configure', '--profile', this.profile], {
-        shell: true,
-      });
+  public async configureAws(
+    accessKey: string,
+    secretKey: string
+  ): Promise<boolean> {
+    console.log(`Configuring AWS profile '${this.profile}'...`);
+    try {
+      // Use direct commands to set credentials and region
+      await this.runCommand(
+        `aws configure set aws_access_key_id ${accessKey} --profile ${this.profile}`
+      );
+      await this.runCommand(
+        `aws configure set aws_secret_access_key ${secretKey} --profile ${this.profile}`
+      );
+      await this.runCommand(
+        `aws configure set region akave-network --profile ${this.profile}`
+      );
 
-      let errorOutput = '';
-      process.stderr.on('data', (data) => (errorOutput += data.toString()));
+      await this.runCommand(
+        `aws configure set s3.request_checksum_calculation WHEN_REQUIRED --profile ${this.profile}`
+      );
+      await this.runCommand(
+        `aws configure set s3.response_checksum_validation WHEN_REQUIRED --profile ${this.profile}`
+      );
 
-      process.stdout.on('data', (data) => {
-        const output = data.toString();
-        if (output.includes('AWS Access Key ID'))
-          process.stdin.write(`${accessKey}\n`);
-        else if (output.includes('AWS Secret Access Key'))
-          process.stdin.write(`${secretKey}\n`);
-        else if (output.includes('Default region name'))
-          process.stdin.write(`akave-network\n`);
-        else if (output.includes('Default output format'))
-          process.stdin.write(`json\n`);
-      });
-
-      process.on('close', (code) => {
-        if (code === 0) resolve(true);
-        else
-          reject(
-            new Error(
-              `AWS configure process exited with code ${code}: ${errorOutput}`
-            )
-          );
-      });
-      process.on('error', (err) => reject(err));
-    });
+      console.log('AWS profile configured successfully with checksum fix!');
+      return true;
+    } catch (error) {
+      console.error('Failed to configure AWS profile:', error);
+      // Re-throw the error so it can be caught by the TrainingContext and shown in a toast
+      throw error;
+    }
   }
 
   private async getPresignedUrl(
@@ -128,19 +127,32 @@ export class AkaveCliService {
       input: fs.createReadStream(filePath),
       crlfDelay: Infinity,
     });
+
+    const iterator = rl[Symbol.asyncIterator]();
+    const headerResult = await iterator.next();
+    if (headerResult.done) {
+      throw new Error('Cannot process an empty or headerless file.');
+    }
+    const header = headerResult.value + '\n';
+
     let currentChunk: string[] = [],
       currentSize = 0,
       chunkIndex = 0;
 
-    for await (const line of rl) {
+    for await (const line of { [Symbol.asyncIterator]: () => iterator }) {
       const lineWithNewline = line + '\n';
       const lineSize = Buffer.byteLength(lineWithNewline, 'utf-8');
+
       if (currentSize + lineSize > CHUNK_SIZE && currentChunk.length > 0) {
         chunkIndex++;
         onProgress(`Uploading chunk ${chunkIndex}...`);
-        const chunkKey = await this.uploadString(currentChunk.join(''));
+
+        // 3. Prepend header before creating content and uploading
+        const chunkContent = header + currentChunk.join('');
+        const chunkKey = await this.uploadString(chunkContent);
         const chunkUrl = await this.getPresignedUrl(this.bucketName, chunkKey);
         chunkUrls.push(chunkUrl);
+
         currentChunk = [lineWithNewline];
         currentSize = lineSize;
       } else {
@@ -151,13 +163,15 @@ export class AkaveCliService {
     if (currentChunk.length > 0) {
       chunkIndex++;
       onProgress(`Uploading final chunk ${chunkIndex}...`);
-      const chunkKey = await this.uploadString(currentChunk.join(''));
+      const chunkContent = header + currentChunk.join('');
+      const chunkKey = await this.uploadString(chunkContent);
       const chunkUrl = await this.getPresignedUrl(this.bucketName, chunkKey);
       chunkUrls.push(chunkUrl);
     }
 
     onProgress('Uploading manifest file...');
-    const manifestKey = await this.uploadString(chunkUrls.join(','));
+    const manifestContent = chunkUrls.join(',');
+    const manifestKey = await this.uploadString(manifestContent);
     onProgress(`Dataset uploaded successfully!`);
 
     const datasetHash = await this.getPresignedUrl(

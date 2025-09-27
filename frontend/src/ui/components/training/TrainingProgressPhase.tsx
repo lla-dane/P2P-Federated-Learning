@@ -1,33 +1,38 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { useTraining } from '../../contexts/TrainingContext';
-import { Zap } from 'lucide-react';
+import { Rocket, History } from 'lucide-react';
 
 export const TrainingProgressPhase = () => {
   const { trainerCount } = useTraining();
   return (
     <div className='bg-surface p-8 rounded-xl border border-border'>
-      <div className='flex items-center gap-3 mb-6'>
-        <Zap className='w-6 h-6 text-primary animate-pulse' />
-        <h2 className='text-xl font-semibold text-text-primary'>
-          Training in Progress
+      <div className='text-center flex flex-col items-center'>
+        <div className='w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-primary/30'>
+          <Rocket className='w-8 h-8 text-primary' />
+        </div>
+        <h2 className='text-2xl font-bold text-text-primary mb-3'>
+          Training Launched Successfully!
         </h2>
-      </div>
-      <div className='space-y-4'>
-        <div className='flex items-center justify-between p-4 bg-primary/10 border border-primary/20 rounded-lg'>
-          <span className='text-text-primary'>
-            Distributed computation started
+        <p className='text-text-secondary mb-4 max-w-lg'>
+          Your training job has been submitted to the network and is now being
+          processed by{' '}
+          <span className='font-bold text-primary'>
+            {trainerCount} trainer nodes
           </span>
-          <span className='text-primary font-mono'>
-            {trainerCount} nodes active
-          </span>
-        </div>
-        <div className='w-full bg-background/50 rounded-full h-2.5 overflow-hidden'>
-          <div className='h-full bg-primary rounded-full animate-pulse'></div>
-        </div>
-        <p className='text-center text-text-secondary text-sm'>
-          Training can take several minutes. Results will be published to Hedera
-          upon completion.
+          .
         </p>
+        <p className='text-text-secondary mb-8 max-w-lg'>
+          You can now safely leave this page. The final status and model weights
+          will appear on the Training History page upon completion.
+        </p>
+        <Link
+          to='/history'
+          className='flex items-center justify-center gap-2 bg-primary text-background font-semibold py-3 px-6 rounded-lg hover:bg-primary/90 transition-all'
+        >
+          <History className='w-5 h-5' />
+          Go to Training History
+        </Link>
       </div>
     </div>
   );

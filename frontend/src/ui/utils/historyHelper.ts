@@ -13,3 +13,7 @@ export const updateTrainingHistoryItem = (data: {
 }) => {
   return window.electronAPI.updateHistoryItem(data);
 };
+
+export const deleteHistoryItem = (projectId: string) => {
+  return window.electronAPI.deleteHistoryItem(projectId);
+};

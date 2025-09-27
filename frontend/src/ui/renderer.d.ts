@@ -20,6 +20,7 @@ export interface IElectronAPI {
     newStatus?: string;
     newWeightsHash?: string;
   }) => Promise<void>;
+  deleteHistoryItem: (projectId: string) => Promise<boolean>;
   minimizeWindow: () => void;
   maximizeWindow: () => void;
   closeWindow: () => void;

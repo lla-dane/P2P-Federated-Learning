@@ -6,6 +6,7 @@ import ErrorPage from './pages/ErrorPage';
 import SettingsPage from './pages/Settings';
 import HomePage from './pages/HomePage';
 
+export const CONTRACT_ID = '0.0.6914364';
 function App() {
   return (
     <Routes>

@@ -1,136 +1,134 @@
-import { PlayCircle, CheckCircle, XCircle, Loader } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import {
+  deleteHistoryItem,
+  getTrainingHistory,
+  updateTrainingHistoryItem,
+} from '../utils/historyHelper';
+import { HistoryTable } from '../components/history/HistoryTable';
+import { ProjectDetailsModal } from '../components/history/ProjectDetailsModal';
+import { toast } from 'sonner';
+import {
+  checkTaskStatus,
+  fetchWeightsSubmittedEvent,
+} from '../utils/hederaHelper';
+import { CONTRACT_ID } from '../App';
 
-const dummyTrainings = [
-  {
-    id: 'tr-001',
-    projectName: 'Image Recognition V1',
-    dataset: 'images_v1.zip',
-    script: 'resnet_model.py',
-    status: 'Completed',
-    date: '2024-03-10 14:30',
-  },
-  {
-    id: 'tr-002',
-    projectName: 'NLP Sentiment Analysis',
-    dataset: 'tweets_sentiment.csv',
-    script: 'bert_classifier.py',
-    status: 'Running',
-    date: '2024-03-09 11:00',
-  },
-  {
-    id: 'tr-003',
-    projectName: 'Fraud Detection Model',
-    dataset: 'transactions_q1.csv',
-    script: 'xgboost_fraud.py',
-    status: 'Failed',
-    date: '2024-03-08 09:15',
-  },
-  {
-    id: 'tr-004',
-    projectName: 'Recommendation Engine',
-    dataset: 'user_ratings.zip',
-    script: 'collaborative_filtering.py',
-    status: 'Completed',
-    date: '2024-03-07 16:45',
-  },
-];
-
-const getStatusIcon = (status: string) => {
-  switch (status) {
-    case 'Completed':
-      return <CheckCircle size={18} className='text-green-500' />;
-    case 'Running':
-      return <Loader size={18} className='text-primary animate-spin' />;
-    case 'Failed':
-      return <XCircle size={18} className='text-red-500' />;
-    default:
-      return <PlayCircle size={18} className='text-text-secondary' />;
-  }
-};
+export interface TrainingProject {
+  id: string;
+  projectName: string;
+  datasetHash: string;
+  modelHash: string;
+  date: string;
+  status: 'Initialized' | 'Running' | 'Completed' | 'Failed';
+  weightsHash: string | null;
+  chunkCount?: number;
+}
 
 const TrainingHistoryPage = () => {
+  const [history, setHistory] = useState<TrainingProject[]>([]);
+  const [selectedProject, setSelectedProject] =
+    useState<TrainingProject | null>(null);
+
+  useEffect(() => {
+    const loadHistory = async () => {
+      const savedHistory = await getTrainingHistory();
+      setHistory(savedHistory);
+    };
+    loadHistory();
+  }, []);
+
+  useEffect(() => {
+    const jobsToPoll = history.filter((job) => job.status === 'Running');
+
+    if (jobsToPoll.length === 0) {
+      return;
+    }
+
+    // polling for 30 seconds
+    const intervalId = setInterval(async () => {
+      console.log(`Polling ${jobsToPoll.length} active job(s)...`);
+      for (const job of jobsToPoll) {
+        try {
+          // const isComplete = await checkTaskStatus(job.id);
+          const isComplete = false;
+
+          if (!isComplete) {
+            const weightsArray = await fetchWeightsSubmittedEvent(
+              CONTRACT_ID,
+              job.id
+            );
+            if (weightsArray && weightsArray.length > 0) {
+              const weightsHash = weightsArray.join(', ');
+
+              await updateTrainingHistoryItem({
+                projectId: job.id,
+                newStatus: 'Completed',
+                newWeightsHash: weightsHash,
+              });
+
+              setHistory((prev) =>
+                prev.map((p) =>
+                  p.id === job.id
+                    ? { ...p, status: 'Completed', weightsHash: weightsHash }
+                    : p
+                )
+              );
+              toast.success(
+                `Project '${job.projectName}' has completed training!`
+              );
+            }
+          }
+        } catch (error) {
+          console.error(`Polling failed for job ${job.id}:`, error);
+        }
+      }
+    }, 30000);
+    return () => clearInterval(intervalId);
+  }, [history]);
+
+  const handleDeleteProject = async (projectId: string) => {
+    if (
+      window.confirm(
+        'Are you sure you want to delete this training history? This action cannot be undone.'
+      )
+    ) {
+      const success = await deleteHistoryItem(projectId);
+      if (success) {
+        setHistory((currentHistory) =>
+          currentHistory.filter((p) => p.id !== projectId)
+        );
+        toast.success('Project history deleted.');
+
+        if (selectedProject?.id === projectId) {
+          setSelectedProject(null);
+        }
+      } else {
+        toast.error('Failed to delete project history.');
+      }
+    }
+  };
+
   return (
     <div>
       <h1 className='text-3xl font-bold text-text-primary mb-2'>
         Training History
       </h1>
       <p className='text-text-secondary mb-8'>
-        Overview of all past and current machine learning model training jobs.
+        Overview of all your past and current training jobs.
       </p>
 
-      <div className='bg-surface p-6 rounded-xl border border-border'>
-        {dummyTrainings.length === 0 ? (
-          <p className='text-text-secondary text-center py-8'>
-            No training jobs found yet.
-          </p>
-        ) : (
-          <div className='overflow-x-auto'>
-            <table className='min-w-full text-text-primary divide-y divide-border'>
-              <thead>
-                <tr>
-                  <th className='px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider'>
-                    Project Name
-                  </th>
-                  <th className='px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider'>
-                    Dataset
-                  </th>
-                  <th className='px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider'>
-                    Script
-                  </th>
-                  <th className='px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider'>
-                    Status
-                  </th>
-                  <th className='px-4 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider'>
-                    Date
-                  </th>
-                </tr>
-              </thead>
-              <tbody className='divide-y divide-border'>
-                {dummyTrainings.map((training) => (
-                  <tr
-                    key={training.id}
-                    className='hover:bg-background transition-colors'
-                  >
-                    <td className='px-4 py-4 whitespace-nowrap'>
-                      <div className='flex items-center'>
-                        <PlayCircle size={18} className='mr-2 text-primary' />
-                        {training.projectName}
-                      </div>
-                    </td>
-                    <td className='px-4 py-4 whitespace-nowrap text-sm text-text-secondary'>
-                      {training.dataset}
-                    </td>
-                    <td className='px-4 py-4 whitespace-nowrap text-sm text-text-secondary'>
-                      {training.script}
-                    </td>
-                    <td className='px-4 py-4 whitespace-nowrap text-sm'>
-                      <span className='inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full text-xs font-medium'>
-                        {getStatusIcon(training.status)}
-                        <span
-                          className={
-                            training.status === 'Completed'
-                              ? 'text-green-400'
-                              : training.status === 'Running'
-                              ? 'text-primary'
-                              : training.status === 'Failed'
-                              ? 'text-red-400'
-                              : 'text-text-secondary'
-                          }
-                        >
-                          {training.status}
-                        </span>
-                      </span>
-                    </td>
-                    <td className='px-4 py-4 whitespace-nowrap text-sm text-text-secondary'>
-                      {training.date}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+      <HistoryTable
+        history={history}
+        onViewDetails={(project) => setSelectedProject(project)}
+        onDelete={handleDeleteProject}
+      />
+
+      <ProjectDetailsModal
+        isOpen={!!selectedProject}
+        project={selectedProject}
+        onClose={() => setSelectedProject(null)}
+        onDelete={handleDeleteProject}
+      />
     </div>
   );
 };
