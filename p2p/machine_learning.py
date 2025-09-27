@@ -19,7 +19,7 @@ class MLTrainer:
         """
         Assigns dataset chunks to different trainer nodes.
         """
-        logger.debug("Fetching dataset manifest from the provided URL")
+        logger.debug("Fetching dataset manifest from the provided URL...")
         manifest_content = requests.get(dataset_url, stream=True)
         if not manifest_content:
             raise Exception("Failed to fetch dataset manifest from dataset_url.")
@@ -50,10 +50,7 @@ class MLTrainer:
             os.remove(model_file)
 
         try:
-            # Download dataset chunk and model
-            logger.debug("Downloading dataset chunk...")
             self.akave_client.download_file_from_url(chunk_url, dataset_file)
-            logger.debug("Downloading model...")
             self.akave_client.download_file_from_url(model_url, model_file)
 
             # Read model file and exec it
@@ -61,13 +58,13 @@ class MLTrainer:
                 model_code = f.read()
 
             local_vars = {}
-            logger.info("Training model...")
+            logger.info("Starting training of model...")
             exec(model_code, {}, local_vars)
 
-            # Expect the model to define 'weights' variable
+            # Expect the model to define 'model_weights' variable
             if "model_weights" not in local_vars:
                 raise ValueError(
-                    "Model script must define 'weights' variable after execution"
+                    "Model script must define 'model_weights' variable after execution"
                 )
 
             logger.info("Training completed. Uploading weights.")
@@ -80,7 +77,6 @@ class MLTrainer:
             logger.error(f"exception : {e} ")
 
         finally:
-            # Clean up
             if os.path.exists(model_file):
                 os.remove(model_file)
             if os.path.exists(dataset_file):

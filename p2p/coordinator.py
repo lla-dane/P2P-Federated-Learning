@@ -270,7 +270,7 @@ class Node:
                     if cmd == "advertize" and len(parts) > 1:
                         # TODO: Lets not have the trainer self join in more than 1 training rounds
                         if self.role != "client":
-                            logger.warning(
+                            logger.error(
                                 "Training round can only be strated by a CLIENT node"
                             )
                             continue
@@ -280,7 +280,7 @@ class Node:
                         self.subscribed_topics.append(parts[1])
 
                         training_round_greet = (
-                            f"A new training round starting in [{parts[1]}] mesh"
+                            f"A new training round starting in [{parts[1]}] channel"
                         )
                         await self.pubsub.publish(
                             FED_LEARNING_MESH, training_round_greet.encode()
@@ -288,21 +288,20 @@ class Node:
 
                         self.training_topic = parts[1]
                         self.is_subscribed = True
-                    # train_ml channel dataset_hash model_hash
+
                     if cmd == "train" and len(parts) == 3:
                         dataset_hash, model_hash = parts[2].split(" ")
                         channel = parts[1]
                         nodes = self.mesh.get_channel_nodes(channel)
-                        logger.warning(f"current nodes are: {nodes}")
-                        logger.warning(f"current dataset_hash is: {dataset_hash}")
-                        logger.warning(f"current model_hash is: {model_hash}")
+                        logger.debug(f"Participating nodes are: {nodes}")
+                        logger.debug(f"The dataset_url is: {dataset_hash}")
+                        logger.debug(f"The model_url is: {model_hash}")
                         if not nodes:
-                            logger.warning(f"No nodes found for channel: {channel}")
+                            logger.error(f"No training nodes available in {channel}")
                             continue
                         assignments = self.ml_trainer.assign_chunks_to_nodes(
                             dataset_hash, nodes
                         )
-                        await self.pubsub.publish(parts[1], "hello".encode())
                         await self.pubsub.publish(
                             parts[1], f"assign {model_hash} {assignments}".encode()
                         )
@@ -310,12 +309,12 @@ class Node:
                     if cmd == "assign" and len(parts) == 3:
                         model_hash = parts[1]
                         assignments: dict = ast.literal_eval(parts[2])
-                        logger.info("Received assignments")
+                        logger.debug("Started training the model...")
                         node_id: str = self.host.get_id()
                         for k, v in assignments.items():
                             if k == node_id:
                                 for chunk_cid in v:
-                                    logger.debug("training for chunk_cid started")
+                                    logger.debug("Training for chunk_cid started")
                                     weights = self.ml_trainer.train_on_chunk(
                                         chunk_cid, model_hash
                                     )
@@ -329,16 +328,17 @@ class Node:
                                             f"weights {node_id} {weights}".encode(),
                                         )
                                     else:
-                                        logger.warning(
+                                        logger.error(
                                             f"No weights returned for chunk {chunk_cid}"
                                         )
+                                self.pubsub.unsubscribe(parts[1])
                                 await self.pubsub.publish(
                                     parts[1], "Left as a TRAINER self".encode()
                                 )
 
                     if cmd == "join" and len(parts) > 1:
                         if self.role != "trainer":
-                            logger.warning(
+                            logger.error(
                                 "Only TRAINER nodes can participate in the training sequence"
                             )
                             continue
@@ -346,7 +346,7 @@ class Node:
                         # TODO: Lets not have the trainer self join in more than 1 training rounds
                         # or perhaps we do?
                         if self.is_subscribed:
-                            logger.warning(
+                            logger.error(
                                 f"Already subscribed to topic: {self.training_topic}"
                             )
                             continue
@@ -364,7 +364,7 @@ class Node:
                         # Fetch the bootmesh
                         peers = self.mesh.get_bootstrap_mesh().get(parts[1], [])
                         if not peers:
-                            logger.warning(
+                            logger.error(
                                 f"No peers available in {parts[1]} mesh to connect to"
                             )
                             continue
@@ -380,7 +380,7 @@ class Node:
                             peer_maddr = chosen_peer["pub_maddr"]
                         else:
                             peer_maddr = chosen_peer["maddr"]
-                        logger.debug(
+                        logger.info(
                             f"Selected random peer for connection:\n {peer_maddr}"
                         )
 
@@ -428,7 +428,7 @@ class Node:
 
                     if cmd == "publish" and len(parts) > 2:
                         await self.pubsub.publish(parts[1], parts[2].encode())
-                        logger.debug(f"Published: {parts[2]}")
+                        logger.info(f"Published: {parts[2]}")
 
                     if cmd == "create-hcs":
                         self.create_hcs_topic()
@@ -525,29 +525,27 @@ class Node:
                                 mesh_summary = json.loads(decoded_message)
                                 self.mesh.bootstrap_mesh = mesh_summary
                         else:
-                            logger.info(f"BOOTSTRAP: {decoded_message}")
+                            logger.debug(f"BOOTSTRAP: {decoded_message}")
 
                     elif decoded_message.startswith("assign"):
-                        logger.debug(f"Decoded message: {decoded_message}")
                         cmds = decoded_message.strip().split(" ", 2)
                         logger.debug(
                             f"Recevind training chunks from query_hcs_topic_messages(self.hcs_topic_id), {cmds}"
                         )
                         await self.send_channel.send(cmds)
-
                     # General message
                     else:
                         logger.info(f"{sender_id}: {message.data.decode('utf-8')}")
 
                 except trio.EndOfChannel:
-                    logger.info("Channel closed. Stopping receive loop.")
+                    logger.debug("Channel closed. Stopping receive loop.")
                     break
                 except Exception as e:
                     logger.error(f"Error in the receive loop: {e}")
                     await trio.sleep(0.5)
 
         finally:
-            logger.info("Receive loop terminated")
+            logger.debug("Receive loop terminated")
 
     async def status_greet(self):
         await trio.sleep(2)

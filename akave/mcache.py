@@ -15,7 +15,7 @@ API_KEY = os.getenv("API_KEY")
 API_SECRET = os.getenv("API_SECRET")
 ACCESS_TOKEN = os.getenv("JWT_TOKEN")
 
-logger = setup_logging("ipfs-client")
+logger = setup_logging("akave-client")
 
 
 class Akave:
@@ -37,7 +37,7 @@ class Akave:
                 "AWS_ACCESS_KEY_ID or AWS_SECRET_ACCESS_KEY is not set in environment variables."
             )
 
-        print("Starting AWS CLI configuration...\n")
+        logger.info("Starting AWS CLI configuration...\n")
 
         # Start the AWS configure process
         process = subprocess.Popen(
@@ -58,7 +58,7 @@ class Akave:
 
         # Send each input step by step
         for prompt, entry in steps:
-            print(f"Entering {prompt}: {entry}")
+            logger.debug(f"Entering {prompt}: {entry}")
             process.stdin.write(entry + "\n")
             process.stdin.flush()
             time.sleep(0.2)
@@ -67,10 +67,10 @@ class Akave:
         stdout, stderr = process.communicate()
 
         if process.returncode == 0:
-            print("\nAWS profile configured successfully!")
+            logger.info("\nAWS profile configured successfully!")
         else:
-            print("\nError configuring AWS CLI:")
-            print(stderr)
+            logger.info("\nError configuring AWS CLI:")
+            logger.error(stderr)
 
     def sha256_of_file(self, file_path):
         sha256 = hashlib.sha256()
@@ -95,16 +95,15 @@ class Akave:
         result = subprocess.run(command, capture_output=True, text=True)
 
         if result.returncode == 0:
-            print("Bucket 'akave-bucket' created successfully!")
-            print(result.stdout)
-        else:
-            print("Error creating bucket:")
-            print(result.stderr)
-            return True
+            logger.info("Bucket 'akave-bucket' created successfully!")
+            logger.info(result.stdout)
+        elif result.returncode != 254:
+            logger.info(f"Error occur while creating a bucket, Error Code is {result.returncode}")
+        return True
 
     def get_presigned_url(
         self,
-        file_name: str,
+        key: str,
         expires_in: int = 36000000,
         profile: str = "akave-o3",
         endpoint_url: str = "https://o3-rc2.akave.xyz",
@@ -113,9 +112,8 @@ class Akave:
         Generate a presigned URL for an S3 object using AWS CLI.
         """
         bucket_name = "akave-bucket"
-        s3_path = f"s3://{bucket_name}/{file_name}"
-        print(f"Generating presigned URL for {s3_path}...")
-        print(f"file to be executed: {file_name}")
+        s3_path = f"s3://{bucket_name}/{key}"
+        logger.debug(f"Generating presigned URL for {s3_path}...")
         command = [
             "aws",
             "s3",
@@ -128,16 +126,16 @@ class Akave:
             "--profile",
             profile,
         ]
-        print(command)
+        logger.debug(command)
         try:
             result = subprocess.run(command, capture_output=True, text=True, check=True)
             presigned_url = result.stdout.strip()
-            print("Presigned URL generated successfully:")
-            print(presigned_url)
+            logger.info("Presigned URL generated successfully:")
+            logger.info(presigned_url)
             return presigned_url
         except subprocess.CalledProcessError as e:
-            print("Error generating presigned URL:")
-            print(e.stderr)
+            logger.info("Error generating presigned URL:")
+            logger.error(e.stderr)
             return None
 
     def put_object(self, file_path: str) -> bool:
@@ -163,13 +161,13 @@ class Akave:
         file_name = os.path.basename(file_path)
 
         if result.returncode == 0:
-            print(f"object '{file_name}' created successfully!")
-            print(result.stdout)
+            logger.info(f"object for '{file_name}' created successfully!")
+            logger.info(result.stdout)
         else:
-            print("Error creating object:")
-            print(result.stderr)
+            logger.info("Error creating object:")
+            logger.error(result.stderr)
             return False
-        print(f"Generating presigned URL for {file_name}...")
+        logger.debug(f"Generating presigned URL for {file_name}...")
         self.cids.append(key)
         self.urls.append(self.get_presigned_url(key))
         return True
@@ -183,9 +181,9 @@ class Akave:
             with open(save_path, "wb") as f:
                 for chunk in response.iter_content(1024):
                     f.write(chunk)
-            print(f"File downloaded successfully: {save_path}")
+            logger.info(f"File downloaded successfully: {save_path}")
         else:
-            print(f"Failed to download file. Status code: {response.status_code}")
+            logger.error(f"Failed to download file. Status code: {response.status_code}")
 
     def download_object(self, object_key: str) -> bool:
         command = [
@@ -206,23 +204,16 @@ class Akave:
         result = subprocess.run(command, capture_output=True, text=True)
 
         if result.returncode == 0:
-            print(f"object '{object_key}' downloaded successfully!")
-            print(result.stdout)
+            logger.info(f"object '{object_key}' downloaded successfully!")
+            logger.info(result.stdout)
         else:
-            print("Error downloading object:")
-            print(result.stderr)
+            logger.info("Error downloading object:")
+            logger.debug(result.stderr)
             return True
 
     def upload_file(self, file_path: str) -> str:
-        try:
-            # self.configure_aws()
-            # print("AWS configured successfully.")
-            self.configure_bucket("create-bucket")
-            print("Bucket configured successfully.")
-        except Exception as e:
-            print(f"Error uploading file: {e}")
-            return False
-
+        self.configure_bucket("create-bucket")
+        logger.info("Putting the object in akave-bucket")
         self.put_object(file_path)
         return self.cids[-1]
 
@@ -262,12 +253,12 @@ class Akave:
             result = subprocess.run(command, capture_output=True, text=True)
 
             if result.returncode == 0:
-                print(f"String uploaded successfully with key '{key}'")
+                logger.debug(f"String uploaded successfully with key '{key}'")
             else:
-                print("Error uploading string:")
-                print(result.stderr)
+                logger.info("Error uploading string:")
+                logger.error(result.stderr)
                 return False
-
+  
             # 4. Generate presigned URL
             url = self.get_presigned_url(key)
             self.cids.append(key)
