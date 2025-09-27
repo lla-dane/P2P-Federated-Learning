@@ -24,7 +24,7 @@ interface BootmeshResponse {
 
 interface TrainPayload {
   projectId: string;
-  datasetAndModelHash: string;
+  datasetAndModelHashAndPublicKey: string;
 }
 
 interface TrainResponse {
@@ -95,7 +95,7 @@ export const startFinalTraining = async (
 ): Promise<boolean> => {
   const requestBody = {
     cmd: 'train',
-    args: [payload.projectId, payload.datasetAndModelHash],
+    args: [payload.projectId, payload.datasetAndModelHashAndPublicKey],
   };
   const response = await apiClient.post<TrainResponse>('/command', requestBody);
   return response.data && response.data.status === 'ok';

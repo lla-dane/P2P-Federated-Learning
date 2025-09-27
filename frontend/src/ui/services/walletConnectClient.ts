@@ -135,3 +135,4 @@ export const WalletConnectClient = () => {
 
   return null;
 };
+

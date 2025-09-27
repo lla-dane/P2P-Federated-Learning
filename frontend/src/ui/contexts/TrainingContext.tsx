@@ -253,6 +253,25 @@ export const TrainingProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  function arrayBufferToBase64(buffer) {
+    let binary = "";
+    const bytes = new Uint8Array(buffer);
+    const chunkSize = 0x8000; // avoid stack overflow for big buffers
+
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+      const chunk = bytes.subarray(i, i + chunkSize);
+      binary += String.fromCharCode.apply(null, chunk);
+    }
+
+    return btoa(binary);
+  }
+
+  // Wrap Base64 with PEM headers
+  function toPem(base64, label) {
+    const lines = base64.match(/.{1,64}/g).join("\n");
+    return `-----BEGIN ${label} KEY-----\n${lines}\n-----END ${label} KEY-----`;
+  }
+
   const beginFinalTraining = async () => {
     if (!result?.datasetHash || !result?.modelHash || !projectId) {
       return toast.error('Missing asset hashes. Cannot start training.');
@@ -262,10 +281,28 @@ export const TrainingProvider = ({ children }: { children: ReactNode }) => {
     const toastId = toast.loading('Sending command to start final training...');
 
     try {
+      const { publicKey, privateKey } = await crypto.subtle.generateKey(
+        {
+          name: "RSA-OAEP",
+          modulusLength: 2048,
+          publicExponent: new Uint8Array([1,0,1]),
+          hash: "SHA-256"
+        },
+        true,
+        ["encrypt", "decrypt"]
+      );
+      const spki = await crypto.subtle.exportKey("spki", publicKey);
+      const publicPem: string = toPem(arrayBufferToBase64(spki), "PUBLIC");
+
+      // Export private key (PKCS#8)
+      const pkcs8 = await crypto.subtle.exportKey("pkcs8", privateKey);
+      const privatePem = toPem(arrayBufferToBase64(pkcs8), "PRIVATE");
+      // TODO: Store the private key
       const success = await startFinalTraining({
         projectId,
-        datasetAndModelHash: `${result.datasetHash} ${result.modelHash}`,
+        datasetAndModelHashAndPublicKey: `${result.datasetHash} ${result.modelHash} "absdf"`,
       });
+      console.log("public key: ", publicPem)
 
       if (!success) {
         throw new Error('Backend did not confirm the training start command.');
