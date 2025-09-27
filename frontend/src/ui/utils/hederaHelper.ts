@@ -137,20 +137,7 @@ export async function fetchWeightsSubmittedEvent(
 
   const url = `https://testnet.mirrornode.hedera.com/api/v1/contracts/${contractId.toString()}/results/logs?order=desc&limit=100`;
   const foundWeights: string[] = [];
-
-  try {
-    const response = await axios.get(url);
-    const jsonResponse = response.data;
-    console.log(
-      `Found ${jsonResponse.logs.length} total event(s) for the contract.`
-    );
-
-    for (const log of jsonResponse.logs) {
-      try {
-        const event = decodeEvent('WeightsSubmitted', log);
-
-        if ((event.taskId as string).toString() === taskId) {
-          const privateKeyPem=`-----BEGIN PRIVATE KEY-----
+const privateKeyPem=`-----BEGIN PRIVATE KEY-----
 MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDePdPjmOqxpUP1
 wIRYebOOWlQHBjlO0A/JM5xWvJCkek1il3/BLyDkvCck8zT/j8n7ywi5bEGIWyaO
 hIRNzpWlMTVp2cjOtjofhBuXth6sw0zATZDUPNDrDUqx2IZKAS3MBSAAirywOohD
@@ -178,17 +165,6 @@ UGZEMicBD7csvC4/iPHE6/FQmSaGSGH5GvacNiMGeBv6oyqRflAKiGZwu8ryPDu0
 Tj4WZxs8fcrPLecvhqxnOvL2rNzHoQpywKY59CwEYbIXZjZ18xIT9bmMK6f7vKOk
 NsgLF5J2DWd62dL3tBr7YYQ=
 -----END PRIVATE KEY-----`
-
-export async function fetchWeightsSubmittedEvent(
-  contractId: string,
-  taskId: string
-): Promise<string[] | null> {
-  // Wait a few seconds to allow the event to propagate to the mirror node
-  await new Promise((res) => setTimeout(res, 5000));
-
-  const url = `https://testnet.mirrornode.hedera.com/api/v1/contracts/${contractId.toString()}/results/logs?order=desc&limit=100`;
-  const foundWeights: string[] = [];
-
   try {
     const response = await axios.get(url);
     const jsonResponse = response.data;
@@ -197,13 +173,12 @@ export async function fetchWeightsSubmittedEvent(
     );
 
     for (const log of jsonResponse.logs) {
-      console.log("log:", log)
       try {
-
         const event = decodeEvent('WeightsSubmitted', log);
-        console.log("event:",event)
+
         if ((event.taskId as string).toString() === taskId) {
           
+
           const str1 = await decryptMessage(event.weight_hash_1 as string,privateKeyPem)
           const str2 = await decryptMessage(event.weight_hash_2 as string,privateKeyPem)
           const str3 = await decryptMessage(event.weight_hash_3 as string,privateKeyPem)
