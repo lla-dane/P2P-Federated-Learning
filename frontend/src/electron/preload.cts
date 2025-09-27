@@ -1,22 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron';
 
 contextBridge.exposeInMainWorld('electronAPI', {
-  // Pinata/IPFS related APIs
-  initializePinata: (jwt: string) => ipcRenderer.invoke('pinata:init', jwt),
-  uploadFile: (filePath: string) =>
-    ipcRenderer.invoke('pinata:uploadFile', filePath),
-  uploadDatasetInChunks: (filePath: string) =>
-    ipcRenderer.invoke('pinata:uploadDataset', filePath),
-  listPinnedFiles: () => ipcRenderer.invoke('pinata:list'),
-  fetchFile: (cid: string) => ipcRenderer.invoke('pinata:fetch', cid),
   openFileDialog: () => ipcRenderer.invoke('dialog:openFile'),
-  onIpfsProgress: (callback: (message: string) => void) => {
-    ipcRenderer.on('ipfs:progress', (_event, message) => callback(message));
-  },
-  onProgress: (callback: (msg: string) => void) => {
-    ipcRenderer.on('pinata:progress', (_, msg) => callback(msg));
-  },
-
   // Credential related APIs
   saveCredentials: (settings: object) =>
     ipcRenderer.invoke('credentials:save', settings),
@@ -60,5 +45,20 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.invoke('akave:fetchFile', objectKey),
   onAkaveProgress: (callback: (message: string) => void) => {
     ipcRenderer.on('akave:progress', (_event, message) => callback(message));
+  },
+
+  // HCS related APIs
+  startLogSubscription: (data: { projectId: string; topicId: string }) =>
+    ipcRenderer.send('logs:start', data),
+
+  stopLogSubscription: () => ipcRenderer.send('logs:stop'),
+
+  getLogs: (projectId: string) => ipcRenderer.invoke('logs:get', projectId),
+
+  onNewLog: (callback: (log: any) => void) => {
+    const subscription = (_event: any, log: any) => callback(log);
+    ipcRenderer.on('hcs:new-log', subscription);
+
+    return () => ipcRenderer.removeListener('hcs:new-log', subscription);
   },
 });

@@ -43,6 +43,14 @@ export function registerHistoryHandlers() {
     const newHistory = history.filter((p) => p.id !== projectId);
 
     store.set('trainingHistory', newHistory);
+
+    const logKey = `logs-${projectId}`;
+    store.delete(logKey);
     return true;
+  });
+
+  ipcMain.handle('logs:get', (_event, projectId: string) => {
+    const logKey = `logs-${projectId}`;
+    return store.get(logKey, []);
   });
 }

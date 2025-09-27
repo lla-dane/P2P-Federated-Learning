@@ -4,11 +4,6 @@ export interface ISettings {
 }
 
 export interface IElectronAPI {
-  initializePinata: (jwt: string) => Promise<void>;
-  uploadFile: (filePath: string) => Promise<string>;
-  uploadDatasetInChunks: (filePath: string) => Promise<string>;
-  listPinnedFiles: () => Promise<any[]>;
-  fetchFile: (cid: string) => Promise<string | null>;
   openFileDialog: () => Promise<string | null>;
   onProgress: (callback: (message: string) => void) => void;
   saveCredentials: (settings: ISettings) => Promise<void>;
@@ -37,6 +32,10 @@ export interface IElectronAPI {
   listFilesFromAkave: () => Promise<any[]>;
   fetchFileFromAkave: (objectKey: string) => Promise<string>;
   onAkaveProgress: (callback: (message: string) => void) => void;
+  startLogSubscription: (data: { projectId: string; topicId: string }) => void;
+  stopLogSubscription: () => void;
+  getLogs: (projectId: string) => Promise<any[]>;
+  onNewLog: (callback: (log: any) => void) => () => void;
 }
 
 declare global {

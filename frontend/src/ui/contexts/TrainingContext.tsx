@@ -23,11 +23,12 @@ import {
   initializeTrainingRound,
   startFinalTraining,
 } from '../utils/apiHelper';
-import { ContractId, Hbar } from '@hashgraph/sdk';
+import { ContractId, Hbar, TopicId } from '@hashgraph/sdk';
 import { ContractFunctionParameterBuilder } from '../services/contractFunctionParameterBuilder';
 import { useWalletInterface } from '../services/useWalletInterface';
 import { getTaskId } from '../utils/hederaHelper';
-import { CONTRACT_ID } from '../App';
+import { data } from 'react-router-dom';
+import { CONTRACT_ID } from '../utils/constant';
 
 export type TrainingPhase =
   | 'upload'
@@ -228,7 +229,7 @@ export const TrainingProvider = ({ children }: { children: ReactNode }) => {
         id: projId,
         projectName,
         datasetHash: result.datasetHash,
-        modelHash: result.datasetHash,
+        modelHash: result.modelHash,
         date: new Date().toISOString(),
         status: 'Initialized',
         weightsHash: null,
@@ -271,6 +272,12 @@ export const TrainingProvider = ({ children }: { children: ReactNode }) => {
       }
 
       await updateTrainingHistoryItem({ projectId, newStatus: 'Running' });
+
+      const topicId = TopicId.fromString('0.0.6914391');
+      window.electronAPI.startLogSubscription({
+        projectId: projectId,
+        topicId: topicId.toString(),
+      });
 
       toast.success('Training is now in progress on the network!', {
         id: toastId,

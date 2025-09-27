@@ -11,7 +11,8 @@ import {
   checkTaskStatus,
   fetchWeightsSubmittedEvent,
 } from '../utils/hederaHelper';
-import { CONTRACT_ID } from '../App';
+import { LogViewerModal } from '../components/history/LogViewerModal';
+import { CONTRACT_ID } from '../utils/constant';
 
 export interface TrainingProject {
   id: string;
@@ -28,6 +29,9 @@ const TrainingHistoryPage = () => {
   const [history, setHistory] = useState<TrainingProject[]>([]);
   const [selectedProject, setSelectedProject] =
     useState<TrainingProject | null>(null);
+  const [logViewProject, setLogViewProject] = useState<TrainingProject | null>(
+    null
+  );
 
   useEffect(() => {
     const loadHistory = async () => {
@@ -44,15 +48,16 @@ const TrainingHistoryPage = () => {
       return;
     }
 
-    // polling for 30 seconds
+    // polling for 20 seconds
     const intervalId = setInterval(async () => {
       console.log(`Polling ${jobsToPoll.length} active job(s)...`);
       for (const job of jobsToPoll) {
         try {
-          // const isComplete = await checkTaskStatus(job.id);
-          const isComplete = false;
+          const isComplete = await checkTaskStatus(job.id);
+          // const isComplete = true;
 
           if (!isComplete) {
+            window.electronAPI.stopLogSubscription();
             const weightsArray = await fetchWeightsSubmittedEvent(
               CONTRACT_ID,
               job.id
@@ -82,7 +87,7 @@ const TrainingHistoryPage = () => {
           console.error(`Polling failed for job ${job.id}:`, error);
         }
       }
-    }, 30000);
+    }, 20000);
     return () => clearInterval(intervalId);
   }, [history]);
 
@@ -121,6 +126,7 @@ const TrainingHistoryPage = () => {
         history={history}
         onViewDetails={(project) => setSelectedProject(project)}
         onDelete={handleDeleteProject}
+        onViewLogs={(project) => setLogViewProject(project)}
       />
 
       <ProjectDetailsModal
@@ -128,6 +134,12 @@ const TrainingHistoryPage = () => {
         project={selectedProject}
         onClose={() => setSelectedProject(null)}
         onDelete={handleDeleteProject}
+      />
+
+      <LogViewerModal
+        isOpen={!!logViewProject}
+        project={logViewProject}
+        onClose={() => setLogViewProject(null)}
       />
     </div>
   );

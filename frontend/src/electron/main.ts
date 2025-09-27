@@ -3,8 +3,14 @@ import path from 'path';
 import { isDev } from './utils.js';
 import { resolvePath } from './pathResolver.js';
 import { registerIpcHandlers } from './ipc/index.js';
+import { Client, TopicId, TopicMessageQuery } from '@hashgraph/sdk';
+import { LogService } from './logServices.js';
+import Store from 'electron-store';
+import { registerLogHandlers } from './ipc/logHandlers.js';
 
 let mainWindow: BrowserWindow;
+const store = new Store();
+const logService = new LogService();
 
 ipcMain.on('window:minimize', () => {
   mainWindow?.minimize();
@@ -51,6 +57,7 @@ app.on('ready', () => {
   } else {
     mainWindow.loadFile(path.join(app.getAppPath(), '/dist-react/index.html'));
   }
+  registerLogHandlers(mainWindow, logService, store);
 });
 
 app.on('window-all-closed', () => {

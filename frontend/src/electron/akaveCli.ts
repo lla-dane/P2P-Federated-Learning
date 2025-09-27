@@ -16,23 +16,15 @@ export class AkaveCliService {
   ): Promise<boolean> {
     console.log(`Configuring AWS profile '${this.profile}'...`);
     try {
-      // Use direct commands to set credentials and region
-      await this.runCommand(
-        `aws configure set aws_access_key_id ${accessKey} --profile ${this.profile}`
-      );
-      await this.runCommand(
-        `aws configure set aws_secret_access_key ${secretKey} --profile ${this.profile}`
-      );
-      await this.runCommand(
-        `aws configure set region akave-network --profile ${this.profile}`
-      );
+      const command = [
+        `aws configure set aws_access_key_id ${accessKey} --profile ${this.profile}`,
+        `aws configure set aws_secret_access_key ${secretKey} --profile ${this.profile}`,
+        `aws configure set region akave-network --profile ${this.profile}`,
+        `aws configure set s3.request_checksum_calculation WHEN_REQUIRED --profile ${this.profile}`,
+        `aws configure set s3.response_checksum_validation WHEN_REQUIRED --profile ${this.profile}`,
+      ].join(' && ');
 
-      await this.runCommand(
-        `aws configure set s3.request_checksum_calculation WHEN_REQUIRED --profile ${this.profile}`
-      );
-      await this.runCommand(
-        `aws configure set s3.response_checksum_validation WHEN_REQUIRED --profile ${this.profile}`
-      );
+      await this.runCommand(command);
 
       console.log('AWS profile configured successfully with checksum fix!');
       return true;

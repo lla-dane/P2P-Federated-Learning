@@ -7,7 +7,7 @@ import {
 import axios from 'axios';
 import Web3 from 'web3';
 import { abi } from './abi';
-import { CONTRACT_ID } from '../App';
+import { OPERATOR_ID, OPERATOR_KEY, CONTRACT_ID } from './constant';
 
 export const getTaskId = async () => {
   const delay = (ms: number) =>
@@ -59,11 +59,10 @@ function decodeEvent(eventName: string, log: any) {
     throw new Error(`Event ABI for '${eventName}' not found or missing inputs`);
   }
 
-  // The first topic is the event signature. The remaining topics are the indexed parameters.
   const decodedLog = web3.eth.abi.decodeLog(
     eventAbi.inputs,
     log.data || '0x',
-    log.topics.slice(1) // Pass only the indexed parameter topics
+    log.topics.slice(1)
   );
   return decodedLog;
 }
@@ -72,7 +71,6 @@ export async function fetchWeightsSubmittedEvent(
   contractId: string,
   taskId: string
 ): Promise<string[] | null> {
-  // Wait a few seconds to allow the event to propagate to the mirror node
   await new Promise((res) => setTimeout(res, 5000));
 
   const url = `https://testnet.mirrornode.hedera.com/api/v1/contracts/${contractId.toString()}/results/logs?order=desc&limit=100`;

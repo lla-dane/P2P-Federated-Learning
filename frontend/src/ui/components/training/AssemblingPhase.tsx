@@ -62,18 +62,6 @@ export const AssemblingPhase = () => {
     return locationMap[ip] || `IP: ${ip}`;
   };
 
-  const getNodeStatus = (
-    peer_id: string
-  ): { status: 'ready' | 'joining' | 'computing'; color: string } => {
-    // Mock status based on peer_id for demo
-    const hash = peer_id.slice(-2);
-    if (parseInt(hash, 16) % 3 === 0)
-      return { status: 'computing', color: 'text-blue-400' };
-    if (parseInt(hash, 16) % 3 === 1)
-      return { status: 'joining', color: 'text-yellow-400' };
-    return { status: 'ready', color: 'text-green-400' };
-  };
-
   const shortenPeerId = (peerId: string): string => {
     return `${peerId.slice(0, 8)}...${peerId.slice(-8)}`;
   };
@@ -141,7 +129,10 @@ export const AssemblingPhase = () => {
           <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
             {trainerNodes.map((node, index) => {
               const location = extractLocationFromIP(node.pub_maddr);
-              const { status, color } = getNodeStatus(node.peer_id);
+              const { status, color } = {
+                status: 'ready',
+                color: 'text-green-400',
+              };
               const port = extractPort(node.pub_maddr);
 
               return (
@@ -234,22 +225,12 @@ export const AssemblingPhase = () => {
             </div>
             <div className='bg-green-500/5 border border-green-500/20 rounded-lg p-3 text-center'>
               <div className='text-lg font-bold text-green-400'>
-                {
-                  trainerNodes.filter(
-                    (n) => getNodeStatus(n.peer_id).status === 'ready'
-                  ).length
-                }
+                {trainerCount}
               </div>
               <div className='text-xs text-text-secondary'>Ready</div>
             </div>
             <div className='bg-yellow-500/5 border border-yellow-500/20 rounded-lg p-3 text-center'>
-              <div className='text-lg font-bold text-yellow-400'>
-                {
-                  trainerNodes.filter(
-                    (n) => getNodeStatus(n.peer_id).status === 'joining'
-                  ).length
-                }
-              </div>
+              <div className='text-lg font-bold text-yellow-400'>{0}</div>
               <div className='text-xs text-text-secondary'>Joining</div>
             </div>
             <div className='bg-blue-500/5 border border-blue-500/20 rounded-lg p-3 text-center'>

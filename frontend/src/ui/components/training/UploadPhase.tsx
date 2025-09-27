@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { getEventsFromMirror } from '../../contexts/ssss';
 import { checkTaskStatus } from '../../utils/hederaHelper';
 import { fetchWeightsSubmittedEvent } from '../../contexts/nnnn';
+// import { subscription } from '../../utils/logsHelper';
 
 export const UploadPhase = () => {
   const { uploadAssets, isLoading } = useTraining();
@@ -23,7 +24,9 @@ export const UploadPhase = () => {
     // checkTaskStatus('52');
     // getEventsFromMirror(contractId);
     // fetchWeightsSubmittedEvent(contractId, '4');
+    // subscription();
     uploadAssets(projectName, datasetFile, modelFile);
+    // beginFinalTraining();
   };
 
   return (
@@ -53,7 +56,7 @@ export const UploadPhase = () => {
         </div>
         <div className='grid md:grid-cols-2 gap-6'>
           <FileUpload
-            label='Dataset (.zip, .csv)'
+            label='Dataset (.csv)'
             fileType='dataset'
             onFileSelect={setDatasetFile}
           />

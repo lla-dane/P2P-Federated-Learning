@@ -216,15 +216,16 @@ const SettingsPage = () => {
             Need help getting your credentials?
           </h3>
           <p className='text-sm text-text-secondary mb-3'>
-            Visit your Pinata dashboard to generate API keys and JWT tokens.
+            Visit the IAM section of your AWS account to generate an Access Key
+            ID and Secret Access Key.
           </p>
           <a
-            href='https://app.pinata.cloud/keys'
+            href='https://docs.aws.amazon.com/IAM/latest/UserGuide/security-creds.html#access-keys-and-secret-access-keys'
             target='_blank'
             rel='noopener noreferrer'
             className='inline-flex items-center gap-2 text-primary hover:text-primary/80 text-sm font-medium'
           >
-            Go to Pinata Dashboard
+            Go to AWS Documentation
             <svg
               className='w-3 h-3'
               fill='none'
