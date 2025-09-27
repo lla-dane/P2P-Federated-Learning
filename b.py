@@ -6,6 +6,7 @@ python examples/topic_message_submit.py
 
 import os
 import sys
+import time
 
 from dotenv import load_dotenv
 
@@ -17,20 +18,22 @@ from hiero_sdk_python import (
     ResponseCode,
     TopicCreateTransaction,
     TopicMessageSubmitTransaction,
+    TopicId
 )
 
 load_dotenv()
-
-
+client = Client(Network(network="testnet"))
+operator_id = AccountId.from_string(os.getenv("OPERATOR_ID"))
+operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY"))
+client.set_operator(operator_id, operator_key)
+print("operator : ", operator_key)
 def setup_client():
     """Initialize and set up the client with operator account"""
     print("Connecting to Hedera testnet...")
-    client = Client(Network(network="testnet"))
+    
 
     try:
-        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID"))
-        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY"))
-        client.set_operator(operator_id, operator_key)
+        
 
         return client, operator_id, operator_key
     except (TypeError, ValueError):
@@ -84,11 +87,35 @@ def submit_message(message):
             f"(status: {ResponseCode(receipt.status).name}, "
             f"transaction_id: {receipt.transaction_id})"
         )
+
         print(f"✅ Success! Message submitted to topic {topic_id}: {message}")
+        
     except Exception as e:
         print(f"❌ Error: Message submission failed: {str(e)}")
         sys.exit(1)
 
+def submit_hcs_message(hcs_topic_id,message):
+        transaction = (
+            TopicMessageSubmitTransaction(topic_id=hcs_topic_id, message=message)
+            .freeze_with(client)
+            .sign(operator_key)
+        )
+
+        try:
+            receipt = transaction.execute(client)
+            print(
+                f"Message Submit Transaction completed: "
+                f"(status: {ResponseCode(receipt.status).name}, "
+                f"transaction_id: {receipt.transaction_id})"
+            )
+            print(
+                f"✅ Success! Message submitted to topic {hcs_topic_id}: {message}"
+            )
+        except Exception as e:
+            print(f"Log submission failed: {e}")
 
 if __name__ == "__main__":
-    submit_message("Hello, Hiero!")
+    # submit_message("Hello, Hiero!")
+    for i in range(10):
+        submit_hcs_message(TopicId.from_string("0.0.6914391"), f"Hello I am here times {i}")
+        time.sleep(2)
