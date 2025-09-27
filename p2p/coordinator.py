@@ -249,15 +249,14 @@ class Node:
 
     def create_hcs_topic(self):
         logger.debug("Creating HCS topic")
-        operator_key = PrivateKey.from_string(self.operator_key)
         try:
             topic_tx = (
                 TopicCreateTransaction(
                     memo=f"{self.host.get_id()}: Logs",
-                    admin_key=operator_key.public_key(),
+                    admin_key=self.operator_key.public_key(),
                 )
                 .freeze_with(self.client)
-                .sign(operator_key)
+                .sign(self.operator_key)
             )
             topic_receipt = topic_tx.execute(self.client)
             logger.debug(f"HCS TOPIC: {topic_receipt.topic_id}")
@@ -269,11 +268,10 @@ class Node:
             logger.error(f"Error: Creating topic: {e}")
 
     def submit_hcs_message(self, message):
-        operator_key = PrivateKey.from_string(self.operator_key)
         transaction = (
             TopicMessageSubmitTransaction(topic_id=self.hcs_topic_id, message=message)
             .freeze_with(self.client)
-            .sign(operator_key)
+            .sign(self.operator_key)
         )
 
         try:
