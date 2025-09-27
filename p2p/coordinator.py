@@ -346,7 +346,7 @@ class Node:
                                         logger.error(
                                             f"No weights returned for chunk {chunk_cid}"
                                         )
-                                self.pubsub.unsubscribe(parts[1])
+                                await self.pubsub.unsubscribe(parts[1])
                                 await self.pubsub.publish(
                                     parts[1], "Left as a TRAINER self".encode()
                                 )
