@@ -1,0 +1,438 @@
+{
+  "compiler": { "version": "0.8.30+commit.73712a01" },
+  "language": "Solidity",
+  "output": {
+    "abi": [
+      { "inputs": [], "stateMutability": "nonpayable", "type": "constructor" },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "uint256",
+            "name": "taskId",
+            "type": "uint256"
+          }
+        ],
+        "name": "TaskCompleted",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "uint256",
+            "name": "taskId",
+            "type": "uint256"
+          },
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "depositor",
+            "type": "address"
+          },
+          {
+            "indexed": false,
+            "internalType": "string",
+            "name": "modelUrl",
+            "type": "string"
+          },
+          {
+            "indexed": false,
+            "internalType": "string",
+            "name": "datasetUrl",
+            "type": "string"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "numChunks",
+            "type": "uint256"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "totalReward",
+            "type": "uint256"
+          }
+        ],
+        "name": "TaskCreated",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "uint256",
+            "name": "taskId",
+            "type": "uint256"
+          },
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "trainer",
+            "type": "address"
+          },
+          {
+            "indexed": false,
+            "internalType": "string",
+            "name": "weight_hash_1",
+            "type": "string"
+          },
+          {
+            "indexed": false,
+            "internalType": "string",
+            "name": "weight_hash_2",
+            "type": "string"
+          },
+          {
+            "indexed": false,
+            "internalType": "string",
+            "name": "weight_hash_3",
+            "type": "string"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "rewardAmount",
+            "type": "uint256"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "remainingChunks",
+            "type": "uint256"
+          }
+        ],
+        "name": "WeightsSubmitted",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "account",
+            "type": "address"
+          },
+          {
+            "indexed": false,
+            "internalType": "bool",
+            "name": "status",
+            "type": "bool"
+          }
+        ],
+        "name": "Whitelisted",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "who",
+            "type": "address"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "amount",
+            "type": "uint256"
+          }
+        ],
+        "name": "Withdrawn",
+        "type": "event"
+      },
+      { "stateMutability": "payable", "type": "fallback" },
+      {
+        "inputs": [
+          { "internalType": "address", "name": "_account", "type": "address" }
+        ],
+        "name": "addToWhitelist",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "uint256", "name": "taskId", "type": "uint256" }
+        ],
+        "name": "cancelTask",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "count",
+        "outputs": [
+          { "internalType": "uint256", "name": "", "type": "uint256" }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "string", "name": "modelUrl", "type": "string" },
+          { "internalType": "string", "name": "datasetUrl", "type": "string" },
+          { "internalType": "uint256", "name": "numChunks", "type": "uint256" }
+        ],
+        "name": "createTask",
+        "outputs": [
+          { "internalType": "uint256", "name": "", "type": "uint256" }
+        ],
+        "stateMutability": "payable",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "getCount",
+        "outputs": [
+          { "internalType": "uint256", "name": "", "type": "uint256" }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "getTaskId",
+        "outputs": [
+          { "internalType": "uint256", "name": "", "type": "uint256" }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "incrementCount",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "address", "name": "_account", "type": "address" }
+        ],
+        "name": "isWhitelisted",
+        "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "owner",
+        "outputs": [
+          { "internalType": "address", "name": "", "type": "address" }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "address", "name": "", "type": "address" }
+        ],
+        "name": "pendingWithdrawals",
+        "outputs": [
+          { "internalType": "uint256", "name": "", "type": "uint256" }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "address", "name": "_account", "type": "address" }
+        ],
+        "name": "removeFromWhitelist",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "address", "name": "_address", "type": "address" },
+          { "internalType": "uint256", "name": "_amount", "type": "uint256" }
+        ],
+        "name": "setPendingWithdrawal",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "uint256", "name": "taskId", "type": "uint256" },
+          {
+            "internalType": "string",
+            "name": "weight_hash_1",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "weight_hash_2",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "weight_hash_3",
+            "type": "string"
+          }
+        ],
+        "name": "submitWeights",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "taskCount",
+        "outputs": [
+          { "internalType": "uint256", "name": "", "type": "uint256" }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "uint256", "name": "taskId", "type": "uint256" }
+        ],
+        "name": "taskExists",
+        "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "uint256", "name": "", "type": "uint256" },
+          { "internalType": "uint256", "name": "", "type": "uint256" }
+        ],
+        "name": "taskWeights",
+        "outputs": [{ "internalType": "string", "name": "", "type": "string" }],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "uint256", "name": "", "type": "uint256" }
+        ],
+        "name": "tasks",
+        "outputs": [
+          {
+            "internalType": "address payable",
+            "name": "depositor",
+            "type": "address"
+          },
+          { "internalType": "string", "name": "modelUrl", "type": "string" },
+          { "internalType": "string", "name": "datasetUrl", "type": "string" },
+          { "internalType": "uint256", "name": "numChunks", "type": "uint256" },
+          {
+            "internalType": "uint256",
+            "name": "remainingChunks",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "perChunkReward",
+            "type": "uint256"
+          },
+          { "internalType": "bool", "name": "exists", "type": "bool" }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "address", "name": "", "type": "address" }
+        ],
+        "name": "whitelist",
+        "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "withdrawPending",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      { "stateMutability": "payable", "type": "receive" }
+    ],
+    "devdoc": {
+      "events": {
+        "TaskCreated(uint256,address,string,string,uint256,uint256)": {
+          "details": "emitted when a task is created"
+        },
+        "WeightsSubmitted(uint256,address,string,string,string,uint256,uint256)": {
+          "details": "emitted when a trainer publishes weights and receives reward (or credited)"
+        },
+        "Withdrawn(address,uint256)": {
+          "details": "emitted when someone withdraws pending balance"
+        }
+      },
+      "kind": "dev",
+      "methods": {
+        "cancelTask(uint256)": {
+          "params": { "taskId": "id of the task to cancel" }
+        },
+        "createTask(string,string,uint256)": {
+          "params": {
+            "datasetUrl": "IPFS hash of the dataset (string)",
+            "modelUrl": "IPFS hash of the model (string)",
+            "numChunks": "Number of chunks the dataset is divided into (must be > 0) Requirements: msg.value must be > 0 and divisible by numChunks to ensure exact per-chunk reward."
+          }
+        },
+        "submitWeights(uint256,string,string,string)": {
+          "params": {
+            "taskId": "The id of the task",
+            "weight_hash_1": "IPFS hash of the published weights",
+            "weight_hash_2": "IPFS hash of the published weights",
+            "weight_hash_3": "IPFS hash of the published weights"
+          }
+        }
+      },
+      "version": 1
+    },
+    "userdoc": {
+      "kind": "user",
+      "methods": {
+        "cancelTask(uint256)": {
+          "notice": "Cancel a task and refund remaining funds to depositor. Only allowed if no submissions have happened (i.e., remainingChunks == numChunks). This protects trainers' expectations once submissions begin."
+        },
+        "createTask(string,string,uint256)": {
+          "notice": "Create a new training task and deposit reward funds."
+        },
+        "submitWeights(uint256,string,string,string)": {
+          "notice": "Trainer submits final weights (IPFS hash) for a task and claims the per-chunk reward. Rewards are paid out immediately if the transfer succeeds, otherwise credited to pendingWithdrawals which can be withdrawn with withdrawPending()."
+        },
+        "withdrawPending()": {
+          "notice": "Withdraw any pending balance credited to the caller (e.g., failed transfers)"
+        }
+      },
+      "version": 1
+    }
+  },
+  "settings": {
+    "compilationTarget": {
+      "contracts/fed_learn.sol": "FederatedTrainingReward"
+    },
+    "evmVersion": "prague",
+    "libraries": {},
+    "metadata": { "bytecodeHash": "ipfs" },
+    "optimizer": { "enabled": false, "runs": 200 },
+    "remappings": []
+  },
+  "sources": {
+    "contracts/fed_learn.sol": {
+      "keccak256": "0x9bd646614d6659270a8dc708fd340368dac06f1d5669b1850d7303f33473f86e",
+      "license": "MIT",
+      "urls": [
+        "bzz-raw://f4568683c0ae522b3ef9cdb120c09d39bbd721b65e7e324ca67b82e47e97b642",
+        "dweb:/ipfs/QmPfwnepTtRhzjScBDycrEa6E8EQ9NiGi3fgW6gGjRg9f5"
+      ]
+    }
+  },
+  "version": 1
+}

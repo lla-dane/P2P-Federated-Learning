@@ -174,7 +174,7 @@ class Akave:
         self.urls.append(self.get_presigned_url(key))
         return True
 
-    def download_file_from_url(self, url, save_path):
+    async def download_file_from_url(self, url, save_path, send_channel):
         """
         Download a file from a presigned URL or any HTTP URL.
         """
@@ -183,11 +183,15 @@ class Akave:
             with open(save_path, "wb") as f:
                 for chunk in response.iter_content(1024):
                     f.write(chunk)
-            logger.info(f"File downloaded successfully: {save_path}")
+
+            msg = f"File downloaded successfully: {save_path}"
+            logger.info(msg)
+            await send_channel.send(["send-hcs", msg])
+
         else:
-            logger.error(
-                f"Failed to download file. Status code: {response.status_code}"
-            )
+            msg = f"Failed to download file. Status code: {response.status_code}"
+            logger.error(msg)
+            await send_channel.send(["send-hcs", msg])
 
     def download_object(self, object_key: str) -> bool:
         command = [

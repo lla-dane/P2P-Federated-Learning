@@ -83,7 +83,9 @@ contract FederatedTrainingReward {
     event WeightsSubmitted(
         uint256 indexed taskId,
         address indexed trainer,
-        string weights,
+        string weight_hash_1,
+        string weight_hash_2,
+        string weight_hash_3,
         uint256 rewardAmount,
         uint256 remainingChunks
     );
@@ -134,10 +136,14 @@ contract FederatedTrainingReward {
     /// Rewards are paid out immediately if the transfer succeeds,
     /// otherwise credited to pendingWithdrawals which can be withdrawn with withdrawPending().
     /// @param taskId The id of the task
-    /// @param weightsHash IPFS hash of the published weights
+    /// @param weight_hash_1 IPFS hash of the published weights
+    /// @param weight_hash_2 IPFS hash of the published weights
+    /// @param weight_hash_3 IPFS hash of the published weights
     function submitWeights(
         uint256 taskId,
-        string calldata weightsHash
+        string calldata weight_hash_1,
+        string calldata weight_hash_2,
+        string calldata weight_hash_3
     ) external {
         Task storage t = tasks[taskId];
         require(t.exists, "task does not exist");
@@ -154,11 +160,18 @@ contract FederatedTrainingReward {
             // credit so trainer can withdraw later
             pendingWithdrawals[msg.sender] += reward;
         }
-        emit TaskCompleted(taskId);
+
+        if (t.remainingChunks == 0){
+            emit TaskCompleted(taskId);
+            tasks[taskId].exists=false;
+        }
+        
         emit WeightsSubmitted(
             taskId,
             msg.sender,
-            weightsHash,
+            weight_hash_1,
+            weight_hash_2,
+            weight_hash_3,
             reward,
             t.remainingChunks
         );

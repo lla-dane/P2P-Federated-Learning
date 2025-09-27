@@ -32,7 +32,8 @@ dependencies = [
     "eth-keys==0.5.1",
     "quart-trio",
     "hypercorn[trio]",
-    "prompt_toolkit"
+    "prompt_toolkit",
+    "cryptography"
 ]
 
 # Extras let you group optional deps

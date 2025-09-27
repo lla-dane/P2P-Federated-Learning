@@ -11,6 +11,9 @@ import base58
 import Crypto.PublicKey.RSA as RSA
 import multiaddr
 import trio
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import padding
 from dotenv import load_dotenv
 from hypercorn.config import Config
 from hypercorn.trio import serve
@@ -48,6 +51,7 @@ from hiero_sdk_python import (
     PrivateKey,
     ResponseCode,
     TopicCreateTransaction,
+    TopicId,
     TopicMessageQuery,
     TopicMessageSubmitTransaction,
 )
@@ -68,7 +72,7 @@ GOSSIPSUB_PROTOCOL_ID = TProtocol("/meshsub/1.0.0")
 FED_LEARNING_MESH = "fed-learn"
 PUBLIC_IP = os.getenv("IP")
 IS_CLOUD = os.getenv("IS_CLOUD")
-
+TOPIC_ID = os.getenv("TOPIC_ID")
 
 COMMANDS = """
 Available commands:
@@ -120,12 +124,15 @@ class Node:
     def __init__(self, role: str, operator_key: str, operator_id: str):
         self.mesh = Mesh()
         self.ml_trainer = MLTrainer()
-        self.operator_key = operator_key
-        self.operator_id = operator_id
+        self.operator_key = PrivateKey.from_string(operator_key)
+        self.operator_id = AccountId.from_string(operator_id)
 
-        ## IMP
-        # write the code for operator id and key
-        # Set up the general host configs
+        self.public_key = self.operator_key.public_key()
+
+        topic_id_parts = TOPIC_ID.split(".", 2)
+        self.hcs_topic_id = TopicId(
+            int(topic_id_parts[0]), int(topic_id_parts[1]), int(topic_id_parts[2])
+        )
 
         if role == "bootstrap":
             key_pair = load_keypair_from_env(env_path)
@@ -164,17 +171,79 @@ class Node:
         # Send/Receive channels
         self.send_channel, self.receive_channel = trio.open_memory_channel(100)
         self.client = self.setup_client()
-        self.hcs_topic_id = None
         self.contract_id = ContractId.from_string(os.getenv("CONTRACT_ID"))
+        self.client_pub_key = None
+
+        self.client_public_key_pem = """
+        -----BEGIN PUBLIC KEY-----
+        MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA3j3T45jqsaVD9cCEWHmz
+        jlpUBwY5TtAPyTOcVryQpHpNYpd/wS8g5LwnJPM0/4/J+8sIuWxBiFsmjoSETc6V
+        pTE1adnIzrY6H4Qbl7YerMNMwE2Q1DzQ6w1KsdiGSgEtzAUgAIq8sDqIQ/xxRdgL
+        dKb1X7bwO3rK6QDVaJZ2oibS4xiS1+rslTJlW4MESzKLzWaU7ugnJ+VRaumQ/XrC
+        KlFsg7lFwirDSkYG7cA9cLl8lzNpZJfjoWbUnpKPOTTUslMVVUdRS/jwhVE4LTxS
+        WBBXaRuB52jj7N+XKUHu1/cTJvmLaTBo+VMV+MjzKcmqBnmUaHt0WFVIHSCXjqEU
+        YQIDAQAB
+        -----END PUBLIC KEY-----
+        """
+
+        self.client_public_key = serialization.load_pem_public_key(
+            self.client_public_key_pem.encode("utf-8"), backend=default_backend()
+        )
+
+        # url = "https://o3-rc2.akave.xyz/akave-bucket/f402e7f71a64441ec8c4ff2567d1dae9451b98c8bf34f625aa11f8e018ecc3f7?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=O3_X84UVYSPJINK5KI6L%2F20250926%2Fakave-network%2Fs3%2Faws4_request&X-Amz-Date=20250926T095000Z&X-Amz-Expires=36000000&X-Amz-SignedHeaders=host&X-Amz-Signature=84ed4a65601fb990f653809101c88c30ebfb8163a482f5bf8b62734317ab5ba8"
+        # url_bytes = url.encode("utf-8")
+
+        # # Split in two halves
+        # part_size = len(url_bytes) // 3
+        # part1 = url_bytes[:part_size]
+        # part2 = url_bytes[part_size:2*part_size]
+        # part3 = url_bytes[2*part_size:]
+
+        # cipher1 = self.client_public_key.encrypt(
+        #     part1,
+        #     padding.OAEP(
+        #         mgf=padding.MGF1(algorithm=hashes.SHA256()),
+        #         algorithm=hashes.SHA256(),
+        #         label=None
+        #     )
+        # )
+
+        # cipher2 = self.client_public_key.encrypt(
+        #     part2,
+        #     padding.OAEP(
+        #         mgf=padding.MGF1(algorithm=hashes.SHA256()),
+        #         algorithm=hashes.SHA256(),
+        #         label=None
+        #     )
+        # )
+
+        # cipher3 = self.client_public_key.encrypt(
+        #     part3,
+        #     padding.OAEP(
+        #         mgf=padding.MGF1(algorithm=hashes.SHA256()),
+        #         algorithm=hashes.SHA256(),
+        #         label=None
+        #     )
+        # )
+
+        # cipher_b64_1 = base64.b64encode(cipher1).decode("utf-8")
+        # cipher_b64_2 = base64.b64encode(cipher2).decode("utf-8")
+        # cipher_b64_3 = base64.b64encode(cipher3).decode("utf-8")
+
+        # print(cipher_b64_1)
+        # print("\n\n")
+        # print(cipher_b64_2)
+        # print("\n\n")
+        # print(cipher_b64_3)
 
     def setup_client(self):
         """Initialize and set up the client with operator account"""
         network = Network(network="testnet")
         client = Client(network)
 
-        operator_id = AccountId.from_string(self.operator_id)
-        operator_key = PrivateKey.from_string(self.operator_key)
-        client.set_operator(operator_id, operator_key)
+        self.public_key
+
+        client.set_operator(self.operator_id, self.operator_key)
 
         return client
 
@@ -191,7 +260,9 @@ class Node:
                 .sign(operator_key)
             )
             topic_receipt = topic_tx.execute(self.client)
+            logger.debug(f"HCS TOPIC: {topic_receipt.topic_id}")
             self.hcs_topic_id = topic_receipt.topic_id
+
             logger.info("Created HCS topic for logs")
 
         except Exception as e:
@@ -206,12 +277,7 @@ class Node:
         )
 
         try:
-            receipt = transaction.execute(self.client)
-            print(
-                f"Message Submit Transaction completed: "
-                f"(status: {ResponseCode(receipt.status).name}, "
-                f"transaction_id: {receipt.transaction_id})"
-            )
+            _ = transaction.execute(self.client)
             print(
                 f"✅ Success! Message submitted to topic {self.hcs_topic_id}: {message}"
             )
@@ -247,14 +313,18 @@ class Node:
             handle.join()
             print("Subscription cancelled. Exiting")
 
-    def publish_on_chain(self, task_id, weights):
+    def publish_on_chain(self, task_id, cipher1, cipher2, cipher3):
         receipt = (
             ContractExecuteTransaction()
             .set_contract_id(self.contract_id)
             .set_gas(2000000)
             .set_function(
                 "submitWeights",
-                ContractFunctionParameters().add_uint256(task_id).add_string(weights),
+                ContractFunctionParameters()
+                .add_uint256(task_id)
+                .add_string(cipher1)
+                .add_string(cipher2)
+                .add_string(cipher3),
             )
             .execute(self.client)
         )
@@ -292,9 +362,11 @@ class Node:
                         nursery.start_soon(self.receive_loop, training_subscription)
                         self.subscribed_topics.append(parts[1])
 
-                        training_round_greet = (
-                            f"A new training round starting in [{parts[1]}] channel"
-                        )
+                        msg = f"A new training round starting in [{parts[1]}] channel"
+                        training_round_greet = msg
+                        self.submit_hcs_message(msg)
+                        # await self.send_channel.send(["send-hcs", msg])
+
                         await self.pubsub.publish(
                             FED_LEARNING_MESH, training_round_greet.encode()
                         )
@@ -304,7 +376,7 @@ class Node:
 
                     if cmd == "train" and len(parts) == 3:
 
-                        dataset_hash, model_hash = parts[2].split(" ")
+                        dataset_hash, model_hash, public_key = parts[2].split(" ")
                         channel = parts[1]
                         nodes = self.mesh.get_channel_nodes(channel)
                         logger.debug(f"Participating nodes are: {nodes}")
@@ -316,54 +388,109 @@ class Node:
                         assignments = self.ml_trainer.assign_chunks_to_nodes(
                             dataset_hash, nodes
                         )
+
                         await self.pubsub.publish(
-                            parts[1], f"assign {model_hash} {assignments}".encode()
+                            parts[1],
+                            f"assign {model_hash} {assignments} {public_key}".encode(),
                         )
 
-                    if cmd == "assign" and len(parts) == 3:
+                    if cmd == "assign" and len(parts) == 4:
+                        self.client_pub_key = serialization.load_pem_public_key(
+                            parts[3].encode("utf-8"), backend=default_backend()
+                        )
+
                         model_hash = parts[1]
                         assignments: dict = ast.literal_eval(parts[2])
                         node_id: str = self.host.get_id()
+
                         for k, v in assignments.items():
                             if k == node_id:
                                 for chunk_cid in v:
-                                    logger.debug(
-                                        f"Training of chunk {chunk_cid} started...."
+
+                                    msg = f"Training of chunk {chunk_cid} started...."
+                                    logger.debug(msg)
+                                    self.submit_hcs_message(msg)
+
+                                    weights_url = self.ml_trainer.train_on_chunk(
+                                        chunk_cid, model_hash, self.send_channel
                                     )
-                                    weights = self.ml_trainer.train_on_chunk(
-                                        chunk_cid, model_hash
-                                    )
-                                    if weights:
+                                    if weights_url:
+                                        # Split weights url in 3 parts and encrypt them
+                                        url_size = len(weights_url) // 3
+                                        part1 = weights_url[:url_size]
+                                        part2 = weights_url[url_size : 2 * url_size]
+                                        part3 = weights_url[2 * url_size :]
+
+                                        cipher1 = self.client_public_key.encrypt(
+                                            part1,
+                                            padding.OAEP(
+                                                mgf=padding.MGF1(
+                                                    algorithm=hashes.SHA256()
+                                                ),
+                                                algorithm=hashes.SHA256(),
+                                                label=None,
+                                            ),
+                                        )
+
+                                        cipher2 = self.client_public_key.encrypt(
+                                            part2,
+                                            padding.OAEP(
+                                                mgf=padding.MGF1(
+                                                    algorithm=hashes.SHA256()
+                                                ),
+                                                algorithm=hashes.SHA256(),
+                                                label=None,
+                                            ),
+                                        )
+
+                                        cipher3 = self.client_public_key.encrypt(
+                                            part3,
+                                            padding.OAEP(
+                                                mgf=padding.MGF1(
+                                                    algorithm=hashes.SHA256()
+                                                ),
+                                                algorithm=hashes.SHA256(),
+                                                label=None,
+                                            ),
+                                        )
+
                                         self.publish_on_chain(
                                             int(self.subscribed_topics[-1]),
-                                            str(weights),
-                                        )
-                                        await self.pubsub.publish(
-                                            self.training_topic,
-                                            f"weights {node_id} {weights}".encode(),
+                                            base64.b64encode(cipher1).decode("utf-8"),
+                                            base64.b64encode(cipher2).decode("utf-8"),
+                                            base64.b64encode(cipher3).decode("utf-8"),
                                         )
                                     else:
-                                        logger.error(
+                                        msg = (
                                             f"No weights returned for chunk {chunk_cid}"
                                         )
-                                await self.pubsub.unsubscribe(parts[1])
+                                        logger.error(msg)
+                                        self.submit_hcs_message(msg)
+
+                                msg = "Training on all assigned chunks: Completed"
+                                logger.info(msg)
+                                self.submit_hcs_message(msg)
+
                                 await self.pubsub.publish(
-                                    parts[1], "Left as a TRAINER self".encode()
+                                    self.training_topic, "Left as a TRAINER".encode()
                                 )
+                                await self.pubsub.unsubscribe(self.training_topic)
 
                     if cmd == "join" and len(parts) > 1:
                         if self.role != "trainer":
-                            logger.error(
-                                "Only TRAINER nodes can participate in the training sequence"
-                            )
+                            msg = "Only TRAINER nodes can participate in the training sequence"
+                            logger.error(msg)
+                            self.submit_hcs_message(msg)
+
                             continue
 
                         # TODO: Lets not have the trainer self join in more than 1 training rounds
                         # or perhaps we do?
                         if self.is_subscribed:
-                            logger.error(
-                                f"Already subscribed to topic: {self.training_topic}"
-                            )
+                            msg = f"Already subscribed to topic: {self.training_topic}"
+                            logger.error(msg)
+                            self.submit_hcs_message(msg)
+
                             continue
 
                         subscription = await self.pubsub.subscribe(parts[1])
@@ -373,15 +500,19 @@ class Node:
                         self.is_subscribed = True
                         self.training_topic = parts[1]
 
-                        logger.info("Starting the random peer selection sequence")
+                        msg = "Starting the random peer selection sequence"
+                        logger.info(msg)
+                        self.submit_hcs_message(msg)
+
                         await trio.sleep(2)
 
                         # Fetch the bootmesh
                         peers = self.mesh.get_bootstrap_mesh().get(parts[1], [])
                         if not peers:
-                            logger.error(
-                                f"No peers available in {parts[1]} mesh to connect to"
-                            )
+                            msg = f"No peers available in {parts[1]} mesh to connect to"
+                            logger.error(msg)
+                            self.submit_hcs_message(msg)
+
                             continue
 
                         for peer in peers:
@@ -395,9 +526,10 @@ class Node:
                             peer_maddr = chosen_peer["pub_maddr"]
                         else:
                             peer_maddr = chosen_peer["maddr"]
-                        logger.info(
-                            f"Selected random peer for connection:\n {peer_maddr}"
-                        )
+
+                        msg = f"Selected random peer for connection:\n {peer_maddr}"
+                        logger.info(msg)
+                        self.submit_hcs_message(msg)
 
                         # Now connect
                         try:
@@ -405,11 +537,15 @@ class Node:
                             info = info_from_p2p_addr(maddr)
 
                             await self.host.connect(info)
-                            logger.info(
-                                f"Connected to {info.peer_id} in {parts[1]} mesh"
-                            )
+
+                            msg = f"Connected to {info.peer_id} in {parts[1]} mesh"
+                            logger.info(msg)
+                            self.submit_hcs_message(msg)
+
                         except Exception:
-                            logger.error(f"Failed to connect to peer {peer_maddr}: e")
+                            msg = f"Failed to connect to peer {peer_maddr}: e"
+                            logger.error(msg)
+                            self.submit_hcs_message(msg)
 
                         await self.pubsub.publish(
                             parts[1], "Joined as a TRAINER node".encode()
@@ -422,7 +558,10 @@ class Node:
                             )
 
                             await self.pubsub.unsubscribe(parts[1])
-                            logger.info(f"Unsubscribed from [{parts[1]}] mesh")
+
+                            msg = f"Unsubscribed from [{parts[1]}] mesh"
+                            logger.info(msg)
+                            self.submit_hcs_message(msg)
 
                         if self.role == "client":
                             await self.pubsub.publish(
@@ -431,9 +570,10 @@ class Node:
                             )
 
                             await self.pubsub.unsubscribe(parts[1])
-                            logger.info(
-                                f"Terminating the training rounf in [{parts[1]}] mesh"
-                            )
+
+                            msg = f"Terminating the training rounf in [{parts[1]}] mesh"
+                            logger.info(msg)
+                            self.submit_hcs_message(msg)
 
                         self.subscribed_topics.remove(parts[1])
                         self.is_subscribed = False
@@ -543,7 +683,7 @@ class Node:
                             logger.debug(f"BOOTSTRAP: {decoded_message}")
 
                     elif decoded_message.startswith("assign"):
-                        cmds = decoded_message.strip().split(" ", 2)
+                        cmds = decoded_message.strip().split(" ", 3)
                         await self.send_channel.send(cmds)
                     # General message
                     else:

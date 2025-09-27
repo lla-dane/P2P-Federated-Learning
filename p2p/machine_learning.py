@@ -33,7 +33,7 @@ class MLTrainer:
             assignments[node].append(chunk_url)
         return assignments
 
-    def train_on_chunk(self, chunk_url: str, model_url: str) -> any:
+    async def train_on_chunk(self, chunk_url: str, model_url: str, send_channel) -> any:
         """
         Download a dataset chunk and model from URLs, execute the model with exec(),
         clean up temporary files, and return the model weights.
@@ -50,31 +50,46 @@ class MLTrainer:
             os.remove(model_file)
 
         try:
-            self.akave_client.download_file_from_url(chunk_url, dataset_file)
-            self.akave_client.download_file_from_url(model_url, model_file)
+            await self.akave_client.download_file_from_url(
+                chunk_url, dataset_file, send_channel
+            )
+            await self.akave_client.download_file_from_url(
+                model_url, model_file, send_channel
+            )
 
             # Read model file and exec it
             with open(model_file, "r") as f:
                 model_code = f.read()
 
             local_vars = {}
-            logger.info("Starting training of model...")
+
+            msg = "Starting training of model..."
+            logger.info(msg)
+            await send_channel.send(["send-hcs", msg])
+
             exec(model_code, {}, local_vars)
 
             # Expect the model to define 'model_weights' variable
             if "model_weights" not in local_vars:
-                raise ValueError(
+                msg = (
                     "Model script must define 'model_weights' variable after execution"
                 )
+                await send_channel.send(["send-hcs", msg])
+                raise ValueError(msg)
 
-            logger.info("Training completed. Uploading weights.")
+            msg = "Training completed. Uploading weights."
+            logger.info(msg)
+            await send_channel.send(["send-hcs", msg])
+
             weights = local_vars["model_weights"]
 
             self.akave_client.upload_string(str(weights))
             return self.akave_client.urls[-1]
 
         except Exception as e:
-            logger.error(f"exception : {e} ")
+            msg = f"exception : {e} "
+            logger.error(msg)
+            await send_channel.send(["send-hcs", msg])
 
         finally:
             if os.path.exists(model_file):
