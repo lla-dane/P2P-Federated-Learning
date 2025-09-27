@@ -94,8 +94,8 @@ contract FederatedTrainingReward {
     event Withdrawn(address indexed who, uint256 amount);
 
     /// @notice Create a new training task and deposit reward funds.
-    /// @param modelUrl IPFS hash of the model (string)
-    /// @param datasetUrl IPFS hash of the dataset (string)
+    /// @param modelUrl akave url of the model (string)
+    /// @param datasetUrl akave url of the dataset (string)
     /// @param numChunks Number of chunks the dataset is divided into (must be > 0)
     /// Requirements: msg.value must be > 0 and divisible by numChunks to ensure exact per-chunk reward.
     function createTask(
@@ -132,13 +132,13 @@ contract FederatedTrainingReward {
         return taskId;
     }
 
-    /// @notice Trainer submits final weights (IPFS hash) for a task and claims the per-chunk reward.
+    /// @notice Trainer submits final weights (Encrypted url hash) for a task and claims the per-chunk reward.
     /// Rewards are paid out immediately if the transfer succeeds,
     /// otherwise credited to pendingWithdrawals which can be withdrawn with withdrawPending().
     /// @param taskId The id of the task
-    /// @param weight_hash_1 IPFS hash of the published weights
-    /// @param weight_hash_2 IPFS hash of the published weights
-    /// @param weight_hash_3 IPFS hash of the published weights
+    /// @param weight_hash_1 Encrypted url hash of the published weights
+    /// @param weight_hash_2 Encrypted url hash of the published weights
+    /// @param weight_hash_3 Encrypted url hash of the published weights
     function submitWeights(
         uint256 taskId,
         string calldata weight_hash_1,
@@ -161,11 +161,6 @@ contract FederatedTrainingReward {
             pendingWithdrawals[msg.sender] += reward;
         }
 
-        if (t.remainingChunks == 0){
-            emit TaskCompleted(taskId);
-            tasks[taskId].exists=false;
-        }
-        
         emit WeightsSubmitted(
             taskId,
             msg.sender,
@@ -175,6 +170,12 @@ contract FederatedTrainingReward {
             reward,
             t.remainingChunks
         );
+
+        if (t.remainingChunks == 0){
+            emit TaskCompleted(taskId);
+            tasks[taskId].exists=false;
+        }
+        
     }
 
     /// @notice Withdraw any pending balance credited to the caller (e.g., failed transfers)
