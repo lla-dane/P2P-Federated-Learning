@@ -134,6 +134,7 @@ These instructions will help you get a copy of the project up and running on you
 - The frontend decrypts the URL so that only the ML user has access to the final weights.
 
 
+<<<<<<< HEAD
 
 
 ## P2P network demo:
@@ -292,6 +293,8 @@ ssh -i "Desktop/libp2p/P2P-Federated-Learning/aws-keys/p2p-1.pem" ubuntu@ec2-35-
 
 ```
 
+=======
+>>>>>>> 42f2d48 (update Readme.md)
 # CLOUD API
 
 ```bash
