@@ -98,7 +98,9 @@ class Akave:
             logger.info("Bucket 'akave-bucket' created successfully!")
             logger.info(result.stdout)
         elif result.returncode != 254:
-            logger.info(f"Error occur while creating a bucket, Error Code is {result.returncode}")
+            logger.info(
+                f"Error occur while creating a bucket, Error Code is {result.returncode}"
+            )
         return True
 
     def get_presigned_url(
@@ -183,7 +185,9 @@ class Akave:
                     f.write(chunk)
             logger.info(f"File downloaded successfully: {save_path}")
         else:
-            logger.error(f"Failed to download file. Status code: {response.status_code}")
+            logger.error(
+                f"Failed to download file. Status code: {response.status_code}"
+            )
 
     def download_object(self, object_key: str) -> bool:
         command = [
@@ -258,7 +262,7 @@ class Akave:
                 logger.info("Error uploading string:")
                 logger.error(result.stderr)
                 return False
-  
+
             # 4. Generate presigned URL
             url = self.get_presigned_url(key)
             self.cids.append(key)

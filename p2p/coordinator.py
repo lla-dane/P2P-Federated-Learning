@@ -206,7 +206,15 @@ class Node:
         )
 
         try:
-            _ = transaction.execute(self.client)
+            receipt = transaction.execute(self.client)
+            print(
+                f"Message Submit Transaction completed: "
+                f"(status: {ResponseCode(receipt.status).name}, "
+                f"transaction_id: {receipt.transaction_id})"
+            )
+            print(
+                f"✅ Success! Message submitted to topic {self.hcs_topic_id}: {message}"
+            )
         except Exception as e:
             print(f"Log submission failed: {e}")
 
@@ -295,6 +303,7 @@ class Node:
                         self.is_subscribed = True
 
                     if cmd == "train" and len(parts) == 3:
+
                         dataset_hash, model_hash = parts[2].split(" ")
                         channel = parts[1]
                         nodes = self.mesh.get_channel_nodes(channel)
@@ -318,7 +327,9 @@ class Node:
                         for k, v in assignments.items():
                             if k == node_id:
                                 for chunk_cid in v:
-                                    logger.debug(f"Training of chunk {chunk_cid} started....")
+                                    logger.debug(
+                                        f"Training of chunk {chunk_cid} started...."
+                                    )
                                     weights = self.ml_trainer.train_on_chunk(
                                         chunk_cid, model_hash
                                     )
@@ -533,9 +544,6 @@ class Node:
 
                     elif decoded_message.startswith("assign"):
                         cmds = decoded_message.strip().split(" ", 2)
-                        logger.debug(
-                            f"Recevind training chunks from query_hcs_topic_messages(self.hcs_topic_id), {cmds}"
-                        )
                         await self.send_channel.send(cmds)
                     # General message
                     else:
