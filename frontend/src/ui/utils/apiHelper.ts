@@ -97,6 +97,7 @@ export const startFinalTraining = async (
     cmd: 'train',
     args: [payload.projectId, payload.datasetAndModelHashAndPublicKey],
   };
+  console.log([payload.projectId, payload.datasetAndModelHashAndPublicKey]);
   const response = await apiClient.post<TrainResponse>('/command', requestBody);
   return response.data && response.data.status === 'ok';
 };

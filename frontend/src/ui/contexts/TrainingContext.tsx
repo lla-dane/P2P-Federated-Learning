@@ -294,15 +294,21 @@ export const TrainingProvider = ({ children }: { children: ReactNode }) => {
       const spki = await crypto.subtle.exportKey("spki", publicKey);
       const publicPem: string = toPem(arrayBufferToBase64(spki), "PUBLIC");
 
+      let transformed=publicPem.replace("BEGIN PUBLIC KEY", "BEGIN#PUBLIC#KEY").replace("END PUBLIC KEY", "END#PUBLIC#KEY");
+      transformed = transformed.replace(/\n/g, "?");
+
+
+
+
       // Export private key (PKCS#8)
       const pkcs8 = await crypto.subtle.exportKey("pkcs8", privateKey);
       const privatePem = toPem(arrayBufferToBase64(pkcs8), "PRIVATE");
       // TODO: Store the private key
       const success = await startFinalTraining({
         projectId,
-        datasetAndModelHashAndPublicKey: `${result.datasetHash} ${result.modelHash} "absdf"`,
+        datasetAndModelHashAndPublicKey: `${result.datasetHash} ${result.modelHash} ${transformed}`,
       });
-      console.log("public key: ", publicPem)
+      console.log("public key: ", transformed)
 
       if (!success) {
         throw new Error('Backend did not confirm the training start command.');

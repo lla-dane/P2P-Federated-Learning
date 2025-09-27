@@ -178,10 +178,38 @@ UGZEMicBD7csvC4/iPHE6/FQmSaGSGH5GvacNiMGeBv6oyqRflAKiGZwu8ryPDu0
 Tj4WZxs8fcrPLecvhqxnOvL2rNzHoQpywKY59CwEYbIXZjZ18xIT9bmMK6f7vKOk
 NsgLF5J2DWd62dL3tBr7YYQ=
 -----END PRIVATE KEY-----`
-          const str1 = decryptMessage(event.weight_hash_1 as string,privateKeyPem)
-          const str2 = decryptMessage(event.weight_hash_2 as string,privateKeyPem)
-          const str3 = decryptMessage(event.weight_hash_3 as string,privateKeyPem)
+
+export async function fetchWeightsSubmittedEvent(
+  contractId: string,
+  taskId: string
+): Promise<string[] | null> {
+  // Wait a few seconds to allow the event to propagate to the mirror node
+  await new Promise((res) => setTimeout(res, 5000));
+
+  const url = `https://testnet.mirrornode.hedera.com/api/v1/contracts/${contractId.toString()}/results/logs?order=desc&limit=100`;
+  const foundWeights: string[] = [];
+
+  try {
+    const response = await axios.get(url);
+    const jsonResponse = response.data;
+    console.log(
+      `Found ${jsonResponse.logs.length} total event(s) for the contract.`
+    );
+
+    for (const log of jsonResponse.logs) {
+      console.log("log:", log)
+      try {
+
+        const event = decodeEvent('WeightsSubmitted', log);
+        console.log("event:",event)
+        if ((event.taskId as string).toString() === taskId) {
+          
+          const str1 = await decryptMessage(event.weight_hash_1 as string,privateKeyPem)
+          const str2 = await decryptMessage(event.weight_hash_2 as string,privateKeyPem)
+          const str3 = await decryptMessage(event.weight_hash_3 as string,privateKeyPem)
           foundWeights.push(`${str1}${str2}${str3}`);
+
+          
           console.log(
             `Found matching 'WeightsSubmitted' event for task ${taskId}:`,
             event
@@ -195,6 +223,9 @@ NsgLF5J2DWd62dL3tBr7YYQ=
           console.log(`Reward: ${event.rewardAmount}`);
         }
       } catch (err) {
+        console.log("error: ", err)
+        let ciphertext=`t6p8I5y2YzbaM8guYXthYrswKVVyVPq0pFtt6eqn9+Yz5/yaeSuCo2fwABRIxAyESaa/G/QgKTqssB8HDZ2+2za1qd+pvP0FxvLMDvugurTzo7uKe0B182GH7tY4S13UkkEk9A+kdT3BseOyuq6T0C/oOBpFZRzqBUAoYUht8NY5ooa96mCyoptfzQOwku1gCBBhNOdeVPW4Ft1sLnXA90NlPsQp1Rh2IcWR2SxPqGXaDQkLsnDBzSj5VAyLnHEmygjNkXCGNXA8afqVfdv0HnhIQlLTkm0D0v6awBt3gWXdWDLivr8h9qvSwGehL7MxOdL8KZLM2gmPOPlJiUgAlA==`
+        console.log("dasfea:",await decryptMessage(ciphertext,privateKeyPem))
         // This will catch errors from decodeEvent if the log is for a different event type.
         // We can safely ignore these and continue searching.
       }

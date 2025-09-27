@@ -87,7 +87,7 @@ const TrainingHistoryPage = () => {
           console.error(`Polling failed for job ${job.id}:`, error);
         }
       }
-    }, 20000);
+    }, 5000);
     return () => clearInterval(intervalId);
   }, [history]);
 
