@@ -408,9 +408,6 @@ class Node:
                         )
 
                     if cmd == "assign" and len(parts) == 4:
-                        # self.client_pub_key = serialization.load_pem_public_key(
-                        #     parts[3].encode("utf-8"), backend=default_backend()
-                        # )
                         pub_key = parts[2]
 
                         # Restore the PEM encoded public key
@@ -436,10 +433,7 @@ class Node:
                                     weights_url = await self.ml_trainer.train_on_chunk(
                                         chunk_cid, model_hash, self.send_channel
                                     )
-                                    print(weights_url)
                                     weights_url = str(weights_url).encode("utf-8")
-                                    print("\n\n\n\n\n")
-                                    print(weights_url)
 
                                     if weights_url:
                                         # Split weights url in 3 parts and encrypt them
@@ -480,13 +474,6 @@ class Node:
                                                 label=None,
                                             ),
                                         )
-
-                                        print("==============")
-                                        print(base64.b64encode(cipher1).decode("utf-8"))
-                                        print("\n\n")
-                                        print(base64.b64encode(cipher2).decode("utf-8"))
-                                        print("\n\n")
-                                        print(base64.b64encode(cipher3).decode("utf-8"))
 
                                         self.publish_on_chain(
                                             int(self.subscribed_topics[-1]),
