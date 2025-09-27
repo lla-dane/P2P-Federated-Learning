@@ -144,6 +144,16 @@ sudo lsof -i:8000
 kill -9 28197
 
 curl ifconfig.me
+
+aws configure --profile akave-o3
+AWS_ACCESS_KEY_ID=O3_X84UVYSPJINK5KI6L
+AWS_SECRET_ACCESS_KEY=TQ3xpl7PZIfqibvmMax2eDCaNQ4zL6iDSSzWWwiF
+akave-network
+json
+
+nano ~/.aws/config
+request_checksum_calculation = WHEN_REQUIRED  
+response_checksum_validation = WHEN_REQUIRED
 ```
 
 # EC2 connection

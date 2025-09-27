@@ -3,6 +3,8 @@ import base64
 import json
 import os
 import random
+import time
+from datetime import datetime, timezone
 from pathlib import Path
 
 import base58
@@ -39,7 +41,16 @@ from mesh_utils import Mesh
 from quart import jsonify, request
 from quart_trio import QuartTrio
 
-from hiero_sdk_python import AccountId, Client, Network, PrivateKey, ResponseCode
+from hiero_sdk_python import (
+    AccountId,
+    Client,
+    Network,
+    PrivateKey,
+    ResponseCode,
+    TopicCreateTransaction,
+    TopicMessageQuery,
+    TopicMessageSubmitTransaction,
+)
 from hiero_sdk_python.contract.contract_execute_transaction import (
     ContractExecuteTransaction,
 )
@@ -67,6 +78,9 @@ Available commands:
 - join <topic>                      - Subscribe to a topic
 - leave <topic>                     - Unsubscribe to a topic
 - publish <topic> <message>         - Publish a message
+- create-hcs                        - Start a HCS topic
+- send-hcs                          - Publish message to HCS topic
+- query                             - Query the HCS topic
 - topics                            - List of subscribed topics
 - mesh                              - Get the local mesh summary
 - bootmesh                          - Get the bootstrap mesh summary
@@ -150,6 +164,7 @@ class Node:
         # Send/Receive channels
         self.send_channel, self.receive_channel = trio.open_memory_channel(100)
         self.client = self.setup_client()
+        self.hcs_topic_id = None
         self.contract_id = ContractId.from_string(os.getenv("CONTRACT_ID"))
 
     def setup_client(self):
@@ -162,6 +177,75 @@ class Node:
         client.set_operator(operator_id, operator_key)
 
         return client
+
+    def create_hcs_topic(self):
+        logger.debug("Creating HCS topic")
+        operator_key = PrivateKey.from_string(self.operator_key)
+        try:
+            topic_tx = (
+                TopicCreateTransaction(
+                    memo=f"{self.host.get_id()}: Logs",
+                    admin_key=operator_key.public_key(),
+                )
+                .freeze_with(self.client)
+                .sign(operator_key)
+            )
+            topic_receipt = topic_tx.execute(self.client)
+            self.hcs_topic_id = topic_receipt.topic_id
+            logger.info("Created HCS topic for logs")
+
+        except Exception as e:
+            logger.error(f"Error: Creating topic: {e}")
+
+    def submit_hcs_message(self, message):
+        operator_key = PrivateKey.from_string(self.operator_key)
+        transaction = (
+            TopicMessageSubmitTransaction(topic_id=self.hcs_topic_id, message=message)
+            .freeze_with(self.client)
+            .sign(operator_key)
+        )
+
+        try:
+            receipt = transaction.execute(self.client)
+            print(
+                f"Message Submit Transaction completed: "
+                f"(status: {ResponseCode(receipt.status).name}, "
+                f"transaction_id: {receipt.transaction_id})"
+            )
+            print(
+                f"✅ Success! Message submitted to topic {self.hcs_topic_id}: {message}"
+            )
+        except Exception as e:
+            print(f"Log submission failed: {e}")
+
+    def query_hcs_topic_messages(self, topic_id):
+
+        def on_message_handler(topic_message):
+            print(f"TOPIC MESSAGE: {topic_message}")
+
+        def on_err_handler(e):
+            print(f"Subsription error: {e}")
+
+        query = TopicMessageQuery(
+            topic_id=topic_id,
+            start_time=datetime.now(timezone.utc),
+            limit=0,
+            chunking_enabled=True,
+        )
+
+        handle = query.subscribe(
+            self.client, on_message=on_message_handler, on_error=on_err_handler
+        )
+
+        print("Subscription started. Press Ctrl + C to cancel")
+        try:
+            while True:
+                time.sleep(10)
+        except KeyboardInterrupt:
+            print("Cancelling subscription")
+            handle.cancel()
+            handle.join()
+            print("Subscription cancelled. Exiting")
 
     def publish_on_chain(self, task_id, weights):
         receipt = (
@@ -199,7 +283,7 @@ class Node:
                     if cmd == "advertize" and len(parts) > 1:
                         # TODO: Lets not have the trainer self join in more than 1 training rounds
                         if self.role != "client":
-                            logger.warning(
+                            logger.error(
                                 "Training round can only be strated by a CLIENT node"
                             )
                             continue
@@ -209,7 +293,7 @@ class Node:
                         self.subscribed_topics.append(parts[1])
 
                         training_round_greet = (
-                            f"A new training round starting in [{parts[1]}] mesh"
+                            f"A new training round starting in [{parts[1]}] channel"
                         )
                         await self.pubsub.publish(
                             FED_LEARNING_MESH, training_round_greet.encode()
@@ -217,21 +301,21 @@ class Node:
 
                         self.training_topic = parts[1]
                         self.is_subscribed = True
-                    # train_ml channel dataset_hash model_hash
+
                     if cmd == "train" and len(parts) == 3:
+
                         dataset_hash, model_hash = parts[2].split(" ")
                         channel = parts[1]
                         nodes = self.mesh.get_channel_nodes(channel)
-                        logger.warning(f"current nodes are: {nodes}")
-                        logger.warning(f"current dataset_hash is: {dataset_hash}")
-                        logger.warning(f"current model_hash is: {model_hash}")
+                        logger.debug(f"Participating nodes are: {nodes}")
+                        logger.debug(f"The dataset_url is: {dataset_hash}")
+                        logger.debug(f"The model_url is: {model_hash}")
                         if not nodes:
-                            logger.warning(f"No nodes found for channel: {channel}")
+                            logger.error(f"No training nodes available in {channel}")
                             continue
                         assignments = self.ml_trainer.assign_chunks_to_nodes(
                             dataset_hash, nodes
                         )
-                        await self.pubsub.publish(parts[1], "hello".encode())
                         await self.pubsub.publish(
                             parts[1], f"assign {model_hash} {assignments}".encode()
                         )
@@ -239,12 +323,13 @@ class Node:
                     if cmd == "assign" and len(parts) == 3:
                         model_hash = parts[1]
                         assignments: dict = ast.literal_eval(parts[2])
-                        logger.info("Received assignments")
                         node_id: str = self.host.get_id()
                         for k, v in assignments.items():
                             if k == node_id:
                                 for chunk_cid in v:
-                                    logger.debug("training for chunk_cid started")
+                                    logger.debug(
+                                        f"Training of chunk {chunk_cid} started...."
+                                    )
                                     weights = self.ml_trainer.train_on_chunk(
                                         chunk_cid, model_hash
                                     )
@@ -258,16 +343,17 @@ class Node:
                                             f"weights {node_id} {weights}".encode(),
                                         )
                                     else:
-                                        logger.warning(
+                                        logger.error(
                                             f"No weights returned for chunk {chunk_cid}"
                                         )
+                                await self.pubsub.unsubscribe(parts[1])
                                 await self.pubsub.publish(
                                     parts[1], "Left as a TRAINER self".encode()
                                 )
 
                     if cmd == "join" and len(parts) > 1:
                         if self.role != "trainer":
-                            logger.warning(
+                            logger.error(
                                 "Only TRAINER nodes can participate in the training sequence"
                             )
                             continue
@@ -275,7 +361,7 @@ class Node:
                         # TODO: Lets not have the trainer self join in more than 1 training rounds
                         # or perhaps we do?
                         if self.is_subscribed:
-                            logger.warning(
+                            logger.error(
                                 f"Already subscribed to topic: {self.training_topic}"
                             )
                             continue
@@ -293,7 +379,7 @@ class Node:
                         # Fetch the bootmesh
                         peers = self.mesh.get_bootstrap_mesh().get(parts[1], [])
                         if not peers:
-                            logger.warning(
+                            logger.error(
                                 f"No peers available in {parts[1]} mesh to connect to"
                             )
                             continue
@@ -309,7 +395,7 @@ class Node:
                             peer_maddr = chosen_peer["pub_maddr"]
                         else:
                             peer_maddr = chosen_peer["maddr"]
-                        logger.debug(
+                        logger.info(
                             f"Selected random peer for connection:\n {peer_maddr}"
                         )
 
@@ -357,7 +443,16 @@ class Node:
 
                     if cmd == "publish" and len(parts) > 2:
                         await self.pubsub.publish(parts[1], parts[2].encode())
-                        logger.debug(f"Published: {parts[2]}")
+                        logger.info(f"Published: {parts[2]}")
+
+                    if cmd == "create-hcs":
+                        self.create_hcs_topic()
+
+                    if cmd == "send-hcs" and len(parts) > 1:
+                        self.submit_hcs_message(parts[1])
+
+                    if cmd == "query":
+                        await self.query_hcs_topic_messages(self.hcs_topic_id)
 
                     if cmd == "greet":
                         public_maddr = f"/ip4/{PUBLIC_IP}/tcp/{self.host.get_addrs()[0].value_for_protocol("tcp")}/p2p/{self.host.get_id()}"
@@ -445,14 +540,11 @@ class Node:
                                 mesh_summary = json.loads(decoded_message)
                                 self.mesh.bootstrap_mesh = mesh_summary
                         else:
-                            logger.info(f"BOOTSTRAP: {decoded_message}")
+                            logger.debug(f"BOOTSTRAP: {decoded_message}")
 
                     elif decoded_message.startswith("assign"):
-                        logger.debug(f"Decoded message: {decoded_message}")
                         cmds = decoded_message.strip().split(" ", 2)
-                        logger.debug(f"Recevind training chunks from client, {cmds}")
                         await self.send_channel.send(cmds)
-
                     # General message
                     else:
                         logger.info(f"{sender_id}: {message.data.decode('utf-8')}")
