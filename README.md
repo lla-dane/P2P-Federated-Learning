@@ -84,7 +84,7 @@ These instructions will help you get a copy of the project up and running on you
 - Competes with other trainers, creating a competitive pricing market.
 
 - ### Interfaces
-- You can train the model using the frontend GUI (**Graphical User Interface**) or by downloading the application deployed on [Link]().
+- You can train the model using the frontend GUI (**Graphical User Interface**) or by downloading the application deployed on [Link](https://eth-global-zeta.vercel.app/).
 - You can also use the public API provided (or host your own) for P2P info and use the CLI for training and uploading the dataset and model to decetralised storage 
     1. ##### API
     [Fed-Api](#Api's)
