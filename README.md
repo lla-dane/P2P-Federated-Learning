@@ -42,8 +42,26 @@ JWT_TOKEN=
 
 ### P2P Network
 Fire up a bootstrap node, client, or trainer:
+
+Populate the `.env` file in referece with the `.env.example`
+```env
+API_KEY=
+API_SECRET= 
+JWT_TOKEN=
+BOOTSTRAP_ADDR='/ip4/<IP-ADDRESS>/tcp/8000/p2p/QmXLkKS2Nw1v6N2sNjtzPQWMF2hrKtsHmKVfVG1ocN8FUV'
+BOOTSTRAP_PRIVATE_KEY=
+BOOTSTRAP_PUBLIC_KEY=
+IP=
+IS_CLOUD=
+OPERATOR_ID=
+OPERATOR_KEY=
+NETWORK=
+CONTRACT_ID=
+TOPIC_ID=
+```
+
 ```bash
-cd P2P-Federated-Learning
+cd P2P-Federated-Learning/
 python -m venv .venv 
 uv sync --all-extras
 cd p2p
