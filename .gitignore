@@ -212,3 +212,8 @@ aws-keys
 hardhat/node_modules/
 hiero_sdk_python/hapi
 .protos
+
+.env.bootstrap
+.env.client
+.env.trainer1
+.env.trainer2
