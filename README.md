@@ -1,139 +1,141 @@
 # P2P Federated Learning
 
-A **peer-to-peer federated learning platform** where **ML users** can train models affordably, and trainers with idle compute resources can monetize their CPUs/GPUs. Our infrstructure leverages **Hedera blockchain, Akave O3 decentralized storage,** and **py-libp2p** networking for trust, transparency, and efficiency.
+A new way to train machine learning models without owning your own compute resources.
 
----
+Our platform connects ML users, who want affordable model training, with trainers who have spare computing power lying idle (think gaming laptops or workstations with beefy GPUs).
 
-## Table of Contents
+By combining Hedera blockchain, Akave O3 decentralized storage, and py-libp2p networking, we make sure the whole process runs in a way that’s transparent, trustless, and cost-efficient.
 
-- [P2P Federated Learning](#p2p-federated-learning)
-- [Table of Contents](#table-of-contents)
-  - [Getting Started](#getting-started)
-    - [Prerequisites](#prerequisites)
-    - [Installation](#installation)
-  - [Usage](#usage)
-    - [Target Users](#target-users)
-    - [Interfaces](#interfaces)
-  - [Implementation Details](#implementation-details)
-    - [High-Level Flow](#high-level-flow)
-    - [Technologies Used](#technologies-used)
-    - [Architecture](#architecture)
-  - [Demo Video Link](#demo-video-link)
-  - [Api's](#Api's)
-  - [Frequently Asked Questions](#frequently-asked-questions)
-  - [Deployed Hedera Contract Address](#deployed-hedera-contract-address)
 
-## Getting Started
+# Table of Contents
 
-These instructions will help you get a copy of the project up and running on your local machine.
 
-### Prerequisites
 
-- #### Frontend
-  - Node.js
-  - React.js
-  - yarn
-- #### Akave O3 keys
-  - AWS_ACCESS_KEY_ID
-  - AWS_SECRET_ACCESS_KEY
-    
-    Get the  Akave O3 AWS creds from here: https://docs.akave.xyz/akave-o3/introduction/akave-environment/
+# Getting Started
 
-- #### Hedera Keys
-  - OPERATOR_ID
-  - OPERATOR_KEY
+Here’s how you can set things up locally and play with the platform.
 
-### Installation
+## Prerequisites  
 
-- ### Frontend
+- **Frontend stack**: Node.js, React.js, yarn  
+- **Akave O3 keys**: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`  
+  - Get your Akave creds here: [Akave O3 Docs](https://docs.akave.xyz/akave-o3/introduction/akave-environment/)  
+- **Hedera keys**: `OPERATOR_ID`, `OPERATOR_KEY`  
 
-  1. Clone the repository:
+## Installation
 
-     ```
-     git clone https://github.com/lla-dane/P2P-Federated-Learning.git
-     ```
+### Frontend Setup
 
-  2. Change to the project directory:
+```bash
+git clone https://github.com/lla-dane/P2P-Federated-Learning.git
+cd your-repository/frontend
+yarn
+```
 
-     ```
-     cd your-repository/frontend
-     ```
+Then create a `.env` file and add:
+```env
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+API_KEY=
+API_SECRET=
+JWT_TOKEN=
+``` 
 
-  3. Install the dependencies:
-
-     ```
-     yarn
-     ```
-
-  4. Populate env
-     ```
-      AWS_ACCESS_KEY_ID 
-      AWS_SECRET_ACCESS_KEY
-      API_KEY
-      API_SECRET
-      JWT_TOKEN
-     ```
-
-- ### P2P Network
-  1. Start the a `bootstrap/client/trainer`
-  ```
-  python p2p/runner.py
-  ```
+### P2P Network
+Fire up a bootstrap node, client, or trainer:
+```bash
+cd P2P-Federated-Learning
+python -m venv .venv 
+uv sync --all-extras
+cd p2p
+python runner.py
+```
 
 ## Usage
 
-- ### Target Users
-  **1. ML User (The Researcher/Builder)**
-- Wants to train ML models but lacks resources.
-- Easy onboarding with just a Hedera wallet (HashPack mobile app).
-- Simply upload dataset + model → receive trained weights ready for integration.
+### Target Users
 
-**2. Trainer (The Gamer/Compute Provider)**
+**1. ML Users**
+- They have got the data + model but not the compute.
+- Onboard with nothing more than a Hedera wallet (HashPack works great)
+- Upload your dataset and model → get back trained weights ready to plug in.
 
-- Has underutilized GPUs/CPUs (e.g., gaming rigs).
-- Earns money by contributing compute power to train ML models.
-- Competes with other trainers, creating a competitive pricing market.
+**2. Trainers (Gamers / Compute Providers)**
 
-- ### Interfaces
-- You can train the model using the frontend GUI (**Graphical User Interface**) or by downloading the application deployed on [Link]().
-- You can also use the public API provided (or host your own) for P2P info and use the CLI for training and uploading the dataset and model to decetralised storage
-  1. ##### API
-     [Fed-Api](#Api's)
-  1. ##### CLI
-     [Fed-Cli](./p2p/README.md)
+- They have got idle GPUs or CPUs just sitting around.
+- Turn that spare compute into income by training ML jobs.
+- Trainers compete, so pricing stays fair and efficient.
 
-## Implementation Details
+### Interfaces
+- **Frontend GUI** -> user-friendly training and dataset upload
+- **Public API** -> if you prefer command-line workflows or want to host your own orchestration node.
 
-- ### High-Level Flow
+## Implementation Details ⚙️
 
-1. The ML user uploads their model and dataset through the frontend.
-2. The dataset is split into chunks and each chunk is stored on Akave O3.
-3. The platform generates presigned URLs for the chunks and publishes the training task to the P2P network using those URLs.
-4. Trainer nodes compete to accept and run the training job using the chunk URLs.
-5. Hedera smart contracts manage escrow, payments and record task state (start, progress, completion) on-chain.
-6. Once training is complete, the resulting weights are uploaded to Akave O3 and the ML user receives encrypted presigned URL(s) to download the final model weights.
+### High-Level Flow
+
+- ML user uploads dataset + model.
+- Dataset is split into chunks and stored on Akave O3.
+- Each chunk gets a presigned URL, which is shared with the P2P network (no need to move heavy files around directly).
+- Trainer nodes fetch chunks, train locally, and upload results back to Akave O3.
+- Hedera smart contracts handle escrow, payments, and record progress transparently.
+- Final trained weights are returned as encrypted presigned URLs, accessible only to the ML user.
 
 - ### Architecture
   ![App Architecture](./images/app_arch.png)
   
-- ### Technologies Used
+### Akave O3
 
-  - **Frontend**
-    As we know sometimes ML model may take many hours and require more CPU resources to train the model effectively also on the another side there are users who have gaming laptops or high level of CPUs but do not have the opportunity to use this so we are making them meet in our platform. It is already proof that we can break the dataset into several chunks and user can simply average out the weight of the dataset. As the multiple trainer will compete for training the user will have to only pay the optimal fee for computing and also the trainer will get the benefit by getting reward in crypto.
-  - **Akave O3**
-    We are using two functionalities of Akave O3, one is akave O3 command line interface and another one is presigned URL. As frontend will break the dataset into chunks and the chunks would be uploaded to akave. We will make the presigned URL for the same. So that we can directly transfer this URL instead of transferring the huge file or dataset. After the trainer node will get the URL they can use this URL to get the dataset and model. And then train the model and publish it to the Akave and also make the presigned URL for the same and upload it to the blockchain in encrypted form
-  - **Hedera Blockchain**
-    We are currently using mainly 2 features of blockchain. First one is Smart Contract and second one is Consensus for audit logging of trainer nodes. When user will give the data and model to frontend. The frontend will call the function informing the start of new training round. And after the training had been done the encrypted weights url is published on blockchain and then frontend will do polling if task is completed or not and when it will get to know that all weights are uploaded it will fetch the encrypted url from the events emitted and then frontend will decrypt it and give to the user
+**We rely on two core features of Akave O3: its command-line interface and presigned URLs.**
+Here’s the flow: when an ML user uploads a dataset, the frontend automatically splits it into smaller chunks and stores them on Akave O3. Instead of broadcasting those large files directly across the P2P network, we generate presigned URLs for each chunk.
 
-    Another most important thing that we are using is Consensus mechainsm. As when trainer node will performing the training of data then the certains logs would be published on the Hedera topic describing the state of that trainer node. It is essential as it may happen due to memory issue or CPU issue the node may crash and we may not get the local logs therefore we are publishing it on topic to debug it
+Why does this matter? Because presigned URLs give us a lightweight, secure pointer to the data. That means:
+No massive payloads clogging up the P2P layer — we’re only passing URLs, not entire files.
+No credential sharing — trainers get temporary access tokens, not your permanent keys.
 
-  - **py-libp2p**
-    - Provides reliable **peer-to-peer communication** between nodes.
-    - Ensures decentralized **orchestration** of federated learning tasks.
+Scalability built-in — distributing URLs is trivial, even if the dataset is huge or hundreds of trainers are competing.
+
+Trainers simply fetch the chunks they need via these URLs, perform training locally, and then push the resulting weights back to Akave O3. They also generate presigned URLs for the new weights, which are then encrypted and published on-chain.
+This way, the heavy lifting of dataset and weight transfers happens over Akave O3’s storage layer, while our P2P + blockchain stack only needs to handle small, verifiable, trust-minimized references.
+
+
+### Hedera Blockchain
+
+We use two key features of the Hedera blockchain: Smart Contracts and the Consensus Service.
+
+- **Smart Contracts**:
+When a user submits their dataset and model through the frontend, a smart contract call marks the start of a new training round. Once training is complete, trainers upload the final weights to Akave O3 and publish an encrypted presigned URL on-chain. The frontend listens to contract events and, once it detects completion, fetches that encrypted URL, decrypts it, and delivers the final weights back to the ML user. This makes the entire process trustless and auditable.
+
+- **Consensus Service**:
+Training jobs don’t always go smoothly — a trainer’s GPU might overheat, memory might run out, or a node could just crash. To avoid losing visibility when this happens, trainer nodes stream their state logs to a Hedera Consensus Topic in real time. That way, even if a node goes offline, its activity trail is permanently preserved on-chain for debugging and accountability.
+
+Together, these features ensure not just decentralized payments and job orchestration, but also transparent auditing and fault tolerance baked into the platform itself.
+
+### P2P Network:
+We use py-libp2p to make the whole peer-to-peer part of the system actually work — bootstrapping, discovery, pubsub, and RPCs. Here’s how it plays out:
+
+- **Bootstrap Node**: We start with a fixed bootstrap address. The frontend queries this node to get a “mesh summary” — basically a snapshot of which client nodes are currently online.
+
+- **Client node as representative**: Instead of throwing the frontend directly into the swarm, we let it pick a client node from the mesh to act as its delegate inside the P2P network. This client is the bridge between the user and the rest of the swarm.
+
+- **Training round topic**: Once the user decides to train, the client creates a brand-new pubsub topic dedicated to that training round. Trainer nodes discover and join this topic through libp2p’s peer discovery mechanisms.
+
+- **Distributing data**: The frontend triggers an RPC call to the client, handing over presigned URLs for dataset chunks and the model script. The client then broadcasts those URLs into the training round mesh, so trainers can fetch only the chunks they’re assigned.
+
+- **Trainers do the heavy lifting**:Each trainer node:
+
+  - Pulls its dataset chunk via the presigned URL.
+  - Trains locally on that data.
+  - Uploads the resulting weights back to Akave O3.
+  - Generates a presigned URL for those weights.
+  - Encrypts the URL with the ML user’s public key.
+  - Publishes the encrypted URL on Hedera.
+
+
 
 ## Demo Video Link
 
-**Click [here](https://www.loom.com/share/49afb7fc3a29451482d053b8bf19aa62)** to see a working **demo!**
+Go here **https://www.loom.com/share/49afb7fc3a29451482d053b8bf19aa62** to see a working demo
 
 ## API's
 
@@ -153,29 +155,7 @@ curl -X POST http://localhost:9000/command \
 curl http://localhost:9000/status
 ```
 
-## Frequently Asked Questions
-
-**Q1: Are the weights authentic?**
-
-- Only authorized account addresses can publish weights.
-- Malicious trainers risk losing their stake if they attempt to submit fraudulent weights.
-
-- Future Enhancements:
-  - Mandatory Trusted Execution Environments (TEE) for trainers.
-  - Introduction of Validator Nodes to verify the authenticity of published weights.
-
-**Q2: Why not just use AWS instances?**
-
-- Requires prior knowledge of cloud setup.
-- Our trainer-competition model ensures lower costs compared to AWS.
-
-**Q3: Are the dataset and model exposed during training?**
-
-- No. Only encrypted presigned URLs of dataset chunks are published to the Hedera network.
-- When weights are published on Hedera, the URL is stored in encrypted form.
-- The frontend decrypts the URL so that only the ML user has access to the final weights.
-
 ## Deployed Hedera Contract Address
 
-- ContractId: 0.0.6917091
-- TopicId (Used for logging): 0.0.6914391
+#### ContractId: 0.0.6917091
+#### TopicId (Hereda Consensus Service): 0.0.6914391
