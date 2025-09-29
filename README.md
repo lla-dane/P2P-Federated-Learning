@@ -6,10 +6,9 @@ Our platform connects ML users, who want affordable model training, with trainer
 
 By combining Hedera blockchain, Akave O3 decentralized storage, and py-libp2p networking, we make sure the whole process runs in a way that’s transparent, trustless, and cost-efficient.
 
+## Demo Video Link
 
-# Table of Contents
-
-
+https://www.loom.com/share/49afb7fc3a29451482d053b8bf19aa62
 
 # Getting Started
 
@@ -130,12 +129,6 @@ We use py-libp2p to make the whole peer-to-peer part of the system actually work
   - Generates a presigned URL for those weights.
   - Encrypts the URL with the ML user’s public key.
   - Publishes the encrypted URL on Hedera.
-
-
-
-## Demo Video Link
-
-Go here **https://www.loom.com/share/49afb7fc3a29451482d053b8bf19aa62** to see a working demo
 
 ## API's
 
