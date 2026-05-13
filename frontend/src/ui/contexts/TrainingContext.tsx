@@ -6,6 +6,8 @@ import {
   useEffect,
   useRef,
 } from 'react';
+import path  from 'path';
+import fs from 'fs';
 import { toast } from 'sonner';
 import { useSettings } from './SettingsContext';
 import {
@@ -160,7 +162,7 @@ export const TrainingProvider = ({ children }: { children: ReactNode }) => {
         datasetPath
       );
 
-      toast.loading('Uploading model to Akave...', {
+      toast.loading('Uploading model to storage...', {
         id: activeToastId.current,
       });
       const modelHash = await uploadFileToAkave(modelPath);
@@ -169,6 +171,31 @@ export const TrainingProvider = ({ children }: { children: ReactNode }) => {
         id: activeToastId.current,
       });
       setResult({ datasetHash, chunkCount, modelHash });
+
+      console.log(datasetHash);
+      console.log(modelHash);
+
+      const content = `
+      datasetHash=${datasetHash}
+      modelHash=${modelHash}
+      `;
+
+      const blob = new Blob([content], {
+        type: "text/plain",
+      });
+
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "p2p-fed.txt";
+
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+
+      URL.revokeObjectURL(url);
+
       setCurrentPhase('payment');
     } catch (error) {
       console.error(error);

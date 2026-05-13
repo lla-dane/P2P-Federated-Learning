@@ -158,3 +158,34 @@ curl -X POST http://localhost:9000/command \
 
 curl http://localhost:9000/status
 ```
+
+```
+# Initialize the trainign round 
+curl -X POST http://13.201.43.195:9000/command \
+  -H "Content-Type: application/json" \
+  -d '{
+    "cmd": "advertize",
+    "args": ["101"]
+  }'
+
+curl -X POST http://13.201.43.195:9000/command \
+  -H "Content-Type: application/json" \
+  -d '{
+    "cmd": "train",
+    "args": [
+        "101",
+        "",
+        ""
+        ]
+  }'
+
+curl -X POST http://13.201.43.195:9000/command \
+  -H "Content-Type: application/json" \
+  -d '{
+    "cmd": "train",
+    "args": [
+        "101",
+        "https://o3-rc2.akave.xyz/akave-bucket/61ab4620b50e75aacae71f3738b225e34c7cd9543adb4afd89cebf24b37cd8e4?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=O3_X84UVYSPJINK5KI6L%2F20260513%2Fakave-network%2Fs3%2Faws4_request&X-Amz-Date=20260513T154155Z&X-Amz-Expires=86400&X-Amz-SignedHeaders=host&X-Amz-Signature=a4cc58b598e48cc41b210c0f7deaaea162a57bde049a9b73d4b6af3c924a1caa https://o3-rc2.akave.xyz/akave-bucket/9f46ab391532a7c3454cc97ac80a4ab2c52b372f8664072a41070f831d617978?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=O3_X84UVYSPJINK5KI6L%2F20260513%2Fakave-network%2Fs3%2Faws4_request&X-Amz-Date=20260513T154158Z&X-Amz-Expires=86400&X-Amz-SignedHeaders=host&X-Amz-Signature=bd7e9c029e5b8f92d627cbfe63d8da84d816b26b6630776b7085eb5ca61b15a3 -----BEGIN#PUBLIC#KEY-----?MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA3j3T45jqsaVD9cCEWHmz\njlpUBwY5TtAPyTOcVryQpHpNYpd/wS8g5LwnJPM0/4/J+8sIuWxBiFsmjoSETc6V\npTE1adnIzrY6H4Qbl7YerMNMwE2Q1DzQ6w1KsdiGSgEtzAUgAIq8sDqIQ/xxRdgL\ndKb1X7bwO3rK6QDVaJZ2oibS4xiS1+rslTJlW4MESzKLzWaU7ugnJ+VRaumQ/XrC\nKlFsg7lFwirDSkYG7cA9cLl8lzNpZJfjoWbUnpKPOTTUslMVVUdRS/jwhVE4LTxS\nWBBXaRuB52jj7N+XKUHu1/cTJvmLaTBo+VMV+MjzKcmqBnmUaHt0WFVIHSCXjqEU\nYQIDAQAB?-----END#PUBLIC#KEY-----"
+        ]
+  }'
+```

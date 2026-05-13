@@ -327,6 +327,7 @@ class Node:
                         self.is_subscribed = True
 
                     if cmd == "train" and len(parts) == 3:
+                        print("train happened")
                         dataset_hash, model_hash, pub_key = parts[2].split(" ")
                         channel = parts[1]
 
@@ -414,12 +415,12 @@ class Node:
                                             ),
                                         )
 
-                                        self.publish_on_chain(
-                                            int(self.subscribed_topics[-1]),
-                                            base64.b64encode(cipher1).decode("utf-8"),
-                                            base64.b64encode(cipher2).decode("utf-8"),
-                                            base64.b64encode(cipher3).decode("utf-8"),
-                                        )
+                                        # self.publish_on_chain(
+                                        #     int(self.subscribed_topics[-1]),
+                                        #     base64.b64encode(cipher1).decode("utf-8"),
+                                        #     base64.b64encode(cipher2).decode("utf-8"),
+                                        #     base64.b64encode(cipher3).decode("utf-8"),
+                                        # )
                                     else:
                                         msg = (
                                             f"No weights returned for chunk {chunk_cid}"

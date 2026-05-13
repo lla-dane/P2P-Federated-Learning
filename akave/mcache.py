@@ -132,8 +132,8 @@ class Akave:
         try:
             result = subprocess.run(command, capture_output=True, text=True, check=True)
             presigned_url = result.stdout.strip()
-            logger.info("Presigned URL generated successfully:")
-            logger.info(presigned_url)
+            logger.info("Presigned URL generated successfully:\n")
+            print(presigned_url)
             return presigned_url
         except subprocess.CalledProcessError as e:
             logger.info("Error generating presigned URL:")
