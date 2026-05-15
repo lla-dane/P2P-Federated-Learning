@@ -23,6 +23,7 @@ class Ipfs:
 
     def __init__(self):
         self.client = Pinata(API_KEY, API_SECRET, ACCESS_TOKEN)
+        self.gateway = GATEWAY
         self.cids = []
 
     def upload_file(self, file_path: str) -> bool:
@@ -54,7 +55,7 @@ class Ipfs:
                 os.remove(temp_file_path)
 
     def fetch_file(self, cid: str) -> str:
-        url = f"https://{GATEWAY}/ipfs/{cid}"
+        url = f"https://{self.gateway}/ipfs/{cid}"
         try:
             response = requests.get(url, timeout=20)
             response.raise_for_status()  # raise if status != 200

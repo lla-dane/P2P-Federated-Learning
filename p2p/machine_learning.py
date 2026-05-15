@@ -3,6 +3,8 @@ import sys
 
 import requests
 
+from ipfs_pinata.mcache import Ipfs
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from akave.mcache import Akave
@@ -14,6 +16,8 @@ logger = setup_logging("ml")
 class MLTrainer:
     def __init__(self):
         self.akave_client = Akave()
+        self.pinata_client = Ipfs()
+        
 
     def assign_chunks_to_nodes(self, dataset_url: str, nodes: list) -> dict:
         """
@@ -84,6 +88,11 @@ class MLTrainer:
             weights = local_vars["model_weights"]
 
             self.akave_client.upload_string(str(weights))
+            
+            # upload to ipfs-pinata
+            if self.pinata_client.upload_string(str(weights)):
+                logger.info(f"Weights uploaded to pinata: {self.pinata_client.cids[-1]}")
+            
             return self.akave_client.urls[-1]
 
         except Exception as e:

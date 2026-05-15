@@ -2,7 +2,7 @@ import uuid
 
 import pytest
 
-from pinata_ipfs.mcache import Ipfs
+from ipfs_pinata.mcache import Ipfs
 from logs import setup_logging
 
 logger = setup_logging("mcache_test")
