@@ -29,3 +29,5 @@ UGZEMicBD7csvC4/iPHE6/FQmSaGSGH5GvacNiMGeBv6oyqRflAKiGZwu8ryPDu0
 Tj4WZxs8fcrPLecvhqxnOvL2rNzHoQpywKY59CwEYbIXZjZ18xIT9bmMK6f7vKOk
 NsgLF5J2DWd62dL3tBr7YYQ=
 -----END PRIVATE KEY-----`;
+export const pinata_gatway = import.meta.env.VITE_PINATA_GATEWAY;
+export const pinata_jwt = import.meta.env.VITE_JWT;

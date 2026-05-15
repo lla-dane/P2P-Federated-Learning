@@ -5,39 +5,38 @@ import {
   type ReactNode,
   useEffect,
   useRef,
-} from 'react';
-import path  from 'path';
-import fs from 'fs';
-import { toast } from 'sonner';
-import { useSettings } from './SettingsContext';
+} from "react";
+import { toast } from "sonner";
+import { useSettings } from "./SettingsContext";
 import {
   addTrainingHistory,
   updateTrainingHistoryItem,
-} from '../utils/historyHelper';
+} from "../utils/historyHelper";
 import {
   configureAkave,
   onAkaveProgress,
   uploadDatasetToAkave,
   uploadFileToAkave,
-} from '../utils/akaveHelpers';
+} from "../utils/akaveHelpers";
 import {
   fetchNetworkState,
   initializeTrainingRound,
   startFinalTraining,
-} from '../utils/apiHelper';
-import { ContractId, Hbar, TopicId } from '@hashgraph/sdk';
-import { ContractFunctionParameterBuilder } from '../services/contractFunctionParameterBuilder';
-import { useWalletInterface } from '../services/useWalletInterface';
-import { getTaskId } from '../utils/hederaHelper';
-import { data } from 'react-router-dom';
-import { CONTRACT_ID } from '../utils/constant';
+} from "../utils/apiHelper";
+import { ContractId, Hbar, TopicId } from "@hashgraph/sdk";
+import { ContractFunctionParameterBuilder } from "../services/contractFunctionParameterBuilder";
+import { useWalletInterface } from "../services/useWalletInterface";
+import { getTaskId } from "../utils/hederaHelper";
+import { data } from "react-router-dom";
+import { CONTRACT_ID, pinata_gatway, pinata_jwt } from "../utils/constant";
+import { PinataSDK } from "pinata";
 
 export type TrainingPhase =
-  | 'upload'
-  | 'assembling'
-  | 'payment'
-  | 'training'
-  | 'completed';
+  | "upload"
+  | "assembling"
+  | "payment"
+  | "training"
+  | "completed";
 
 interface ITrainingResult {
   datasetHash?: string;
@@ -60,7 +59,7 @@ interface ITrainingContext {
   uploadAssets: (
     projectName: string,
     datasetPath: string,
-    modelPath: string
+    modelPath: string,
   ) => Promise<void>;
   payAndInitialize: (tokenAmount: string) => Promise<string | number | void>;
   beginFinalTraining: () => Promise<string | number | void>;
@@ -71,13 +70,13 @@ export interface TrainerNodeInfo {
   peer_id: string;
   pub_maddr: string;
   maddr: string;
-  role: 'TRAINER' | 'CLIENT';
+  role: "TRAINER" | "CLIENT";
 }
 
 const TrainingContext = createContext<ITrainingContext | undefined>(undefined);
 
 export const TrainingProvider = ({ children }: { children: ReactNode }) => {
-  const [currentPhase, setCurrentPhase] = useState<TrainingPhase>('upload');
+  const [currentPhase, setCurrentPhase] = useState<TrainingPhase>("upload");
   const [isLoading, setIsLoading] = useState(false);
   const [trainerCount, setTrainerCount] = useState(0);
   const [activeJobId, setActiveJobId] = useState<string | null>(null);
@@ -86,18 +85,18 @@ export const TrainingProvider = ({ children }: { children: ReactNode }) => {
   const [projectName, setProjectName] = useState<string | null>(null);
   const [trainerNodes, setTrainerNodes] = useState<TrainerNodeInfo[]>([]);
   const activeToastId = useRef<string | number | null>(null);
-  const [projectId, setProjectId] = useState<string>('');
+  const [projectId, setProjectId] = useState<string>("");
   const { actions } = useWalletInterface();
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
-    if (currentPhase === 'assembling' && projectId) {
+    if (currentPhase === "assembling" && projectId) {
       const poll = async () => {
         try {
           const response = await fetchNetworkState();
-          if (response.status === 'ok' && response.bootmesh[projectId]) {
+          if (response.status === "ok" && response.bootmesh[projectId]) {
             const allPeers = response.bootmesh[projectId];
-            const trainers = allPeers.filter((peer) => peer.role === 'TRAINER');
+            const trainers = allPeers.filter((peer) => peer.role === "TRAINER");
 
             setTrainerCount(trainers.length);
             setTrainerNodes(
@@ -106,11 +105,11 @@ export const TrainingProvider = ({ children }: { children: ReactNode }) => {
                 pub_maddr: t.pub_maddr,
                 maddr: t.maddr,
                 role: t.role,
-              }))
+              })),
             );
           }
         } catch (error) {
-          console.error('Polling for trainers failed:', error);
+          console.error("Polling for trainers failed:", error);
           // Optional: stop polling on error
           // clearInterval(interval);
         }
@@ -136,12 +135,12 @@ export const TrainingProvider = ({ children }: { children: ReactNode }) => {
   const uploadAssets = async (
     projectName: string,
     datasetPath: string,
-    modelPath: string
+    modelPath: string,
   ) => {
     if (!isConfigured) {
-      toast.error('Configuration Required', {
+      toast.error("Configuration Required", {
         description:
-          'Please set credentials in Settings before starting a training.',
+          "Please set credentials in Settings before starting a training.",
       });
       return;
     }
@@ -152,22 +151,21 @@ export const TrainingProvider = ({ children }: { children: ReactNode }) => {
 
     setIsLoading(true);
     setResult(null);
-    activeToastId.current = toast.loading('Preparing to upload...');
+    activeToastId.current = toast.loading("Preparing to upload...");
 
     try {
-      toast.loading('Uploading dataset to Akave...', {
+      toast.loading("Uploading dataset to Akave...", {
         id: activeToastId.current,
       });
-      const { datasetHash, chunkCount } = await uploadDatasetToAkave(
-        datasetPath
-      );
+      const { datasetHash, chunkCount } =
+        await uploadDatasetToAkave(datasetPath);
 
-      toast.loading('Uploading model to storage...', {
+      toast.loading("Uploading model to storage...", {
         id: activeToastId.current,
       });
       const modelHash = await uploadFileToAkave(modelPath);
       console.log(datasetHash, modelHash);
-      toast.success('Upload to Akave successful!', {
+      toast.success("Upload to Akave successful!", {
         id: activeToastId.current,
       });
       setResult({ datasetHash, chunkCount, modelHash });
@@ -175,9 +173,53 @@ export const TrainingProvider = ({ children }: { children: ReactNode }) => {
       console.log(datasetHash);
       console.log(modelHash);
 
+      // PINATA IPFS UPLOAD
+      const pinata = new PinataSDK({
+        pinataJwt:
+          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiJmNDI1ZjUyMy1iNzgwLTQ0YzktYTBmYi04NTdkYTkyOWFlOTkiLCJlbWFpbCI6ImFiaGluYXZhZ2Fyd2FsbGE2QGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJwaW5fcG9saWN5Ijp7InJlZ2lvbnMiOlt7ImRlc2lyZWRSZXBsaWNhdGlvbkNvdW50IjoxLCJpZCI6IkZSQTEifSx7ImRlc2lyZWRSZXBsaWNhdGlvbkNvdW50IjoxLCJpZCI6Ik5ZQzEifV0sInZlcnNpb24iOjF9LCJtZmFfZW5hYmxlZCI6ZmFsc2UsInN0YXR1cyI6IkFDVElWRSJ9LCJhdXRoZW50aWNhdGlvblR5cGUiOiJzY29wZWRLZXkiLCJzY29wZWRLZXlLZXkiOiI0ZmI2MGRiZmQwYTI5MmY2NmJiMCIsInNjb3BlZEtleVNlY3JldCI6ImZiYjVmZDZlNDRiNTg1ZTAzMzY3ZjdiOTc0MjRiMzc4ODc5YWI3YjI2NzgyODgwNzE4NTVlYTA0ZDY4ZjdlMDQiLCJleHAiOjE4MTAyMTQ2OTR9.QHw-ZSPSs4l7q8YIx1ICmc4I3kE-3kaAQCEt_EHMQnU",
+        pinataGateway: pinata_gatway,
+      });
+
+      toast.loading("Uplaoding dataset to Pinata...", {
+        id: activeToastId.current,
+      });
+
+      // Upload dataset file
+      const datasetFile = new File(
+        [await fetch(datasetPath).then((r) => r.blob())],
+        "dataset",
+        { type: "application/octet-stream" },
+      );
+      const datasetUpload = await pinata.upload.public.file(datasetFile);
+      const datasetCID = datasetUpload.cid;
+
+      // Upload model file
+      const modelFile = new File(
+        [await fetch(modelPath).then((r) => r.blob())],
+        "model",
+        { type: "application/octet-stream" },
+      );
+      const modelUpload = await pinata.upload.public.file(modelFile);
+      const modelCid = modelUpload.cid;
+
+      toast.success("Pinata upload successful!", {
+        id: activeToastId.current,
+      });
+
+      
+
+      // ----------------
+
+      toast.success("Pinata upload successful!", {
+        id: activeToastId.current,
+      });
+
+      // NEW THING HERE
       const content = `
       datasetHash=${datasetHash}
       modelHash=${modelHash}
+      IPFS_datasetCID=${datasetCID}
+      IPFS_modelCID=${modelCid}
       `;
 
       const blob = new Blob([content], {
@@ -196,10 +238,12 @@ export const TrainingProvider = ({ children }: { children: ReactNode }) => {
 
       URL.revokeObjectURL(url);
 
-      setCurrentPhase('payment');
+      //----------------
+
+      setCurrentPhase("payment");
     } catch (error) {
       console.error(error);
-      toast.error('Upload Failed', {
+      toast.error("Upload Failed", {
         id: activeToastId.current,
         description: (error as Error).message,
       });
@@ -210,7 +254,7 @@ export const TrainingProvider = ({ children }: { children: ReactNode }) => {
 
   const payAndInitialize = async (tokenAmount: string) => {
     if (!result?.datasetHash || !result?.modelHash || !activeJobId) {
-      return toast.error('Missing required data to start training.');
+      return toast.error("Missing required data to start training.");
     }
 
     setIsLoading(true);
@@ -218,38 +262,38 @@ export const TrainingProvider = ({ children }: { children: ReactNode }) => {
 
     try {
       const params = new ContractFunctionParameterBuilder()
-        .addParam({ type: 'string', value: result.modelHash })
-        .addParam({ type: 'string', value: result.datasetHash })
-        .addParam({ type: 'uint256', value: result.chunkCount });
+        .addParam({ type: "string", value: result.modelHash })
+        .addParam({ type: "string", value: result.datasetHash })
+        .addParam({ type: "uint256", value: result.chunkCount });
 
       const transactionId = await actions.executeContractFunction(
         ContractId.fromString(CONTRACT_ID),
-        'createTask',
+        "createTask",
         params,
         10_000_000,
-        Hbar.fromString(tokenAmount)
+        Hbar.fromString(tokenAmount),
       );
 
-      console.log('Transaction ID from contract call:', transactionId);
+      console.log("Transaction ID from contract call:", transactionId);
 
       if (!transactionId) {
-        throw new Error('Transaction was not confirmed by the wallet.');
+        throw new Error("Transaction was not confirmed by the wallet.");
       }
 
       const projId = await getTaskId();
       setProjectId(projId);
 
-      console.log('Received project ID from contract:', projId);
+      console.log("Received project ID from contract:", projId);
 
-      toast.loading('Initializing training round on the network...', {
+      toast.loading("Initializing training round on the network...", {
         id: toastId,
       });
 
-      console.log('Initializing training round for project ID:', projId);
+      console.log("Initializing training round for project ID:", projId);
 
       const success = await initializeTrainingRound(projId);
       if (!success) {
-        throw new Error('Failed to initialize training round on the network.');
+        throw new Error("Failed to initialize training round on the network.");
       }
 
       await addTrainingHistory({
@@ -258,30 +302,30 @@ export const TrainingProvider = ({ children }: { children: ReactNode }) => {
         datasetHash: result.datasetHash,
         modelHash: result.modelHash,
         date: new Date().toISOString(),
-        status: 'Initialized',
+        status: "Initialized",
         weightsHash: null,
         isTrained: false,
       });
 
-      toast.success('Training round initialized successfully!', {
+      toast.success("Training round initialized successfully!", {
         id: toastId,
       });
 
-      setCurrentPhase('assembling');
+      setCurrentPhase("assembling");
     } catch (error) {
       console.error(error);
-      toast.error('Transaction Failed', {
+      toast.error("Transaction Failed", {
         id: toastId,
         description: (error as Error).message,
       });
-      setCurrentPhase('payment');
+      setCurrentPhase("payment");
     } finally {
       setIsLoading(false);
     }
   };
 
   function arrayBufferToBase64(buffer: any) {
-    let binary = '';
+    let binary = "";
     const bytes = new Uint8Array(buffer);
     const chunkSize = 0x8000; // avoid stack overflow for big buffers
 
@@ -295,66 +339,66 @@ export const TrainingProvider = ({ children }: { children: ReactNode }) => {
 
   // Wrap Base64 with PEM headers
   function toPem(base64: any, label: any) {
-    const lines = base64.match(/.{1,64}/g).join('\n');
+    const lines = base64.match(/.{1,64}/g).join("\n");
     return `-----BEGIN ${label} KEY-----\n${lines}\n-----END ${label} KEY-----`;
   }
 
   const beginFinalTraining = async () => {
     if (!result?.datasetHash || !result?.modelHash || !projectId) {
-      return toast.error('Missing asset hashes. Cannot start training.');
+      return toast.error("Missing asset hashes. Cannot start training.");
     }
 
     setIsLoading(true);
-    const toastId = toast.loading('Sending command to start final training...');
+    const toastId = toast.loading("Sending command to start final training...");
 
     try {
       const { publicKey, privateKey } = await crypto.subtle.generateKey(
         {
-          name: 'RSA-OAEP',
+          name: "RSA-OAEP",
           modulusLength: 2048,
           publicExponent: new Uint8Array([1, 0, 1]),
-          hash: 'SHA-256',
+          hash: "SHA-256",
         },
         true,
-        ['encrypt', 'decrypt']
+        ["encrypt", "decrypt"],
       );
-      const spki = await crypto.subtle.exportKey('spki', publicKey);
-      const publicPem: string = toPem(arrayBufferToBase64(spki), 'PUBLIC');
+      const spki = await crypto.subtle.exportKey("spki", publicKey);
+      const publicPem: string = toPem(arrayBufferToBase64(spki), "PUBLIC");
 
       let transformed = publicPem
-        .replace('BEGIN PUBLIC KEY', 'BEGIN#PUBLIC#KEY')
-        .replace('END PUBLIC KEY', 'END#PUBLIC#KEY');
-      transformed = transformed.replace(/\n/g, '?');
+        .replace("BEGIN PUBLIC KEY", "BEGIN#PUBLIC#KEY")
+        .replace("END PUBLIC KEY", "END#PUBLIC#KEY");
+      transformed = transformed.replace(/\n/g, "?");
 
       // Export private key (PKCS#8)
-      const pkcs8 = await crypto.subtle.exportKey('pkcs8', privateKey);
-      const privatePem = toPem(arrayBufferToBase64(pkcs8), 'PRIVATE');
+      const pkcs8 = await crypto.subtle.exportKey("pkcs8", privateKey);
+      const privatePem = toPem(arrayBufferToBase64(pkcs8), "PRIVATE");
       // TODO: Store the private key
       const success = await startFinalTraining({
         projectId,
         datasetAndModelHashAndPublicKey: `${result.datasetHash} ${result.modelHash} ${transformed}`,
       });
-      console.log('public key: ', transformed);
+      console.log("public key: ", transformed);
 
       if (!success) {
-        throw new Error('Backend did not confirm the training start command.');
+        throw new Error("Backend did not confirm the training start command.");
       }
 
-      await updateTrainingHistoryItem({ projectId, newStatus: 'Running' });
+      await updateTrainingHistoryItem({ projectId, newStatus: "Running" });
 
-      const topicId = TopicId.fromString('0.0.6914391');
+      const topicId = TopicId.fromString("0.0.6914391");
       window.electronAPI.startLogSubscription({
         projectId: projectId,
         topicId: topicId.toString(),
       });
 
-      toast.success('Training is now in progress on the network!', {
+      toast.success("Training is now in progress on the network!", {
         id: toastId,
       });
-      setCurrentPhase('training');
+      setCurrentPhase("training");
     } catch (error) {
       console.error(error);
-      toast.error('Failed to Start Training', {
+      toast.error("Failed to Start Training", {
         id: toastId,
         description: (error as Error).message,
       });
@@ -364,7 +408,7 @@ export const TrainingProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const resetTraining = () => {
-    setCurrentPhase('upload');
+    setCurrentPhase("upload");
     setResult(null);
     setTrainerCount(0);
     setActiveJobId(null);
@@ -394,7 +438,7 @@ export const TrainingProvider = ({ children }: { children: ReactNode }) => {
 export const useTraining = () => {
   const context = useContext(TrainingContext);
   if (!context) {
-    throw new Error('useTraining must be used within a TrainingProvider');
+    throw new Error("useTraining must be used within a TrainingProvider");
   }
   return context;
 };

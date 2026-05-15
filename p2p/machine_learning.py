@@ -17,7 +17,16 @@ class MLTrainer:
     def __init__(self):
         self.akave_client = Akave()
         self.pinata_client = Ipfs()
+        logger.info("Storage clients intiated!!")
         
+        # dataset_url = "https://o3-rc2.akave.xyz/akave-bucket/ff4ca4c38bf8f54c9411bf090df857e4b7714770ec3084b267b9f2f4de31f4f3?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=O3_X84UVYSPJINK5KI6L%2F20260515%2Fakave-network%2Fs3%2Faws4_request&X-Amz-Date=20260515T081140Z&X-Amz-Expires=86400&X-Amz-SignedHeaders=host&X-Amz-Signature=9c487efbfd0f3f8cfcf85fd0bcbbd0368aafa7a6e0bae8656e24c81d946b898c"
+        # manifest_content = requests.get(dataset_url, stream=True)
+        # if not manifest_content:
+        #     raise Exception("Failed to fetch dataset manifest from dataset_url.")
+
+        # chunk_urls = manifest_content.text.strip().split(",")
+        # logger.debug(f"Found {len(chunk_urls)} dataset chunks.")
+
 
     def assign_chunks_to_nodes(self, dataset_url: str, nodes: list) -> dict:
         """
